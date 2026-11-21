@@ -13,12 +13,12 @@ pdt = float(s["profile_step_s"])
 
 if sys.argv[1] == "series":      # first 16 pilot storms, depth at every receptor every 30 s
     out = {}
-    for c in (0, 8):
-        ii = np.arange(c, c + 8)
+    for c in (0,):               # one batch, so every storm shares one sample grid
+        ii = np.arange(16)
         o = simulate(z, op, dx, rc, s["profile"][ii], pdt, s["loss_mm_h"][ii], s["duration_s"][ii] + 1200, series_dt_s=30.0)
         for k in ("series", "peak_depth", "final_depth", "imbalance"):
             out.setdefault(k, []).append(o[k])
-        print(f"storms {c}..{c+7}: {o['wall_s']:.0f}s, max |imbalance| {np.abs(o['imbalance']).max():.1e}", flush=True)
+        print(f"storms 0..15: {o['wall_s']:.0f}s, max |imbalance| {np.abs(o['imbalance']).max():.1e}", flush=True)
     out = {k: np.concatenate(v) for k, v in out.items()}
     np.savez_compressed("results/pro/pilot_timeseries.npz", depth=out["series"], t_s=o["series_t_s"],
                         storm_index=np.arange(16), peak_depth=out["peak_depth"], final_depth=out["final_depth"],
