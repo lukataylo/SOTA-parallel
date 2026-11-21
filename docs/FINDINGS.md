@@ -1,4 +1,4 @@
-# Findings so far (Saturday 17:35)
+# Findings so far (Saturday 18:12)
 
 One page for anyone pulling the repository cold. Detail and timestamps are in `status/air.md` and `status/pro.md`. What to run next on the Pro is in `docs/PRO_PLAN.md`.
 
@@ -23,7 +23,8 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | Control is sparse in the fill model | 188 of 2,132 patch tests (9%) move any building's critical rainfall; one patch can move 29 of 32 at-risk buildings |
 | Survey error moves critical rainfall, in the fill model | 5 cm error: median spread 5.9 to 6.7 mm with a fixed reference level. Error confined to ground more than 5 m from any receptor still gives 21% |
 | Short-range error matters most; gentle tilts matter little | Threshold moving with the building's ground: 9.2 mm at 1 m, 9.7 at 3 m, 5.9 at 10 m, 3.1 at 30 m, 2.6 at 60 m. Threshold at a fixed level (overstates tilts): 4.3, 6.7, 6.1, 7.8, 11.5 |
-| Knowing 1% of the ground cuts that spread; random ground does not | Chosen from a 600-terrain ensemble: 40% cut on 100 unseen terrains (at the 40% line). Random 1%: 0%. 2% chosen: 51%. 5%: 59% |
+| Knowing 1% of the ground cuts that spread, **in the solver too (pilot)** | 8 terrains, 22 receptors: spread 4.83 mm with nothing known, 3.33 mm with the chosen 1% known; ratio 0.69 against a line of 0.75. Bootstrap interval 0.46 to 1.01, and no random arm yet. Full run in progress |
+| Knowing 1% of the ground cuts that spread; random ground does not (fill model) | Chosen from a 600-terrain ensemble: 40% cut on 100 unseen terrains (at the 40% line). Random 1%: 0%. 2% chosen: 51%. 5%: 59% |
 | A harm-free set of small changes exists; the naive set harms neighbours. **Confirmed in the solver** | Five 5 cm patches (125 m2): all 5 predicted beneficiaries fall by 1 cm or more (up to 13.6 cm) and no receptor rises by 1 cm (largest 0.95 cm). The naive set chosen by benefit alone raises water by 1 cm or more at 7 receptors. One design; two of its patches are within 2 m of the receptor they help |
 | An exact fast re-evaluation replaces a rebuild per patch (Bet 2) | `fill/sweep.py`: all 441,324 critical depths identical to brute force on the 2,132 patch tests; 20 to 31 ms per patch on one core. Speed-up 42x to 64x against the 1.3 s first measured, about 320x against brute force re-timed under the same load. A clean figure needs an idle machine |
 | A plain derivative does not work here | Extrapolating the local slope to 5 cm recovers 65% of active patches with 29% false alarms; 114 of 175 active pairs respond in one direction only, and 1,300 of 2,132 patches create or remove a pit |

@@ -1,5 +1,7 @@
 # Experiments for the MacBook Pro, Saturday evening
 
+**Updated 18:12.** Steps 1, 3 and 4 are done (the Air ran 3 and 4 when its GPU freed up). **Run next:** `uv run --with mlx --with numpy --with scipy python fill/bet1_solver_run.py full` (the Air is running the same list in reverse; about 3 hours shared), then step 2 (friction).
+
 Run these in order. Each is one command from the repository root, is resumable, and writes into `results/`. Commit and push results after each step, and put the numbers in `status/pro.md`. Background and pass lines: `docs/P1_CRITERIA.md`, `docs/BETS.md`, `docs/ABSORPTION.md`, `docs/mythos/6_decisions_after_research.md`.
 
 The Air is saturated (GPU and CPU), so the Pro is now the faster route for everything on the GPU.

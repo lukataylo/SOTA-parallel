@@ -22,6 +22,23 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 18:12 — Bet 1 solver pilot: PASSES its line (0.69 against 0.75), with a wide interval
+
+Run on the Air (`fill/bet1_solver_run.py pilot reverse`, 96 runs, all 16 files in `results/pro/bet1_pilot/`; produced on this machine). Scored by `fill/bet1_pilot_score.py`. Flooding judged against a fixed reference level, as in the fill-model test.
+
+| | Median spread of critical rain over 8 terrains | Mean |
+|---|---|---|
+| Nothing known | 4.83 mm | 4.98 mm |
+| The chosen 1% of ground known | 3.33 mm | 3.79 mm |
+| Ratio | **0.69** (line: at most 0.75) | 0.76 |
+
+- 22 receptors have a critical rain inside the six-level ladder (8 to 55 mm net) in at least 7 of 8 terrains in both arms; the result is over those. I set that inclusion rule when scoring, not before.
+- The spread fell for 14 of 22 receptors, and by half or more for 3.
+- **It is a pilot.** A bootstrap over terrains and receptors gives a ratio between 0.46 and 1.01 (5th to 95th percentile), so the interval reaches no effect. There is no random-ground arm in the pilot.
+- The solver's own spread with nothing known (4.8 mm) is close to the fill model's (5.9 mm).
+
+**Next:** the full run (30 terrains, 12 rain levels, three arms including random ground; 1,080 runs) is what settles it. Started on the Air in reverse order. **Pro agent: run `uv run --with mlx --with numpy --with scipy python fill/bet1_solver_run.py full` (forward) and the two machines will meet;** it is resumable and writes one file per terrain and arm into `results/pro/bet1_full/`. Do this before the friction test.
+
 ## Sat 17:45 — Bet 3 in the solver: PASSES. The harm-free design helps all five and harms none; the naive design raises water at seven
 
 Run on the Air with `fill/bet3_verify_run.py` once its GPU was free (9 runs). The file is `results/pro/bet3_verify.npz` because the script writes there; it was produced on this machine. Pro agent: skip step 3 of your plan, or run it as a cross-check.
