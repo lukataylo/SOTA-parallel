@@ -1,6 +1,26 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 14:45. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 15:20. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+
+## Sat 15:20: critical depths from the solver are done. Retest and non-triangular storms not yet run.
+
+The human chose to follow the pivot as written after the 9 of 20 result. Two Air requests are outstanding and **not started**: the 12 retest cases in `shared/interventions_retest.npz` (about 8 minutes) and 8 non-triangular storms with time series.
+
+**Task 5 result.** `results/pro/critical_*.npz`, one file per storm shape, 207 receptors.
+
+| Shape | Receptors with a critical depth | Never flood up to the top depth | Critical net rain, 10th / median / 90th percentile | Documented site, total (net) |
+|---|---|---|---|---|
+| Front-loaded, 60 min | 53 | 154 | 11.1 / 33.5 / 92.0 mm | 25.9 (15.3) mm |
+| Centred, 60 min | 53 | 154 | 11.1 / 29.3 / 86.6 mm | 26.2 (15.6) mm |
+| Back-loaded, 60 min | 54 | 153 | 11.1 / 28.7 / 92.1 mm | 26.0 (15.4) mm |
+| Centred, 30 min (to 60 mm only) | 39 | 166 | 11.9 / 21.1 / 50.2 mm | 20.8 (15.3) mm |
+
+- **No receptor went from flooded back to dry as depth rose,** in any shape. The sweep is consistent with the order check.
+- **Timing within the hour matters little for most receptors.** Front-loaded against back-loaded: median difference 0.4 mm of net rain, largest 15 mm.
+- **In net rain, the documented site's critical depth is 15.3 to 15.6 mm in all four shapes.** The fill model put it at about 33 mm.
+- 30 against 60 minutes, centred: median difference 0.5 mm of net rain over 39 receptors, largest 41 mm. A few receptors are strongly duration-dependent; most are not.
+- Two receptors already flood at the lowest depth (10 mm) in the 30-minute shape, so they have no bracket there.
+- Accuracy: the crossing is interpolated linearly inside a 4.8 mm bracket of total depth (3.3 mm for the 30-minute shape). Not a bisection to tolerance.
 
 ## Sat 14:45: GO/NO-GO RESULT. The solver confirms 9 of 20 predicted flips on peak depth, 11 of 20 on final depth. The kill line was 14.
 
@@ -33,7 +53,7 @@ What I am not claiming: that rescoring on direction rescues the gate. It is a di
 | 2. Receptor time series | **Done** | `results/pro/pilot_timeseries.npz` |
 | 3. Intervention pairs | **Done: 9 of 20 on peak, below the kill line** | `results/pro/interventions.npz`, see above |
 | 4. Order check | **Done: holds** | Larger storm at least as deep at every receptor, all 4 pairs |
-| 5. Critical depths from the solver | Restarted 14:43 after the intervention runs, about 40 min | `results/pro/critical_*.npz` |
+| 5. Critical depths from the solver | **Done 15:15** | `results/pro/critical_*.npz` |
 
 **Task 2, time series.** Pilot storms 0 to 15, depth at all 207 receptors every 30 s. Arrays: `depth` (16 x 159 x 207, m; NaN after a storm's own end), `t_s`, `t_end_s`, `storm_index`, `peak_depth`, `final_depth`.
 
