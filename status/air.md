@@ -1,5 +1,50 @@
 # Status: MacBook Air M4 agent
 
+## Sat 13:50 — PLAN-CHANGING FINDING: the fill step decides almost no whole storms when all 207 receptors must be decided
+
+Read this before continuing either brief. The numbers come from the fill model alone; the band is not yet measured against the solver, so they are a forecast, and an optimistic one.
+
+| Band around the 0.10 m threshold | Storm-receptor pairs undecided | Whole storms decided, all 207 receptors | 50 receptors | 10 receptors | 1 receptor |
+|---|---|---|---|---|---|
+| +-1 cm | 1.7% | 4% | 41% | 85% | 98% |
+| +-2 cm | 2.9% | 1% | 21% | 75% | 96% |
+| +-5 cm | 8.2% | 0% | 1% | 42% | 94% |
+
+(1,000 main storms; subsets are random draws of receptors; `fill/skip_curve.py`.)
+
+**What it means.** The fill step decides more than 90% of individual storm-receptor cases, but the solver simulates the whole domain, so a storm is skipped only when every receptor is decided. On this flat terrain a few receptors sit in wide shallow ponds whose level creeps up slowly with rain, so some receptor is near the threshold in almost every storm. With 207 receptors the end-to-end speedup from skipping storms would be about 1x.
+
+**What still works.** For a question about one asset, or a handful, the fill step decides most storms: 72 to 97% for the documented site alone, depending on the band.
+
+**Untested assumption inside these numbers.** 127 receptors never see any water in the fill model, and are counted as decided dry. Water flowing past them on a slope is exactly what the fill model cannot see. Only the solver can say whether that holds.
+
+**Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
+
+## Sat 13:48 — Job 2 done: volume bound on the real tile
+
+`fill/job2_bound.py`, results in `results/air/volume_bound.npz`.
+
+- The bound here uses rain over the whole open domain, which is an upper limit on any upstream catchment, and gives no credit for outflow or drains.
+- **It splits the receptors in two.** 114 of 207 have a bound above 120 mm, so the bound calls them dry in every storm. 33 have a bound under 2 mm, so it decides nothing for them. The median is 170 mm.
+- **It decides 59% of storm-receptor pairs and 0% of whole storms.**
+- No pair the fill model calls wet was called dry by the bound (0 conflicts), as expected since both rest on still water.
+- For 172 receptors the below-threshold region reaches the domain edge, where water would leave. The bound ignores that, which keeps it conservative for still water but says nothing about water in motion.
+
+Not yet checked against the solver. Until it is, this is a screen with an unmeasured miss rate.
+
+## Sat 13:42 — Job 3 done: batched partial fill built; oracle gate passed on cells, narrowly missed on doors
+
+`fill/fillmodel.py` (model), `fill/check_real.py`, `fill/check_oracle.py`.
+
+- **Real tile:** 9,811 basins. Terrain work takes 0.2 s once. All 1,000 main storms take 0.5 s on one CPU core. Water balance closes to 1 part in 10 million. Receptor depth never falls as rain increases.
+- **Oracle:** settled JAX solver on 12 synthetic streets, 7 rain depths, no gullies, 30 minutes of settling.
+  - Cell decisions (depth at least 5 cm): 99.1% agree over 181,440 cases. **Passes the 98% line.**
+  - Door decisions (interior wet): 97.8% agree over 672 cases, 15 mismatches. **Just under the 98% line.**
+  - Direction: 1,641 cells wet in the solver and dry in the fill model, against 18 the other way. Where either is wet, the solver sits a median 0.2 cm above the fill level (99th percentile 1.2 cm), because it is still draining.
+- **My reading:** the water levels agree to millimetres, so the implementation is right. The door mismatches are in the heaviest storms, where water overtops a threshold during the peak and stays inside. That is moving water riding above the still level, the known mechanism, and it is a miss direction. I continued with the fill model. I did not adjust anything after seeing this.
+- **Fill tier on the main set:** 11.5% of storm-receptor pairs are wet. 30 of 207 receptors ever reach the threshold. The documented site first reaches it at about 33 mm of net rain.
+- The speed comparison against a plain single-threaded version is not done; at 0.5 s for 1,000 storms it will not change the entry.
+
 ## Sat 13:45 — Job 1 done: shared inputs are committed
 
 The Pro agent can switch to these now. Built by `fill/make_shared.py`; picture in `shared/shared_preview.png`.
@@ -36,4 +81,4 @@ Storm arrays: `depth_mm`, `duration_s`, `profile` (storms x 60 rain rates in mm/
 
 ## Next
 
-Job 2: volume bound on the real tile, due 16:30.
+Waiting on the human decision above. Meanwhile: an independent small solver run on this machine to measure the band early, and the two literature checks.
