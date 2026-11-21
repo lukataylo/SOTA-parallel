@@ -1,6 +1,6 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 14:25. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 13:51. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
 ## Where things stand
 
@@ -10,7 +10,7 @@ Last updated: Sat 21 Nov, 14:25. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, M
 | Sat 20:00 checks 1 to 3 | **Passed** | JAX agreement 2.4e-6 m; mass imbalance at most 1.5e-5; lake at rest moves 0. |
 | Sat 20:00 check 5 | **Reported** | 1 m and 2 m agree on 96.8% of flooded-or-not decisions (above the 95% line). |
 | Check 4 (analytic case) | Not done yet | Will try if time allows after the pilot. |
-| Sat 22:00 pilot | Running since 14:22 | `results/pro/bruteforce_pilot.npz` expected about 14:45. |
+| Sat 22:00 pilot | Running since 13:47 | `results/pro/bruteforce_pilot.npz` expected about 14:10. |
 | Sat 23:30 main run | Not started | About 20 s per storm, so 1,000 storms is about 5.7 h. Feasible at 1 m, full set. |
 
 Now using `shared/terrain_512.npz`, `shared/receptors.npz` and `shared/storms_*.npz`. Rain goes on `open` cells at `max(profile - loss, 0)`, as `status/air.md` asks. Roof rain is not added.
