@@ -1,0 +1,190 @@
+<title>Flood Patch App Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone, centre stage. Inside it a single dark "wet asphalt" look with two street-works paints: water blue and survey pink. One huge numeral per screen. */
+:root { --bg: #ecebe6; --ink: #15171a; --muted: #5f646b; --line: #cfcdc5; --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; --mono: "DM Mono", ui-monospace, Menlo, monospace; --body: "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --asphalt: #0e0f11; --tar: #17191d; --seam: #2a2d33; --chalk: #f2efe6; --dust: #9a9da3; --water: #2f6bff; --water-deep: #173a9c; --paint: #ff3d8b; --go: #3ddc97; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #08090a; --ink: #f2efe6; --muted: #9a9da3; --line: #24272c; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #08090a; --ink: #f2efe6; --muted: #9a9da3; --line: #24272c; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 56px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 410px 1fr; gap: 44px; align-items: center; } .wrap > * { min-width: 0; }
+.side { display: flex; flex-direction: column; gap: 22px; }
+.eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(54px, 9vw, 96px); line-height: .86; letter-spacing: -.01em; text-transform: uppercase; margin: 0; }
+h1 em { font-style: normal; color: var(--water); }
+.side p { margin: 0; max-width: 40ch; color: var(--muted); }
+.keys { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.keys div { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; align-items: baseline; }
+.keys b { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+/* phone */
+.phone { background: #000; border-radius: 46px; padding: 10px; width: 100%; max-width: 410px; margin: 0 auto; box-shadow: 0 30px 60px -30px rgba(0,0,0,.55); }
+.screen { position: relative; background: var(--asphalt); color: var(--chalk); border-radius: 37px; overflow: hidden; height: 800px; display: flex; flex-direction: column; font-family: var(--body); }
+.bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px 6px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dust); }
+.bar button { font: inherit; letter-spacing: inherit; color: var(--chalk); background: var(--tar); border: 1px solid var(--seam); border-radius: 99px; padding: 6px 10px; cursor: pointer; }
+.view { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 4px 18px 10px; gap: 10px; }
+.num { font-family: var(--display); font-weight: 900; font-size: 190px; line-height: .78; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.num.mid { font-size: 120px; } .unit { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dust); }
+.hero { display: flex; align-items: flex-end; gap: 12px; } .hero .meta { display: flex; flex-direction: column; gap: 6px; padding-bottom: 14px; }
+.chip { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 8px; border-radius: 3px; display: inline-block; white-space: nowrap; }
+.chip.w { background: var(--water); color: #fff; } .chip.p { background: var(--paint); color: #14060c; } .chip.g { background: var(--go); color: #06150e; } .chip.o { border: 1px solid var(--seam); color: var(--dust); }
+.line1 { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: .95; text-transform: uppercase; }
+svg, canvas { display: block; width: 100%; } canvas { border-radius: 14px; touch-action: manipulation; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: transparent; }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--seam); }
+input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--seam); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -12px; border-radius: 50%; background: var(--chalk); border: 6px solid var(--water); }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--chalk); border: 6px solid var(--water); }
+input[type=range].pk::-webkit-slider-thumb { border-color: var(--paint); } input[type=range].pk::-moz-range-thumb { border-color: var(--paint); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--chalk); outline-offset: 2px; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 14px 16px; gap: 6px; }
+.tabs button { background: none; border: 0; color: var(--dust); padding: 8px 0 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; border-top: 2px solid transparent; }
+.tabs button[aria-selected="true"] { color: var(--chalk); border-top-color: var(--water); } .tabs svg { width: 22px; height: 22px; }
+.deck { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -18px; padding: 0 18px 6px; flex: 1; min-height: 0; scrollbar-width: none; } .deck::-webkit-scrollbar { display: none; }
+.cardx { position: relative; flex: 0 0 86%; scroll-snap-align: center; border-radius: 18px; overflow: hidden; background: var(--tar); display: flex; flex-direction: column; }
+.cardx .art { flex: 1; min-height: 0; background: var(--tar); } .cardx .art img, .cardx .art svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cardx .cap { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.cardx .nm { font-family: var(--display); font-weight: 900; font-size: 44px; line-height: .86; text-transform: uppercase; }
+.cardx .row { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
+.cardx .fig { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; } .cardx .fig small { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--dust); font-weight: 400; margin-left: 4px; }
+.info { font: 500 10px var(--mono); letter-spacing: .1em; color: var(--dust); background: none; border: 1px solid var(--seam); border-radius: 99px; padding: 4px 9px; cursor: pointer; text-transform: uppercase; }
+.note { font-size: 12.5px; color: var(--dust); } .dots { display: flex; gap: 5px; justify-content: center; } .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--seam); } .dots i.on { background: var(--chalk); }
+.rowx { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pills { display: flex; gap: 6px; } .pills button { font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dust); background: none; border: 1px solid var(--seam); border-radius: 99px; padding: 7px 10px; cursor: pointer; } .pills button[aria-pressed="true"] { background: var(--paint); color: #14060c; border-color: var(--paint); }
+.picts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .picts div { background: var(--tar); border-radius: 12px; padding: 12px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dust); } .picts svg { width: 34px; height: 34px; }
+@media (prefers-reduced-motion: no-preference) { .rise { transition: all .25s ease-out; } }
+@media (max-width: 900px) { .wrap { grid-template-columns: 1fr; gap: 26px; } .side { order: 2; } }
+@media (max-width: 430px) { .phone { padding: 5px; border-radius: 30px; } .screen { border-radius: 25px; height: 740px; } .num { font-size: 160px; } }
+</style>
+
+<div class="wrap">
+  <div class="phone"><div class="screen">
+    <div class="bar"><span id="where"></span><button id="next" type="button">Next building</button></div>
+    <div class="view" id="view"></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="rain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>Rain</button>
+      <button role="tab" data-tab="ground"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16"/><rect x="9" y="9" width="6" height="6" fill="currentColor"/></svg>Ground</button>
+      <button role="tab" data-tab="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><circle cx="12" cy="12" r="2.5"/></svg>Scan</button>
+      <button role="tab" data-tab="fix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M7 20V9l5-5 5 5v11"/><path d="M10 20v-6h4v6"/></svg>Fix</button>
+    </div>
+  </div></div>
+
+  <div class="side">
+    <div class="eyebrow">Clickable prototype · real model results · Blackfriars Road, London</div>
+    <h1>The rain<br>that floods<br><em>your door</em></h1>
+    <p>Drag the rain. Move the ground. Swipe the fixes. Every number comes from today's models; the scan view and the fix pictures are illustrations.</p>
+    <div class="keys">
+      <div><b style="color:var(--water)">Phone</b><span>Settled-water model. Answers in milliseconds, offline.</span></div>
+      <div><b style="color:var(--go)">Server</b><span>Full simulation with moving water. Checks what the phone suggests.</span></div>
+      <div><b style="color:var(--paint)">Pink paint</b><span>The few square metres that decide a building.</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var DATA = __DATA__; var IMGS = __IMGS__;
+(function () {
+  var R = DATA.recs, view = document.getElementById("view"), where = document.getElementById("where");
+  var list = R.filter(function (d) { return d.patches && d.cls === "ponding"; }).sort(function (a, b) { return b.patches[0].dist - a.patches[0].dist; }).map(function (d) { return d.i; });
+  var st = { tab: "rain", k: Math.max(0, list.indexOf(206)), patch: 0, h: 0, rain: 0, card: 0, note: -1 }, img = new Image(); img.src = DATA.map;
+  var V = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  function d() { return R[list[st.k]]; }
+  function h(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function depthAt(q, mm) { var a = q.dc, x = Math.min(Math.max(mm, 0), 120) / 5, i = Math.min(Math.floor(x), 23), f = x - i; return a[i] * (1 - f) + a[i + 1] * f; }
+  function section(depth, flooded) {
+    var H = 300, door = 196, sc = 2.2, wy = door - Math.min(depth, 70) * sc;
+    return '<svg viewBox="0 0 354 ' + H + '" aria-hidden="true">' +
+      '<rect width="354" height="' + H + '" fill="' + V("--tar") + '"/>' +
+      Array.apply(0, Array(26)).map(function (_, i) { var x = (i * 53) % 354, y = (i * 97) % 150; return '<line x1="' + x + '" y1="' + y + '" x2="' + (x - 5) + '" y2="' + (y + 16) + '" stroke="' + V("--seam") + '" stroke-width="2"/>'; }).join("") +
+      '<rect x="214" y="20" width="140" height="' + (door - 20) + '" fill="' + V("--asphalt") + '"/>' +
+      '<rect x="246" y="92" width="62" height="' + (door - 92) + '" fill="' + (flooded ? V("--paint") : V("--seam")) + '" class="rise"/>' +
+      '<rect x="240" y="' + (door - 22) + '" width="74" height="22" fill="' + V("--chalk") + '"/>' +
+      '<text x="277" y="' + (door - 7) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" letter-spacing="1.5" fill="' + V("--asphalt") + '">DOORSTEP</text>' +
+      '<rect x="0" y="' + wy + '" width="354" height="' + (H - wy) + '" fill="' + V("--water") + '" opacity=".92" class="rise"/>' +
+      '<path d="M0 ' + wy + ' q 22 -7 44 0 t 44 0 t 44 0 t 44 0 t 44 0 t 44 0 t 44 0 t 46 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2" class="rise"/>' +
+      '<rect x="0" y="' + door + '" width="354" height="' + (H - door) + '" fill="' + V("--asphalt") + '" opacity="' + (depth > 0.5 ? .0 : 1) + '"/>' +
+      '<line x1="0" y1="' + door + '" x2="354" y2="' + door + '" stroke="' + V("--chalk") + '" stroke-width="2"/>' +
+      '<text x="14" y="' + (wy - 10) + '" font-family="Big Shoulders Display, sans-serif" font-weight="900" font-size="44" fill="#fff" class="rise">' + depth.toFixed(0) + '<tspan font-family="DM Mono, monospace" font-size="11" font-weight="400" dx="6" letter-spacing="1.5">CM AT THE DOOR</tspan></text>' +
+      '</svg>';
+  }
+  function drawMap(cv, harm) {
+    var W = cv.clientWidth, Hh = Math.round(W * .86), dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = Hh * dpr; cv.style.height = Hh + "px"; var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    var q = d(), p = q.patches[st.patch], cr = (q.r + p.r) / 2, cc = (q.c + p.c) / 2, span = Math.max(90, p.dist * 2.1), s = W / span, ox = cc - span / 2, oy = cr - (Hh / s) / 2;
+    g.fillStyle = V("--asphalt"); g.fillRect(0, 0, W, Hh); g.imageSmoothingEnabled = false; if (img.complete) g.drawImage(img, ox, oy, span, Hh / s, 0, 0, W, Hh);
+    function X(c) { return (c - ox) * s; } function Y(r) { return (r - oy) * s; }
+    g.strokeStyle = V("--paint"); g.setLineDash([5, 6]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(q.c), Y(q.r)); g.lineTo(X(p.c), Y(p.r)); g.stroke(); g.setLineDash([]);
+    R.forEach(function (o) { if (o.cls === "none") return; g.beginPath(); g.arc(X(o.c), Y(o.r), 3.5, 0, 7); g.fillStyle = harm.indexOf(o.i) >= 0 ? "#ff5a4f" : V("--dust"); g.fill();
+      if (harm.indexOf(o.i) >= 0) { g.beginPath(); g.arc(X(o.c), Y(o.r), 11, 0, 7); g.strokeStyle = "#ff5a4f"; g.lineWidth = 2; g.stroke(); } });
+    q.patches.forEach(function (pp, k) { var x = X(pp.c - 2.5), y = Y(pp.r - 2.5), w = 5 * s; g.fillStyle = V("--paint"); g.globalAlpha = k === st.patch ? .95 : .35; g.fillRect(x, y, w, w); g.globalAlpha = 1;
+      if (k === st.patch) { g.strokeStyle = V("--chalk"); g.lineWidth = 2; var t = 7; [[x - 4, y - 4, 1, 1], [x + w + 4, y - 4, -1, 1], [x - 4, y + w + 4, 1, -1], [x + w + 4, y + w + 4, -1, -1]].forEach(function (a) { g.beginPath(); g.moveTo(a[0] + t * a[2], a[1]); g.lineTo(a[0], a[1]); g.lineTo(a[0], a[1] + t * a[3]); g.stroke(); }); } });
+    g.beginPath(); g.arc(X(q.c), Y(q.r), 9, 0, 7); g.fillStyle = V("--water"); g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 3; g.stroke();
+    g.fillStyle = V("--chalk"); g.font = "500 10px DM Mono, monospace"; g.fillText(p.dist + " M", (X(q.c) + X(p.c)) / 2 + 8, (Y(q.r) + Y(p.r)) / 2 - 6);
+  }
+  var art = {
+    barrier: '<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice"><rect width="300" height="300" fill="#1b1e23"/><rect x="60" y="30" width="180" height="230" fill="#0e0f11"/><rect x="105" y="80" width="90" height="180" fill="#2a2d33"/><rect x="96" y="176" width="108" height="84" fill="#ff3d8b"/><rect x="0" y="200" width="96" height="100" fill="#2f6bff"/><rect x="204" y="200" width="96" height="100" fill="#2f6bff"/><rect x="0" y="260" width="300" height="40" fill="#173a9c"/></svg>',
+    garden: '<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice"><rect width="300" height="300" fill="#1b1e23"/><rect y="150" width="300" height="150" fill="#0e0f11"/><rect x="70" y="150" width="160" height="110" fill="#173a9c"/><rect x="70" y="150" width="160" height="34" fill="#2f6bff"/><g stroke="#3ddc97" stroke-width="6" stroke-linecap="round">' + [90, 115, 140, 165, 190, 212].map(function (x, i) { return '<path d="M' + x + ' 150 q ' + (i % 2 ? 8 : -8) + ' -34 0 -' + (50 + i * 6) + '"/>'; }).join("") + '</g><path d="M0 150h70M230 150h70" stroke="#f2efe6" stroke-width="4"/></svg>',
+    tree: '<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice"><rect width="300" height="300" fill="#1b1e23"/><rect y="180" width="300" height="120" fill="#0e0f11"/><circle cx="150" cy="86" r="62" fill="#3ddc97"/><rect x="142" y="130" width="16" height="60" fill="#f2efe6"/><rect x="92" y="190" width="116" height="80" fill="#173a9c"/>' + [0, 1, 2, 3].map(function (i) { return '<rect x="' + (98 + (i % 2) * 54) + '" y="' + (196 + Math.floor(i / 2) * 36) + '" width="50" height="32" fill="none" stroke="#2f6bff" stroke-width="3"/>'; }).join("") + '<path d="M0 180h92M208 180h92" stroke="#f2efe6" stroke-width="4"/></svg>',
+    kerb: '<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice"><rect width="300" height="300" fill="#1b1e23"/><path d="M0 170 L120 170 L150 196 L300 196 L300 300 L0 300Z" fill="#0e0f11"/><path d="M0 170 L120 170 L150 196 L300 196" fill="none" stroke="#f2efe6" stroke-width="4"/><rect x="96" y="150" width="80" height="62" fill="none" stroke="#ff3d8b" stroke-width="5" stroke-dasharray="10 8"/><path d="M136 120v-60M124 72l12-14 12 14" stroke="#ff3d8b" stroke-width="5" fill="none"/></svg>'
+  };
+  var S = {
+    rain: function () {
+      var q = d(); if (!st.rain) st.rain = Math.round(q.fill);
+      var hero = h("div", "hero", '<div class="num">' + q.fill.toFixed(0) + '</div><div class="meta"><span class="unit">mm of rain<br>in an hour</span><span class="chip w">Phone ' + q.lo.toFixed(0) + '–' + q.hi.toFixed(0) + '</span>' + (q.sol != null ? '<span class="chip g">Server ' + q.sol.toFixed(0) + '</span>' : '') + '</div>');
+      var l = h("div", "line1", "floods this door"), fig = h("div"), sl = h("input"); sl.type = "range"; sl.min = 0; sl.max = 120; sl.step = 1; sl.value = st.rain; sl.setAttribute("aria-label", "Rain in an hour, millimetres");
+      var rd = h("div", "rowx", '<span class="unit" id="rv"></span><span class="unit">drag the rain</span>');
+      view.appendChild(hero); view.appendChild(l); view.appendChild(fig); view.appendChild(sl); view.appendChild(rd);
+      function up() { var dep = depthAt(q, st.rain); fig.innerHTML = section(dep, dep >= 10); rd.querySelector("#rv").textContent = st.rain + " mm"; }
+      sl.oninput = function () { st.rain = +sl.value; up(); }; up();
+    },
+    ground: function () {
+      var q = d(), cv = h("canvas"), p = q.patches[st.patch];
+      var pills = h("div", "pills"); q.patches.forEach(function (pp, k) { var b = h("button", null, pp.dist + " m"); b.setAttribute("aria-pressed", k === st.patch); b.onclick = function () { st.patch = k; st.h = 0; go("ground"); }; pills.appendChild(b); });
+      var top = h("div", "rowx"); top.appendChild(h("div", "line1", "this ground<br>decides it")); top.appendChild(pills);
+      var out = h("div", "hero"), sl = h("input", "pk"); sl.type = "range"; sl.min = -20; sl.max = 20; sl.step = 1; sl.value = st.h; sl.setAttribute("aria-label", "Raise or lower the patch, centimetres");
+      var foot = h("div", "rowx");
+      view.appendChild(top); view.appendChild(cv); view.appendChild(out); view.appendChild(sl); view.appendChild(foot);
+      function up() { var y = p.y[st.h + 20], v = q.fill + y, harm = p.oth.filter(function (o) { return o.y[st.h + 20] <= -1; }).map(function (o) { return o.b; });
+        out.innerHTML = '<div class="num mid">' + (v > 125 ? "DRY" : v.toFixed(0)) + '</div><div class="meta"><span class="unit">' + (v > 125 ? "up to 130 mm" : "mm floods the door") + '</span><span class="chip ' + (y > 0 ? "g" : y < 0 ? "p" : "o") + '">' + (y === 0 ? "no change" : (y > 0 ? "+" : "") + y.toFixed(1) + " mm") + '</span></div>';
+        foot.innerHTML = '<span class="unit">patch ' + (st.h > 0 ? "+" : "") + st.h + ' cm</span>' + (harm.length ? '<span class="chip p">' + harm.length + ' neighbour' + (harm.length > 1 ? "s" : "") + ' worse</span>' : '<span class="chip ' + (st.h ? "g" : "o") + '">' + (st.h ? "no one worse" : "slide to test") + '</span>');
+        drawMap(cv, harm); }
+      sl.oninput = function () { st.h = +sl.value; up(); }; if (img.complete) requestAnimationFrame(up); else { img.onload = up; }
+    },
+    scan: function () {
+      var q = d(), p = q.patches[0], cv = h("canvas"); view.appendChild(h("div", "line1", "scan what<br>matters")); view.appendChild(cv);
+      view.appendChild(h("div", "picts", '<div><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 28V8h14v20M4 28h26M20 28v-6h8"/></svg>Doorstep</div><div><svg viewBox="0 0 34 34" fill="none" stroke="' + V("--paint") + '" stroke-width="2"><path d="M3 14h12l5 7h11"/><rect x="11" y="8" width="13" height="18" stroke-dasharray="3 3"/></svg>Kerb ' + p.dist + ' m</div><div><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2"><path d="M26 17a9 9 0 1 1-3-6.7M23 5v6h-6"/></svg>Back to start</div>'));
+      view.appendChild(h("div", "rowx", '<span class="chip w">Splat on phone</span><span class="chip o">Heights from LiDAR</span><span class="chip o">Illustration</span>'));
+      requestAnimationFrame(function () { var W = cv.clientWidth, Hh = 380, dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = Hh * dpr; cv.style.height = Hh + "px"; var g = cv.getContext("2d"); g.scale(dpr, dpr);
+        g.fillStyle = "#0b0c0e"; g.fillRect(0, 0, W, Hh); var seed = 11; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+        for (var i = 0; i < 5200; i++) { var x = rnd() * W, y = rnd() * Hh, hor = 150 + 14 * Math.sin(x / 60), kerb = Math.abs(y - (250 + (x - W / 2) * .05)) < 4;
+          var c = y < hor ? (rnd() < .08 ? "#f5c26b" : "#22252b") : kerb ? "#f2efe6" : y > 250 ? "#16223f" : "#2a2d33"; g.fillStyle = c; g.globalAlpha = .18 + rnd() * .6;
+          g.beginPath(); g.ellipse(x, y, 2 + rnd() * 7 * (y / Hh + .3), 1 + rnd() * 3, rnd() * 3, 0, 7); g.fill(); }
+        g.globalAlpha = .5; g.fillStyle = V("--water"); g.fillRect(0, 262, W, Hh - 262); g.globalAlpha = 1;
+        var bx = W * .5, by = 222; g.strokeStyle = V("--paint"); g.lineWidth = 3; var t = 16, w = 110, hh = 64; [[bx, by, 1, 1], [bx + w, by, -1, 1], [bx, by + hh, 1, -1], [bx + w, by + hh, -1, -1]].forEach(function (a) { g.beginPath(); g.moveTo(a[0] + t * a[2], a[1]); g.lineTo(a[0], a[1]); g.lineTo(a[0], a[1] + t * a[3]); g.stroke(); });
+        g.fillStyle = V("--paint"); g.font = "900 54px Big Shoulders Display, sans-serif"; g.fillText(p.dist + " M", 18, 70); g.font = "500 10px DM Mono, monospace"; g.fillStyle = V("--chalk"); g.fillText("TO THE GROUND THAT DECIDES", 20, 90);
+        g.strokeStyle = V("--paint"); g.lineWidth = 5; g.beginPath(); g.moveTo(40, 130); g.lineTo(bx - 14, by + 20); g.stroke(); g.beginPath(); g.moveTo(bx - 14, by + 20); g.lineTo(bx - 36, by + 14); g.moveTo(bx - 14, by + 20); g.lineTo(bx - 24, by - 2); g.stroke(); });
+    },
+    fix: function () {
+      var q = d(), sp = q.solpk, dep35 = sp ? sp[1] : q.depth[1], nb = 1 + q.patches[0].oth.length;
+      var cards = [
+        { k: "barrier", nm: "Barrier", fig: dep35.toFixed(0), u: "cm of water at 35 mm", chip: sp ? ["g", "Server checked"] : ["w", "Phone"], note: "Peak depth at the door in the full simulation. Water can still get in through air bricks, drains and shared walls." },
+        { k: "garden", nm: "Rain<br>garden", fig: "0.25", u: "m³ stored per m²", chip: ["o", "Effect pending"], note: "Swap paving for lined storage on the flow path. The clay here does not soak water away in a short storm, so removing paving alone does little. The effect on this door is not computed yet." },
+        { k: "tree", nm: "Tree pit", fig: "3.9", u: "m³ at most per tree", chip: ["o", "Effect pending"], note: "The storage under the tree does the work. A canopy holds 1 to 2 mm, a few percent of a cloudburst, and is not counted." },
+        { k: "kerb", nm: "Street<br>note", fig: String(nb), u: nb > 1 ? "buildings share this ground" : "building decided here", chip: ["p", "For the council"], note: "This ground is public. The app writes an evidence note and never tells you to alter it. Changes are shown only if no other building gets worse." }
+      ];
+      view.appendChild(h("div", "line1", "ways to<br>protect"));
+      var deck = h("div", "deck"); cards.forEach(function (c, i) {
+        var e = h("div", "cardx"), a = h("div", "art"); a.innerHTML = IMGS[c.k] ? '<img alt="" src="' + IMGS[c.k] + '">' : art[c.k]; e.appendChild(a);
+        var cap = h("div", "cap", '<div class="row"><div class="nm">' + c.nm + '</div><span class="chip ' + c.chip[0] + '">' + c.chip[1] + '</span></div><div class="row"><div class="fig">' + c.fig + '<small>' + c.u.toUpperCase() + '</small></div><button class="info" type="button" aria-expanded="' + (st.note === i) + '">' + (st.note === i ? "Close" : "Limits") + '</button></div>' + (st.note === i ? '<div class="note">' + c.note + '</div>' : ''));
+        cap.querySelector(".info").onclick = function () { st.note = st.note === i ? -1 : i; st.card = i; go("fix"); }; e.appendChild(cap); deck.appendChild(e); });
+      view.appendChild(deck); var dots = h("div", "dots", cards.map(function (_, i) { return '<i class="' + (i === st.card ? "on" : "") + '"></i>'; }).join("")); view.appendChild(dots);
+      requestAnimationFrame(function () { var el = deck.children[st.card]; if (el) deck.scrollLeft = el.offsetLeft - 18; });
+      deck.onscroll = function () { var i = Math.round(deck.scrollLeft / (deck.children[0].offsetWidth + 12)); if (i !== st.card) { st.card = i; [].forEach.call(dots.children, function (x, j) { x.className = j === i ? "on" : ""; }); } };
+    }
+  };
+  function go(t) { st.tab = t; view.innerHTML = ""; var q = d(); where.textContent = q.site ? "Blackfriars Rd · low point" : "Building " + q.i; S[t]();
+    [].forEach.call(document.querySelectorAll(".tabs button"), function (b) { b.setAttribute("aria-selected", b.dataset.tab === t); }); }
+  [].forEach.call(document.querySelectorAll(".tabs button"), function (b) { b.onclick = function () { go(b.dataset.tab); }; });
+  document.getElementById("next").onclick = function () { st.k = (st.k + 1) % list.length; st.patch = 0; st.h = 0; st.rain = 0; st.note = -1; go(st.tab); };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { go(st.tab); }); go("rain");
+})();
+</script>
