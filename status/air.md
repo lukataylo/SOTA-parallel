@@ -22,6 +22,20 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 21:20 — Pool test resolved: the map's dismissal rule misses ground; the depth-change rule is the right screen
+
+Pool test final (`fill/pool_score.py`): 88 of 128 pools tripped, 9 of 9 positive controls tripped. Then the 276 suspects (pooled blocks within 60 m of a building that moved) were run singly, packed 120 m apart (`fill/pool_split_score.py`).
+
+| Suspects, all dismissed by the whole-tile map | Count | Move a building 7.5 to 60 m away by 1 cm in the solver |
+|---|---|---|
+| Fill model predicts a depth change of 1 mm or more at some building, at this storm | 44 | **39 (89%)** |
+| Fill model predicts no depth change | 232 | **14 (6%)** |
+
+- **The whole-tile map's rule is wrong as a screen.** It dismisses ground that does not change a building's critical rain depth. At least 53 single what-ifs it dismissed move a building in the solver. "2.7% of the ground decides" understates it and must not be shown as verified.
+- **The stricter rule works much better.** Fill-predicted depth change at the storm in question: 39 of 44 flagged are real movers, and it catches 39 of the 53 movers found.
+- **14 movers have no fill-model signal at all.** They sit 8 to 60 m from the building. These are the dynamic effects the fill model cannot see. The suspects were chosen near tripped buildings, so 6% is not a rate for all ground.
+- Design errors of mine in the pool test: mixed two dismissal definitions; did not exclude buildings within 7.5 m of a pooled block; alternated signs, which pooled screening does not allow for when directions are unknown.
+
 ## Sat 21:00 — BET 1 IN THE SOLVER: PASSES, with a random arm and an interval that excludes no effect. Pro: stop it and move on
 
 `fill/bet1_full_score.py` on the 27 terrains that have all three arms (of 30). Same scoring rule as the pilot.
