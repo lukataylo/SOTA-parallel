@@ -32,14 +32,14 @@ uv run --with mlx --with numpy python fill/bet3_verify_run.py
 - **What it is:** the fill model's best harm-free set of five 5 cm patches, and the naive set chosen by benefit alone, each at three storms. 9 runs, into `results/pro/bet3_verify.npz`. The script prints how many buildings fall or rise by 1 cm in each.
 - **Pass line (from `docs/BETS.md`):** at least 60% of predicted beneficiaries drop by 1 cm or more, and no receptor rises by 1 cm, for the harm-free design.
 
-## 4. Measure-where-it-matters pilot (about 35 min) — check `status/air.md` first
+## 4. Measure-where-it-matters pilot (about 35 min) — go
 
 ```
 uv run --with mlx --with numpy --with scipy python fill/bet1_solver_run.py pilot
 ```
 
 - **What it is:** 8 terrains with survey error, each run up a ladder of 6 rain depths, with and without the chosen 1% of ground "measured". 96 runs, into `results/pro/bet1_pilot/`.
-- **Hold point:** Mythos asked for the terrain-error model to be settled first. The Air is finishing the correlation-length tests now. If the top of `status/air.md` says "Bet 1 pilot: go", run it as is. If it names a different error model, wait for the updated runner.
+- **Cleared to run as written.** The correlation-length tests are done: 5 cm error over 3 m is kept, labelled as the kerb-and-threshold-scale scenario.
 - **Pass line:** the spread of critical rainfall with the chosen ground known is at most 75% of the spread with nothing known.
 
 ## 5. Later tonight, once the Air publishes the cases

@@ -22,6 +22,26 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 17:00 — Correlation length, second scoring: the two bracket the answer. Bet 1 pilot: go, as the kerb-scale scenario
+
+`fill/noise_corr_sweep_riding.py`. Same error fields idea, 5 cm, 60 terrains per length, but the 0.10 m threshold is measured from the building's own (perturbed) ground.
+
+| Correlation length | Threshold at a fixed level | Threshold moves with the building's ground |
+|---|---|---|
+| 1 m | 4.3 mm | 9.2 mm (46%) |
+| 3 m | 6.7 mm | 9.7 mm (52%) |
+| 10 m | 6.1 mm | 5.9 mm (35%) |
+| 30 m | 7.8 mm | 3.1 mm (18%) |
+| 60 m | 11.5 mm | 2.6 mm (13%) |
+
+- With the threshold moving with the ground, the spread peaks at 1 to 3 m and falls to about a third by 30 m. That is what Mythos predicted before the run.
+- With a fixed level, a long gentle tilt acts as a shift between terrain and threshold, which a real doorstep would not see. So the fixed-level figures overstate long lengths, and the moving-threshold figures include the doorstep's own short-range error.
+- **What we can say:** error that varies over a few metres moves critical rainfall by a third to a half; gentle tilts over tens of metres move it by 13 to 18%. This agrees with published work ranking broad measurement error low and feature detail high. The unknown that matters is kerb-and-threshold structure, which a 1 m map does not resolve.
+
+**Pro agent: Bet 1 pilot: go.** Run `fill/bet1_solver_run.py pilot` as written (5 cm, 3 m). It is now labelled the kerb-and-threshold-scale scenario, not LiDAR noise. Order in `docs/PRO_PLAN.md` is unchanged: control experiment first.
+
+An illustrated summary of everything so far, with a spoken version, is at https://claude.ai/artifact/8HQFjagNA2WtqtGpo8FCSs (private to the human unless shared).
+
 ## Sat 16:55 — Bet 2 result: passes, with an exact method that is not a derivative
 
 Built by a sub-agent. `fill/sweep.py` (class `Sweep`), `fill/sweep_check.py`, `results/air/sweep_check.npz`. Needs numba: `uv run --with numpy --with scipy --with numba python fill/sweep_check.py`.

@@ -21,7 +21,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | Changing the ground the fill model picks moves the water the predicted way | 21 of 21 remote patches (6 to 82 m from the building); rank correlation 0.91 between predicted and simulated change |
 | Control is sparse in the fill model | 188 of 2,132 patch tests (9%) move any building's critical rainfall; one patch can move 29 of 32 at-risk buildings |
 | Survey error moves critical rainfall, in the fill model | 5 cm error: median spread 5.9 to 6.7 mm with a fixed reference level. Error confined to ground more than 5 m from any receptor still gives 21% |
-| It does not collapse at long correlation lengths, with a fixed reference | 4.3 mm at 1 m, 6.7 at 3 m, 6.1 at 10 m, 7.8 at 30 m, 11.5 at 60 m |
+| Short-range error matters most; gentle tilts matter little | Threshold moving with the building's ground: 9.2 mm at 1 m, 9.7 at 3 m, 5.9 at 10 m, 3.1 at 30 m, 2.6 at 60 m. Threshold at a fixed level (overstates tilts): 4.3, 6.7, 6.1, 7.8, 11.5 |
 | Knowing 1% of the ground cuts that spread; random ground does not | Chosen from a 600-terrain ensemble: 40% cut on 100 unseen terrains (at the 40% line). Random 1%: 0%. 2% chosen: 51%. 5%: 59% |
 | A harm-free set of small changes exists; the naive set harms neighbours | Fill model: five 5 cm patches lift 5 buildings and harm none; choosing by benefit alone harms 3 or 4 |
 | An exact fast re-evaluation replaces a rebuild per patch (Bet 2) | `fill/sweep.py`: all 441,324 critical depths identical to brute force on the 2,132 patch tests; 20 to 31 ms per patch on one core. Speed-up 42x to 64x against the 1.3 s first measured, about 320x against brute force re-timed under the same load. A clean figure needs an idle machine |
@@ -50,7 +50,6 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 |---|---|---|
 | Control experiment: 60 null, 30 random, 30 positive patches at 3 storms, pass lines committed first | Air GPU, Pro to take the far half | 15 of 46 chunk files at 16:45 |
 | Absorption map from the fill model (E0) | Air CPU | Running |
-| Correlation sweep with the threshold moving with the building's ground | Air CPU | Running |
 | Buildings as 0.3 m floodable footprints, in the fill model | Air CPU | Queued; gate: more than 20% of buildings change controlling spill cell |
 | Friction, do-no-harm check, measure-where-it-matters pilot, absorption go/no-go | Pro GPU | See `docs/PRO_PLAN.md` |
 
