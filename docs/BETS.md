@@ -42,3 +42,13 @@ Running underneath all three: the control experiment in `docs/P1_CRITERIA.md` (3
 1. `uv run --with mlx --with numpy python fill/p1_run.py reverse` to take half the control experiment (it writes the same chunk files as the Air's forward run; commit `results/air/p1_chunks/` when done).
 2. Then the Bet 1 solver pilot, if `status/air.md` says the fill-model step passed. Case files will be in `shared/`.
 3. Dropped from the earlier list: the friction test, more work on the moving-water correction, non-triangular storms.
+
+## Bet 5: response curves, not derivatives (added Saturday 18:15, from `docs/mythos/7_premortem_iphone_more_bets.md`)
+
+**Claim to test.** The response of a building's critical rainfall to the height of a patch of ground is not a slope. It is a curve with a dead band (changes that do nothing), a one-sided slope, and a saturation. Three numbers per (patch, building) pair describe it, and from them we can map how wrong each square metre can be before any building moves.
+
+**Experiment.** For every (patch location, building) pair that was active in the 2,132 patch tests, compute the exact critical rainfall for the patch height changed from -20 cm to +20 cm in 1 cm steps, with the exact fast re-evaluation (`fill/sweep.py`). Fit, separately for raising and lowering, a dead band, a slope and a saturation level.
+
+**Pass line.** The three-number form fits within 0.5 mm of critical rain (the grid step) at every one of the 41 heights for at least 80% of pairs. Kill below 60%.
+
+**Free check, reported regardless.** Do the curves, read at +/-5 cm, do better than the fill model's local slope on the 21 remote solver patches already run?
