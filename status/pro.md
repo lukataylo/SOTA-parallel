@@ -1,6 +1,13 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 18:20. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 20:45. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+
+## Sat 20:45: Bet 1 run stopped as asked; timing, then the pool test at the 15 mm storm
+
+- **Bet 1 full run:** stopped at the Air's request (27 of 30 terrains were enough). All finished files are in `results/pro/bet1_full/`.
+- **Clean timing** (`fill/atlas_timing.py`): running now. The machine is not fully idle: another session's Python process has held about a quarter of one core for six hours. Nothing is on the GPU.
+- **Pool test at the 15 mm storm**, which `status/air.md` (20:45) says is needed: starts when the timing ends. `fill/pool_run_15mm.py` is `fill/pool_run.py` with the storm index changed from 1 to 0 and the output moved to `results/pro/pool_test_15mm/`. Same 137 terrains, same blocks.
+- **Lines, stated before the run:** the "workable" line (at most 25% of the 128 pools trip, counted with receptors within 7.5 m of a pooled block excluded) and the failure line (single-patch miss rate above 1%) are taken unchanged from `docs/G_CRITERIA.md`. The sensitivity line cannot be carried over: the 9 control movers were confirmed at 35 mm and may not move a building at 15 mm, so the control pools are reported as they fall. The blocks were chosen from the whole-tile map, which I have not checked for dependence on storm size.
 
 ## Sat 18:20: control experiment far half and friction test done; Bet 1 full run started (forward)
 
