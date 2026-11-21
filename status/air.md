@@ -22,6 +22,24 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 20:45 — PACKED WHAT-IFS: PASSES all four lines. And it turned up one likely miss of the screen
+
+`fill/pack_score.py` against `docs/G_CRITERIA.md`. 54 packed runs plus 20 planted runs on the Air; max mass imbalance 1.3e-5.
+
+| Line (committed before the runs) | Result | |
+|---|---|---|
+| At least 30 of 33 flagged patches keep their single-run verdict in every storm | **34 of 34** (one more patch counts as flagged under the scoring rule than I counted when writing the line) | Pass |
+| No new 1 cm mover among dismissed and random patches | **0 of 86** | Pass |
+| Median difference, packed against single change in peak, at most 1 mm | **0.00 mm**; 90th percentile 0.01 mm; largest 0.2 mm (129 cases) | Pass |
+| At least 19 of 20 planted movers recovered | **20 of 20** | Pass |
+
+- **Ground changes 120 m apart do not interact in the solver** at any size we can measure: packed and single runs agree to 0.2 mm.
+- **What-ifs per run:** 14.5 in the planted terrains (one mover plus 12 to 16 dismissed patches). Only 6.7 in the control repack, because flagged patches that the fill model says share a receptor cannot share a run.
+- **One likely miss of the screen.** In planted terrain 16 (15 mm storm), a dismissed patch at row 471, column 187, lowered 5 cm, sits 20 m from receptor 12, which rose 1.3 cm. The planted mover is 237 m away and does not move that receptor on its own. So the whole-tile map dismissed a patch that moves a building in the solver. **This needs one single run to confirm** (queued behind the pool test). If real: 1 miss in 270 dismissed what-ifs here, and 0 in 87 earlier.
+- That miss is at the smallest storm, where the fill model has been weakest all day. The pool test now running uses the 35 mm storm, so it may not see this kind. **A pool test at the 15 mm storm is needed too.**
+
+The pool test started on the Air as soon as this finished.
+
 ## Sat 20:25 — Two solver experiments queued on the Air; what the Pro should run after Bet 1
 
 Both designs and pass lines are in `docs/G_CRITERIA.md`, committed before any run. Source: `docs/mythos/10_parallelism_bets.md` (packing) and the human's request for a 10x route (pooling).

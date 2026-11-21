@@ -1,4 +1,4 @@
-# Findings so far (Saturday 18:52)
+# Findings so far (Saturday 20:45)
 
 One page for anyone pulling the repository cold. Detail and timestamps are in `status/air.md` and `status/pro.md`. What to run next on the Pro is in `docs/PRO_PLAN.md`.
 
@@ -14,6 +14,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Finding | Evidence |
 |---|---|
+| **Ground changes 120 m apart can share one solver run** | Packed against single runs: all 34 flagged patches keep their verdict, 0 of 86 dismissed show a new mover, changes agree to 0.2 mm, 20 of 20 hidden movers found. Up to 14.5 what-ifs per run. One dismissed patch in those runs moved a building by 1.3 cm at the 15 mm storm: a likely miss of the screen, to be confirmed |
 | Which ground matters survives treating buildings as floodable footprints | Fill model: 28 of 29 buildings keep some of the same controlling ground, 1 keeps none (gate was 20%); 69% of active pairs stay active; critical rain falls a median 6 mm; building order kept (rank correlation 0.90) |
 | **Every open square metre evaluated exactly** | 342,316 what-ifs in 603 s on 8 processes (14 ms per core under load); about 3 hours on one core by a compiled rebuild. 2.7% of open ground (4,653 cells) moves any building; 78% of it is more than 5 m from the building it moves. Clean timing still to do |
 | **Control experiment: ground the fill model dismisses does nothing in the solver** | 0 of 60 null patches and 0 of 30 random patches moved any receptor's peak by 1 cm, across three storms. As a screen over 120 patches: 22 flagged and active, 11 flagged and inactive, 0 missed, 87 correctly dismissed. Pass line was at most 10% |
