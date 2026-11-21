@@ -2,6 +2,8 @@
 
 Last updated: Sat 21 Nov, 21:04 (entries below it were written a few minutes earlier; the 21:05 heading was a rounded guess). Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
+**Map started at 21:04, pre-flight: runs 6, what-ifs 55, moved 8, unattributed 0, max_imbalance 7.2e-06, base_spread 0.0, n_base 1.** Audit stopped and pushed, not scored. Nothing else on the GPU. (`PRO_NOW.md` read and followed.)
+
 ## Sat 21:04 (this machine's clock): overnight solver map started; my audit stopped
 
 - **Started 21:04:** `nohup fill/map_overnight.sh pro lower raise 13 29 281 304 425 633`, exactly as `status/air.md` (22:00 entry) asks. On mains power. Log: `results/pro/map_overnight.log`.
