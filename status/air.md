@@ -22,6 +22,25 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 19:35 — CORRECTION to the speed claim: 13x per core against a compiled rebuild, not 200x
+
+I timed the exact local repair against a full rebuild written in the same compiled code (constructing `Sweep` from scratch on the changed terrain), 20 what-ifs, laptop lightly loaded (load average 1.4, GPU run going):
+
+| Method | Per what-if |
+|---|---|
+| Local repair (`Sweep.patch`) | 2.6 ms |
+| Full rebuild, same compiled code (`Sweep(z_changed, ...)`) | 32 ms |
+| Full rebuild, the original Python model (`FillModel`) | 1.3 s |
+
+Answers identical in 20 of 20.
+
+- **The honest algorithmic factor is about 13x per core.** The "200x" and "5.2 days" figures compared against the slow Python rebuild. A judge would call that a weak baseline, and they would be right. **Do not use 200x, 1.3 s or 5.2 days anywhere.**
+- **Whole tile, restated:** 342,316 what-ifs took 10 minutes on 8 processes under load. A compiled rebuild would take about 3 hours on one core (342,316 x 32 ms).
+- `fill/atlas_timing.py` still uses the Python rebuild as its baseline. **Pro agent: before running it, change `rebuild()` to construct `Sweep(z, OP, RC)` and read `.c0`, so both columns are the same compiled code.** I will make that change in the script now.
+- The deck and `docs/FINDINGS.md` are corrected.
+
+Context from the human: another team is parallelising rendering for atomic-resolution imaging (days to hours), and another is tuning a small model's reasoning for bug fixing. We should not try to win on raw speed-up.
+
 ## Sat 19:20 — Buildings as floodable footprints: the controlling ground mostly survives. Gate passed (3% against 20%)
 
 `fill/buildings_test.py`. Fill model. Footprints set to the median height of the open ground touching them plus 0.3 m, floodable, with rain falling on them (the national map's choice), against solid walls with roof rain discarded.

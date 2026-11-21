@@ -1,7 +1,7 @@
 """Clean timing for the exact what-if, to be run on an IDLE machine (nothing else on CPU or GPU).
 One harness and one language for both methods:
   A  exact local repair (fill/sweep.py), 20,000 random what-ifs, at 1, 2, 4, performance-core and all-core process counts, 3 repeats each
-  B  rebuilding the model for each what-if (FillModel build + 261 rain levels), 40 what-ifs on one process, 3 repeats
+  B  rebuilding from scratch for each what-if in the same compiled code (Sweep constructed on the changed terrain), 40 what-ifs on one process, 3 repeats
   C  200 of the what-ifs checked for identical answers between A and B
   uv run --with numpy --with scipy --with numba python fill/atlas_timing.py
 Writes results/pro/atlas_timing.json. Report per-core speed-up (B / A at one process) and parallel efficiency separately; do not multiply them."""
@@ -17,11 +17,10 @@ def init():
     _S = Sweep.from_files(); _S.patch(*JOBS[0], 2)                      # compile and warm up before timing
 def run_chunk(jobs): return [_S.patch(r, c, dz, 2) for r, c, dz in jobs]
 def rebuild(job):
-    from fillmodel import FillModel
+    """Full rebuild in the SAME compiled code as the repair: construct Sweep from scratch on the changed terrain."""
+    from sweep import Sweep
     r, c, dz = job; z = Z.copy(); sl = (slice(max(r - 2, 0), r + 3), slice(max(c - 2, 0), c + 3)); z[sl] = np.where(OP[sl], z[sl] + dz, z[sl])
-    edge = np.zeros_like(OP); edge[0] = edge[-1] = True; edge[:, 0] = edge[:, -1] = True; PG = np.linspace(0.0, 0.130, 261)
-    M = FillModel(z, OP, edge & OP); LL, _ = M.run(PG); wet = M.depth_at(LL, RC) >= 0.10
-    return np.where(wet.any(0), PG[np.argmax(wet, 0)] * 1e3, np.inf)
+    return Sweep(z, OP, RC).c0
 if __name__ == "__main__":
     def sysctl(k):
         try: return int(subprocess.check_output(["sysctl", "-n", k]).strip())
