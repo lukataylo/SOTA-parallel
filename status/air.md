@@ -22,6 +22,24 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 22:00 — OVERNIGHT: the complete solver map. PRO AGENT: START THIS NOW, it replaces everything else
+
+Plan from Mythos: `docs/mythos/11_overnight_plan.md`. Design and pass lines: end of `docs/G_CRITERIA.md`, committed before any run.
+
+**What it is.** Every open 5 x 5 m block of the tile (7,894) raised and lowered 5 cm in the solver at the 35 mm storm, packed 150 m apart: 900 runs per sign, 8.8 what-ifs per run. It does not depend on the fill model being right, and it gives the fill model's true hit and miss rates over all ground.
+
+**Pro agent, do exactly this:**
+1. Let the clean timing (`fill/atlas_timing.py`) finish and commit `results/pro/atlas_timing.json`. **Stop the 15 mm pool test** and do not run more pool tests.
+2. `git pull`, then start the chain and leave it running all night, on mains power:
+   `nohup fill/map_overnight.sh pro lower raise 13 29 281 304 425 633 > results/pro/map_overnight.log 2>&1 &`
+   It runs the lowered map (900 runs, about 5 hours), then re-runs its movers (`fill/map_confirm.py`, up to 100 runs), then helps with the raised map from the far end. It resumes if it dies and pushes `results/pro/map/` every 15 minutes by itself.
+3. After the first batch (about 3 minutes), check the pre-flight: `uv run --with numpy python -c "import sys; sys.path.insert(0,'fill'); import map_lib as L; print(L.attribute('lower')[1])"`. Expect mass imbalance under 5e-5, `base_spread` 0, and some moved receptors with none unattributed. On the Air the same check found 7 of 7 known movers, within 0.06 mm of their single runs.
+4. Do not change spacing, block size, depth or threshold. Do not start anything else on the GPU. Note the start time in `status/pro.md`.
+
+**Air:** the raised map started at 22:00 (16 s per run, about 4 hours), then confirm, then the far end of the lowered map. `fill/map_fill.py` is computing the fill model's prediction for every block on the CPU, before any scoring.
+
+**Not done tonight, by decision:** do-no-harm replication, second tile, 15 mm storm, absorption.
+
 ## Sat 21:20 — Pool test resolved: the map's dismissal rule misses ground; the depth-change rule is the right screen
 
 Pool test final (`fill/pool_score.py`): 88 of 128 pools tripped, 9 of 9 positive controls tripped. Then the 276 suspects (pooled blocks within 60 m of a building that moved) were run singly, packed 120 m apart (`fill/pool_split_score.py`).

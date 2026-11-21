@@ -13,6 +13,6 @@ def job(a):
     far = np.hypot(rc[:, 0] - (5 * i + 2), rc[:, 1] - (5 * j + 2)) > 7.5; ch = np.where(far, dep(z) - BASE, 0); k = np.abs(ch).argmax(); return ch[k]
 if __name__ == "__main__":
     B = [(i, j) for i in range(1, 101) for j in range(1, 101) if op[5 * i:5 * i + 5, 5 * j:5 * j + 5].any()]; jobs = [(i, j, dz) for dz in (0.05, -0.05) for i, j in B]
-    with mp.Pool(7) as p: R = np.array(p.map(job, jobs, chunksize=16))
+    with mp.Pool(5) as p: R = np.array(p.map(job, jobs, chunksize=16))
     np.savez("results/air/map_fill.npz", i=np.array([b[0] for b in B]), j=np.array([b[1] for b in B]), fill_change=R.reshape(2, len(B)))   # row 0 raise, row 1 lower
     print("blocks %d; fill predicts a change of 1 mm or more: raise %d, lower %d" % (len(B), (np.abs(R[:len(B)]) >= 1e-3).sum(), (np.abs(R[len(B):]) >= 1e-3).sum()))
