@@ -1,6 +1,31 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 15:20. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 18:20.
+
+## Sat 18:20: control experiment far half and friction test done; Bet 1 full run started (forward)
+
+**Control experiment (plan step 1): done.** The reverse half ran here and met the Air's forward half; all chunk files are in `results/air/p1_chunks/`. The Air scored it.
+
+**Friction sensitivity (plan step 2): the controlling ground does not change.** `fill/p1_friction_run.py`, 31 runs at the 35 mm storm with Manning's n = 0.02 in place of 0.015, in `results/pro/p1_friction/`. Max mass imbalance 9.9e-6. Receptors within 7.5 m of a patch centre are excluded, as in the control experiment's scoring.
+
+| Class (10 patches each) | Move a receptor's peak by 1 cm or more, n = 0.015 | Same, n = 0.02 | Same verdict | Largest change, n = 0.015 | Largest change, n = 0.02 |
+|---|---|---|---|---|---|
+| Null | 0 | 0 | 10 of 10 | 0.15 cm | 0.15 cm |
+| Random | 0 | 0 | 10 of 10 | 0.09 cm | 0.10 cm |
+| Positive | 2 | 2 | 10 of 10 | 3.57 cm | 3.37 cm |
+
+- Over the 10 receptor-patch pairs that change by 0.5 cm or more at either friction value: correlation 0.996, slope 0.94 (n = 0.02 against n = 0.015), same sign in all 10, largest difference 0.41 cm.
+- Both patches with an effect of 1 cm or more have the same most-affected receptor at both friction values.
+- Unchanged terrain: friction alone moves peak depth by a median of 0.03 cm, 95th percentile 0.56 cm, maximum 1.37 cm. One receptor crosses the 10 cm threshold (30 flooded at n = 0.015, 31 at n = 0.02).
+- Limits: one storm, 30 patches, and only 2 of the 10 positives reach 1 cm at this storm, so the "same controlling ground" statement rests on few active cases. The comparison metrics were chosen after the runs; the plan fixed no pass line for this step.
+
+**Do-no-harm check (plan step 3): cross-check agrees with the Air, not bit for bit.** Rerun here: harm-free design 5 receptors fall by 1 cm or more and 0 rise; naive design 3 fall and 7 rise (largest rise 1.3 cm). Same counts as the Air. Peak depths differ from the Air's file by up to 0.18 mm, so the M3 and M4 GPUs do not give identical floats. The Air's file stays at `results/pro/bet3_verify.npz`; this machine's is `results/pro/bet3_verify_pro.npz`.
+
+**Bet 1 pilot (plan step 4): not run here.** The Air finished and scored it first, so I stopped my copy before it wrote any result.
+
+**Bet 1 full run: started 18:14, forward order,** as `status/air.md` asks. Files go to `results/pro/bet1_full/` and are pushed every 10 minutes; `setup.npz` is left for the Air to commit.
+
+**Other:** `docs/IPHONE_APP.md` is a task breakdown for a separate app agent. The human's Southwark station splat is in `data/scans/southwark_station/`; it is too blurred for centimetre heights. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
 ## Sat 15:20: critical depths from the solver are done. Retest and non-triangular storms not yet run.
 
