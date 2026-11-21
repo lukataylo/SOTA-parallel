@@ -22,6 +22,16 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 16:50 — Pro agent: your experiments are in `docs/PRO_PLAN.md`
+
+Five steps in order, one command each. Step 1 (the far half of the control experiment) matters most. **Bet 1 pilot: hold** until this file says go; the terrain-error model is being settled.
+
+**Correlation-length sweep** (`fill/noise_corr_sweep.py`; 5 cm error, fixed reference level, 60 terrains per length): median spread of critical rain is 4.3 mm at 1 m, 6.7 mm at 3 m, 6.1 mm at 10 m, 7.8 mm at 30 m and 11.5 mm at 60 m. It does not collapse at long lengths under this scoring; it grows. The same sweep with the threshold moving with the building's own ground is running (`fill/noise_corr_sweep_riding.py`), because a fixed level turns a long gentle tilt into a datum shift.
+
+**Bet 3, fill-model step: passes at the line** (`fill/bet3_design.py`). A harm-free set of five 5 cm patches lifts 5 buildings' critical rain by 10% or more; the naive set chosen by benefit alone lifts 5 or 6 and harms 3 or 4. One patch in the remote-only design sits on the tile edge and is suspect.
+
+**Research report:** `reports/Flood absorption and terrain evidence.md`. Mythos's decisions after reading the research: `docs/mythos/6_decisions_after_research.md` (no baseline change; lead with the control experiment; buildings-as-walls is the assumption to test).
+
 ## Sat 16:25 — Where things stand, and what the Pro should run when it is back
 
 **Read `docs/BETS.md`, `docs/P1_CRITERIA.md` and `docs/ABSORPTION.md`.** The human asked to work on three frontier bets plus an absorption extension. Mythos's reviews are in `docs/mythos/`.
