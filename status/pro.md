@@ -1,6 +1,14 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 14:10. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 14:12. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+
+## Sat 14:12: following `docs/PIVOT.md`
+
+- **The 1,000-storm run is not running.** I launched it at 14:09, one minute before pulling the pivot, and stopped it at once. No chunk had finished; nothing from it is kept.
+- **Pilot is committed:** `results/pro/bruteforce_pilot.npz`.
+- **Task 2, time series: running.** First 16 pilot storms, depth at all 207 receptors every 30 s, to `results/pro/pilot_timeseries.npz`. Arrays: `depth` (16 x 163 x 207, m; NaN after a storm's end), `t_s`, `t_end_s`, `storm_index`, `peak_depth`, `final_depth`. Each sample is taken at the first step past the 30 s mark, so up to 1 s late.
+- **Task 4, order check: queued behind it.** 4 pilot storms against themselves scaled by 1.1, 1.2, 1.3, 1.2.
+- **Task 3, intervention pairs: ready, waiting for `shared/interventions.npz`.** The solver now takes a different terrain per batch member, so unchanged and changed terrain run side by side. Air agent, the format I will read: per case `storm_profile` (K rain rates in mm/h at 60 s; or an index into a storm file), `loss_mm_h`, `t_end_s` or `duration_s`, `receptor` index, and the terrain change as cell rows, cell columns and height changes in metres. Any layout that carries those is fine; say which in `status/air.md`.
 
 ## Where things stand
 
@@ -11,7 +19,7 @@ Last updated: Sat 21 Nov, 14:10. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, M
 | Sat 20:00 check 5 | **Reported** | 1 m and 2 m agree on 96.8% of flooded-or-not decisions (above the 95% line). |
 | Check 4 (analytic case) | **Reported, with a limitation** | Wave front within 0.1% at n = 0.1, 2.4% late at n = 0.03, 7% late at n = 0.01. Model error, not a time-step error. |
 | Sat 22:00 pilot | **Done 14:08** | `results/pro/bruteforce_pilot.npz`: 64 storms, 1,317 s, 20.6 s per storm, mass imbalance at most 2.2e-5. |
-| Sat 23:30 main run | **Launched 14:09** | 1,000 storms at 1 m, 125 chunks of 8. Forecast 5.7 h, so about 20:00. Log: `results/pro/main.log`. |
+| Sat 23:30 main run | **Cancelled by the pivot** | Measured cost if wanted later: 20.6 s per storm, 5.7 h for 1,000. |
 
 Now using `shared/terrain_512.npz`, `shared/receptors.npz` and `shared/storms_*.npz`. Rain goes on `open` cells at `max(profile - loss, 0)`, as `status/air.md` asks. Roof rain is not added.
 
@@ -23,13 +31,6 @@ Now using `shared/terrain_512.npz`, `shared/receptors.npz` and `shared/storms_*.
 - **Mass balance:** imbalance at most 2.2e-5 of net rain across all 64.
 - **Flooded cases:** 2,253 of 13,248 storm-receptor pairs reach 0.10 m. 54 receptors flood in at least one storm; 153 never do.
 - Deepest water 0.39 to 2.31 m; 8,575 to 28,864 steps per storm.
-
-## Main run (in progress)
-
-Launched 14:09 on `shared/storms_main.npz`: all 1,000 storms, 1 m, batches of 8 sorted by duration. Nothing was reduced.
-
-- Resume after a crash by rerunning the same command: `caffeinate -is uv run --with mlx --with numpy python -u solver/run.py shared/storms_main.npz main 8`. Finished chunks in `results/pro/chunks_main/` are reused.
-- **Timing caveat.** The `emulator/` job was still running on this machine at launch. If it keeps running, the baseline wall-clock is inflated. I will re-time a few chunks on a quiet machine afterwards and report both figures; the per-chunk `wall_s` in the results is whatever was measured.
 
 ## Gate 1: throughput (passed)
 
@@ -112,6 +113,6 @@ The deepest water is 2.1 to 2.3 m in every storm above about 30 mm, and 0.88 m a
 
 ## Next
 
-1. Watch the main run; commit chunks as they land.
-2. Re-time a few chunks on a quiet machine for a clean baseline figure.
-3. Solver speed, only after the main run so the timing is not disturbed.
+1. Time series, then the order check; commit both.
+2. Intervention pairs as soon as `shared/interventions.npz` lands.
+3. Critical depths by bisection for 3 to 6 storm shapes.

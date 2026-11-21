@@ -15,13 +15,14 @@ G = 9.81
 
 
 def make_step(z, open_, dx, rain_mask=None, n_manning=0.015, theta=1.0, outflow=True):
-    """Compile one step for a (B,H,W) batch. z, open_ are (H,W) numpy arrays."""
-    H, W = z.shape
+    """Compile one step for a (B,H,W) batch. open_ is (H,W); z is (H,W), or (B,H,W) for a
+    different terrain per batch member (intervention runs)."""
+    H, W = z.shape[-2:]
     n2 = n_manning ** 2
     op = np.asarray(open_, bool)
     zz = mx.array(np.asarray(z, np.float32))
-    zfx = mx.maximum(zz[:, :-1], zz[:, 1:])
-    zfy = mx.maximum(zz[:-1], zz[1:])
+    zfx = mx.maximum(zz[..., :, :-1], zz[..., :, 1:])
+    zfy = mx.maximum(zz[..., :-1, :], zz[..., 1:, :])
     fx = mx.array(op[:, :-1] & op[:, 1:])          # a face carries flow only between two open cells
     fy = mx.array(op[:-1] & op[1:])
     rm = mx.array((op if rain_mask is None else np.asarray(rain_mask, bool)).astype(np.float32))
@@ -66,7 +67,8 @@ def make_step(z, open_, dx, rain_mask=None, n_manning=0.015, theta=1.0, outflow=
 
 def simulate(z, open_, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, *,
              rain_mult=1.0, rain_mask=None, alpha=0.7, h_floor=0.05, dt_fixed=None, check=10,
-             n_manning=0.015, theta=1.0, outflow=True, h0=None, step=None, return_fields=False):
+             n_manning=0.015, theta=1.0, outflow=True, h0=None, step=None, return_fields=False,
+             series_dt_s=None):
     """Simulate one batch of B storms on one terrain.
 
     profile (B,K) mm/h at fixed step profile_dt_s; loss_mm_h (B,) is subtracted from the rain
@@ -76,7 +78,7 @@ def simulate(z, open_, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, *,
     """
     profile = np.atleast_2d(np.asarray(profile, np.float64))
     B, K = profile.shape
-    H, W = z.shape
+    H, W = z.shape[-2:]
     loss = np.broadcast_to(np.asarray(loss_mm_h, np.float64), (B,))
     tend = np.broadcast_to(np.asarray(t_end_s, np.float64), (B,))
     eff = np.maximum(profile - loss[:, None], 0.) * rain_mult / 3.6e6         # m/s on rained cells
@@ -94,6 +96,11 @@ def simulate(z, open_, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, *,
     dt_max = alpha * dx / np.sqrt(G * h_floor)
     dt = np.full(B, dt_fixed if dt_fixed else dt_max)
     ar = np.arange(B)
+    rc = np.asarray(rc)
+    if series_dt_s:   # depth at receptors every series_dt_s of each storm's own clock (sample is up to one step late)
+        n_s = int(np.ceil(tend.max() / series_dt_s)) + 1
+        series = np.full((B, n_s, len(rc)), np.nan, np.float32); series[:, 0] = 0.
+        mrc = (mx.array(rc[:, 0]), mx.array(rc[:, 1]))
     t0 = time.time(); i = 0
     while (t < tend - 1e-9).any():
         d = np.minimum(dt, tend - t).clip(0)
@@ -103,7 +110,12 @@ def simulate(z, open_, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, *,
                                      mx.array(d.astype(np.float32)).reshape(B, 1, 1))
         # host accounting uses the float32 values the GPU actually used
         rain_in += r.astype(np.float32).astype(np.float64) * d.astype(np.float32) * n_rain
+        k0 = (t / series_dt_s).astype(int) if series_dt_s else None
         t += d; nsteps += d > 0; i += 1
+        if series_dt_s:
+            k1 = (t / series_dt_s + 1e-9).astype(int); hit = k1 > k0
+            if hit.any():
+                series[hit, k1[hit]] = np.array(h[:, mrc[0], mrc[1]])[hit]
         if i % check == 0:
             hmax = np.array(h.max(axis=(1, 2)))     # forces evaluation
             bnd += np.array(bacc, np.float64); bacc = mx.zeros((B,))
@@ -117,7 +129,6 @@ def simulate(z, open_, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, *,
     hn = np.array(h); pk = np.array(peak)
     a = dx * dx
     stored = hn.sum((1, 2), dtype=np.float64)
-    rc = np.asarray(rc)
     # "drained" (the loss) never enters the grid: rain_in is already net of it
     gross = (np.concatenate([profile, np.zeros((B, 1))], 1) * rain_mult / 3.6e6)
     out = dict(peak_depth=pk[:, rc[:, 0], rc[:, 1]], final_depth=hn[:, rc[:, 0], rc[:, 1]],
@@ -126,6 +137,8 @@ def simulate(z, open_, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, *,
                gross_rain_m3=gross.sum(1) * profile_dt_s * n_rain * a,
                nsteps=nsteps, hmax=pk.max((1, 2)), wall_s=wall,
                cell_steps_per_s=float(nsteps.sum()) * H * W / wall)
+    if series_dt_s:
+        out["series"] = series; out["series_t_s"] = np.arange(n_s) * series_dt_s
     if return_fields:
         out["peak_field"] = pk; out["final_field"] = hn
     return out
