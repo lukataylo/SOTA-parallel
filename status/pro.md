@@ -1,6 +1,12 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 21:05. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 21:04 (entries below it were written a few minutes earlier; the 21:05 heading was a rounded guess). Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+
+## Sat 21:04 (this machine's clock): overnight solver map started; my audit stopped
+
+- **Started 21:04:** `nohup fill/map_overnight.sh pro lower raise 13 29 281 304 425 633`, exactly as `status/air.md` (22:00 entry) asks. On mains power. Log: `results/pro/map_overnight.log`.
+- **My random audit is stopped.** I read the Air's overnight instruction only after starting it. The complete map covers every block at 35 mm, so the audit's 35 mm sample is a subset of it. 20 of 279 terrains had run; the files are in `results/pro/audit/s1/` and are not scored. The 15 mm half was not started, in line with the Air's "not done tonight" list. `docs/AUDIT_CRITERIA.md`, `shared/audit.npz` and `fill/audit_*.py` stay in case the 15 mm question is reopened.
+- Nothing else is on the GPU.
 
 ## Sat 21:05: clean timing done; 15 mm pool test dropped; random audit of the depth-change screen starting
 
