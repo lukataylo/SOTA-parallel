@@ -1,6 +1,8 @@
 # Status: MacBook Air M4 agent
 
-## Sat 13:50 — PLAN-CHANGING FINDING: the fill step decides almost no whole storms when all 207 receptors must be decided
+Times are this machine's clock, which runs about 35 minutes behind the times in `status/pro.md`.
+
+## Sat 13:45 — PLAN-CHANGING FINDING: the fill step decides almost no whole storms when all 207 receptors must be decided
 
 Read this before continuing either brief. The numbers come from the fill model alone; the band is not yet measured against the solver, so they are a forecast, and an optimistic one.
 
@@ -20,7 +22,18 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
-## Sat 14:00 — Notes for the Pro agent, and a second forecast
+## Sat 13:48 (Air clock) — Literature checks: what we may and may not claim as new
+
+Search results and abstracts only; I have not read the papers in full.
+
+1. **Rapid fill-and-spill flood models exist in UK practice.** HR Wallingford's Rapid Flood Spreading Model (RFSM) divides the floodplain into "impact zones", which are topographic depressions with a constant water level and a stored volume-against-level table, and passes water between them. It was built because risk studies simulate many thousands of flood events. A later version, RFSM-EDA, adds simplified dynamics. So "a fill model for flood ensembles" is not new. [HR Wallingford paper](https://eprints.hrwallingford.com/695/), [RFSM-EDA paper](https://core.ac.uk/download/29083589.pdf).
+2. **Parallel depression filling exists.** Barnes (2016) parallelised priority-flood by tiling, up to a trillion cells on 48 cores. So "parallel fill" is not new either. [arXiv 1606.06204](https://arxiv.org/abs/1606.06204).
+3. **Fill-Spill-Merge is Barnes, Callaghan and Wickert, 2021** (Earth Surface Dynamics 9, 105 to 121), built on their 2020 depression-hierarchy paper. Our fill model is the same idea, evaluated for many storms at once. [Part 3](https://esurf.copernicus.org/articles/9/105/2021/).
+4. **Combining a cheap and an expensive flood model statistically also exists.** Clare et al. (2022) used multilevel multifidelity Monte Carlo with two coastal flood models to cut the cost of uncertainty estimates. So option 2 in the human decision is an application of a known method, not a new one. [NHESS 22, 2491](https://nhess.copernicus.org/articles/22/2491/2022/).
+
+**What is left to claim:** measured evidence, on real 1 m urban terrain, of when a fill model can and cannot stand in for time-stepping in an ensemble, as a function of how many locations must be decided, with the mechanism. I found nothing that reports that curve, but four searches do not establish that nobody has.
+
+## Sat 13:46 — Notes for the Pro agent, and a second forecast
 
 - **Storm files now also carry `profile_dt_s`** (same value as `profile_step_s`, 60 s), as you asked. Nothing else changed.
 - **Roof rain:** dropped in the fill model too. Rain falls on `open` cells only. We match.
@@ -30,7 +43,7 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Second forecast: running the solver only around undecided receptors does not rescue the map.** In the fill model, the smallest closed unit around an undecided receptor is a median 9 to 12% of the open ground, but one large connected unit covers about 76%, and some undecided receptor falls in it in most storms. Cells to simulate per storm: 64% of the domain with a +-2 cm band (1.6x saving), 86% with +-5 cm (1.2x). `fill/local_forecast.py`.
 
-## Sat 13:48 — Job 2 done: volume bound on the real tile
+## Sat 13:44 — Job 2 done: volume bound on the real tile
 
 `fill/job2_bound.py`, results in `results/air/volume_bound.npz`.
 
@@ -42,7 +55,7 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 Not yet checked against the solver. Until it is, this is a screen with an unmeasured miss rate.
 
-## Sat 13:42 — Job 3 done: batched partial fill built; oracle gate passed on cells, narrowly missed on doors
+## Sat 13:41 — Job 3 done: batched partial fill built; oracle gate passed on cells, narrowly missed on doors
 
 `fill/fillmodel.py` (model), `fill/check_real.py`, `fill/check_oracle.py`.
 
@@ -55,7 +68,7 @@ Not yet checked against the solver. Until it is, this is a screen with an unmeas
 - **Fill tier on the main set:** 11.5% of storm-receptor pairs are wet. 30 of 207 receptors ever reach the threshold. The documented site first reaches it at about 33 mm of net rain.
 - The speed comparison against a plain single-threaded version is not done; at 0.5 s for 1,000 storms it will not change the entry.
 
-## Sat 13:45 — Job 1 done: shared inputs are committed
+## Sat 13:37 — Job 1 done: shared inputs are committed
 
 The Pro agent can switch to these now. Built by `fill/make_shared.py`; picture in `shared/shared_preview.png`.
 
