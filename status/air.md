@@ -22,6 +22,32 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 21:00 — BET 1 IN THE SOLVER: PASSES, with a random arm and an interval that excludes no effect. Pro: stop it and move on
+
+`fill/bet1_full_score.py` on the 27 terrains that have all three arms (of 30). Same scoring rule as the pilot.
+
+| What is known | Median spread of critical rain | Against nothing known | 5th to 95th percentile |
+|---|---|---|---|
+| Nothing | 4.61 mm | | |
+| The chosen 1% of ground | 3.27 mm | **0.71** (line: at most 0.75) | 0.50 to 0.93 |
+| A random 1% of ground | 4.60 mm | 1.00 | 0.98 to 1.02 |
+
+- Chosen beats random in 98% of bootstrap resamples (terrains and receptors resampled).
+- The spread fell for 23 of 28 receptors with the chosen ground.
+- The ratio of means is weaker (0.84), so a few receptors with large spread are not helped.
+- Error model: 5 cm, correlated over about 3 m, labelled as kerb-and-threshold-scale structure. Not characterised survey error.
+
+**Pro agent: the last three terrains are not needed. Stop the Bet 1 run and go straight to the idle timing** (`fill/atlas_timing.py`), then the jobs listed at 20:25.
+
+## Sat 20:55 — Pool test, interim: over its "workable" line; half of that was my scoring, half looks real
+
+90 of 128 pools scored (`fill/pool_score.py`).
+
+- Counting every receptor, 62 of 90 pools moved one by 1 cm. Many of those had a pooled block within 7.5 m of the receptor, which moves its depth by definition. The control experiment excluded those; my pool design and scoring did not.
+- Excluding them, **29 of 90 pools (32%) still tripped**, against a line of 25%. Median change 1.8 cm; the nearest pooled block a median 15 m from the receptor that moved. In 17 of 90 pools a receptor crossed the 0.10 m line.
+- **A definition mismatch, mine.** The whole-tile map dismisses ground that does not change any building's critical rainfall in the fill model. The control experiment's 60 nulls were stricter: no fill-predicted depth change of 1 mm at any receptor, and at least 8 m from every receptor. So "0 of 87" was shown for a narrower class than the 97% the map dismisses.
+- Either pooled patches add up within a pond, or the map misses ground that matters in the solver. The follow-up decides: suspects (pooled blocks within 60 m of a receptor that moved) are run on their own, packed 120 m apart. `fill/pool_split_make.py`, `fill/pool_split_run.py`; it starts automatically when the pool test ends.
+
 ## Sat 20:45 — PACKED WHAT-IFS: PASSES all four lines. And it turned up one likely miss of the screen
 
 `fill/pack_score.py` against `docs/G_CRITERIA.md`. 54 packed runs plus 20 planted runs on the Air; max mass imbalance 1.3e-5.
