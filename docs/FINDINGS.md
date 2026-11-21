@@ -14,6 +14,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Finding | Evidence |
 |---|---|
+| Which ground matters survives treating buildings as floodable footprints | Fill model: 28 of 29 buildings keep some of the same controlling ground, 1 keeps none (gate was 20%); 69% of active pairs stay active; critical rain falls a median 6 mm; building order kept (rank correlation 0.90) |
 | **Every open square metre evaluated exactly** | 342,316 what-ifs in 603 s on 8 processes (14 ms per core under load); 5.2 days by rebuilding on one core. 2.7% of open ground (4,653 cells) moves any building; 78% of it is more than 5 m from the building it moves. Clean timing still to do |
 | **Control experiment: ground the fill model dismisses does nothing in the solver** | 0 of 60 null patches and 0 of 30 random patches moved any receptor's peak by 1 cm, across three storms. As a screen over 120 patches: 22 flagged and active, 11 flagged and inactive, 0 missed, 87 correctly dismissed. Pass line was at most 10% |
 | The solver is correct and reproducible | Matches the JAX reference to 0.002 mm; mass balance 1e-5; lake at rest exact; bit-identical across batch sizes |
@@ -54,7 +55,6 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | Experiment | Where | State |
 |---|---|---|
 | Absorption map from the fill model (E0) | Air CPU | Running |
-| Buildings as 0.3 m floodable footprints, in the fill model | Air CPU | Queued; gate: more than 20% of buildings change controlling spill cell |
 | Friction, do-no-harm check, measure-where-it-matters pilot, absorption go/no-go | Pro GPU | See `docs/PRO_PLAN.md` |
 
 ## What the literature says we cannot claim

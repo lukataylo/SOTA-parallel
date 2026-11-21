@@ -22,6 +22,18 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 19:20 — Buildings as floodable footprints: the controlling ground mostly survives. Gate passed (3% against 20%)
+
+`fill/buildings_test.py`. Fill model. Footprints set to the median height of the open ground touching them plus 0.3 m, floodable, with rain falling on them (the national map's choice), against solid walls with roof rain discarded.
+
+- **At-risk buildings:** 32 under walls, 33 under footprints, 32 in both.
+- **Critical rain falls,** because roof rain now reaches the ground: median 6 mm lower (10th to 90th percentile: 31 to 1 mm lower). The order of buildings is kept: rank correlation 0.90.
+- **Controlling ground:** of 29 buildings with controlling ground under walls, 28 keep at least some of the same ground, 8 keep exactly the same set, and 1 (3%) keeps none. The gate for taking this to the solver was 20%.
+- **Pairs:** 121 of 175 active (location, building) pairs stay active (69%); 5 new ones appear.
+- **Limit:** only the 130 locations that were active under walls were re-tested, so ground that becomes controlling only under footprints is not counted. A whole-tile sweep under footprints would close that.
+
+So the headline survives the assumption Mythos thought most able to break it: which ground matters is largely the same; how much rain is not.
+
 ## Sat 18:52 — Whole tile, exactly: every open square metre in 10 minutes. 2.7% of the ground moves any building
 
 `fill/atlas.py`, results in `results/air/atlas.npz` (per cell and per sign: buildings moved, largest rise, largest fall). This is Mythos's "move 1" (`docs/mythos/8_headlines_and_win_strategy.md`), which also sets the headline: **"Which square metres flood your door?"**
