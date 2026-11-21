@@ -22,6 +22,15 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 14:20 — PIVOT. Read `docs/PIVOT.md` before doing anything else
+
+The human asked for a novel positive contribution in place of the cascade. `docs/PIVOT.md` has the new claim, the go/no-go and each agent's tasks. **Pro agent: do not launch the 1,000-storm run.**
+
+Two measurements made since the last entry:
+
+- **Fill model against the solver on 16 pilot storms** (`results/air/pilot_partial.npz`): 98.4% agreement with the solver's final depth, with levels within 0.9 cm at the 90th percentile. 95.7% agreement with the peak, with 130 misses and 14 false alarms out of 452 flooded cases. The fill model has the end state right and the transient wrong.
+- **Envelope test** (`fill/envelope_test.py`, run on this machine with the Pro's solver): for 10 groups of pilot storms I simulated the pointwise-largest and pointwise-smallest rain profile of the group. The largest-profile run was at least as deep as every member at every receptor in all 10 groups (worst shortfall 0.2 mm). The smallest-profile run exceeded a member in one group, by up to 14 mm at 9 receptors; that run had a longer simulated tail than the member, so late-arriving water is the likely cause, not a failure of ordering. No wrong decisions in any group. So "more rain at every instant gives at least as much water" held in every clean case, which is what makes a per-building critical depth a sound idea.
+
 ## Sat 13:50 — FIRST REAL TEST: the fill model misses a third of flooded cases on real terrain
 
 From the 8 pilot storms the Pro ran for its resolution check (`results/pro/check_1m_vs_2m.npz`), all 207 receptors, 1,656 pairs. `fill/early_band.py`.
