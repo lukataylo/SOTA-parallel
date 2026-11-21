@@ -1,6 +1,29 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 14:31. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 14:45. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+
+## Sat 14:45: GO/NO-GO RESULT. The solver confirms 9 of 20 predicted flips on peak depth, 11 of 20 on final depth. The kill line was 14.
+
+Read this first. `solver/interventions.py`, results in `results/pro/interventions.npz`, 40 simulations, 730 s, mass imbalance at most 2.7e-5.
+
+| Scoring | Confirmed |
+|---|---|
+| Flip as predicted, on peak depth (the definition of flooded) | **9 of 20** |
+| Flip as predicted, on final depth | **11 of 20** |
+| Depth at the target receptor moved in the predicted direction | **20 of 20** |
+| Flips the solver did produce that went the predicted way | 9 of 9 |
+
+By the kill line as written in `docs/PIVOT.md` (fewer than 14 of 20), this fails, on peak and on final depth. I have not rescored it any other way. What the failures look like:
+
+- **Every one of the 11 failures is the solver being wetter than the fill model said.** In 8 cases the receptor was predicted dry before the change and the solver already had it flooded (peak 0.105 to 0.148 m). In 3 cases it was predicted dry after the change and stayed wet: two by a hair (0.100 and 0.102 m), one far off (case 19, 0.63 to 0.45 m). No case failed the other way.
+- **The patch does what the fill model says to the water level.** The direction is right in all 20. Where the patch is at the receptor (12 cases) the peak moved a median 4.9 cm for a 5 cm change. Where it is 10 to 33 m away (8 cases) the peak moved a median 3.1 cm, from 0.4 to 15.5 cm, in the right direction every time.
+- **So the controlling ground is identified correctly and the critical depth is placed wrongly.** The storms were set between the fill model's old and new critical depths. The solver's critical depths are lower, because the peak includes water in transit, so many storms were not between the solver's own before and after.
+- By distance: patch at the receptor, 6 of 12 on peak and 7 of 12 on final. Patch 10 to 33 m away, 3 of 8 on peak and 4 of 8 on final.
+- Side effects: in 2 cases one other receptor also changed state.
+
+What I am not claiming: that rescoring on direction rescues the gate. It is a different, weaker test, chosen after seeing the result. A fair retest would place fresh storms using critical depths from the solver (task 5 below gives them for four storm shapes), on new cases, and count flips again.
+
+**Decision for the human:** per `docs/PIVOT.md`, the entry continues only if the transit correction passes by Sat 20:00. The alternative reading of this result is a narrower claim: the fill model finds which few square metres control a building (20 of 20 on direction, including remote patches), but not the rain depth at which it floods.
 
 ## Sat 14:31: pivot tasks (`docs/PIVOT.md`)
 
@@ -8,9 +31,9 @@ Last updated: Sat 21 Nov, 14:31. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, M
 |---|---|---|
 | 1. Pilot committed, main run not launched | Done | `results/pro/bruteforce_pilot.npz`. I launched the 1,000-storm run at 14:09, a minute before pulling the pivot, and stopped it at once; nothing from it is kept. |
 | 2. Receptor time series | **Done** | `results/pro/pilot_timeseries.npz` |
-| 3. Intervention pairs | Ready, waiting for `shared/interventions.npz` | |
+| 3. Intervention pairs | **Done: 9 of 20 on peak, below the kill line** | `results/pro/interventions.npz`, see above |
 | 4. Order check | **Done: holds** | Larger storm at least as deep at every receptor, all 4 pairs |
-| 5. Critical depths from the solver | Running since 14:30, about 40 min | `results/pro/critical_*.npz` |
+| 5. Critical depths from the solver | Restarted 14:43 after the intervention runs, about 40 min | `results/pro/critical_*.npz` |
 
 **Task 2, time series.** Pilot storms 0 to 15, depth at all 207 receptors every 30 s. Arrays: `depth` (16 x 159 x 207, m; NaN after a storm's own end), `t_s`, `t_end_s`, `storm_index`, `peak_depth`, `final_depth`.
 
