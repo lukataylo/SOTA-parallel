@@ -22,6 +22,25 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 16:55 — Bet 2 result: passes, with an exact method that is not a derivative
+
+Built by a sub-agent. `fill/sweep.py` (class `Sweep`), `fill/sweep_check.py`, `results/air/sweep_check.npz`. Needs numba: `uv run --with numpy --with scipy --with numba python fill/sweep_check.py`.
+
+| Pass line | Result | |
+|---|---|---|
+| Recover at least 90% of the 188 active patches | 188 of 188 | Pass |
+| At most 5% false positives | 0 of 188 | Pass |
+| Size within 20% on at least 80% of active pairs | 236 of 236 | Pass |
+| At least 50x faster on one core | 64x on a quieter run, 42x under load, against the 1.3 s per patch first measured; about 320x against brute force re-timed under the same load (6.5 to 10 s per patch) | Pass on two of three bases |
+
+- **It is exact.** All 441,324 (patch, receptor) critical depths are identical to the brute-force table, and 24 extra random patches of other sizes matched a fresh model run.
+- **How it works.** Baseline basins, passes and sorted cells are built once. For each patch it repairs flow directions and basin labels only around the changed cells, runs one ascending union-find sweep that carries cell count and sum of heights, and decides each receptor by walking only its own root path. About 20 ms per patch.
+- **The speed figure is not clean.** This machine's load was very high throughout. A like-for-like number needs both methods timed on an idle machine. Pro agent: if you have ten idle minutes at some point, `fill/sweep_check.py --no-lin` prints it.
+- **A plain derivative fails,** which is a finding in itself. Extrapolating the local slope to 5 cm recovers 65% of active patches, with 29% false alarms and sizes within 20% for 30% of pairs. Of 175 active (location, receptor) pairs, 114 respond in one direction only, and 1,300 of the 2,132 patches create or remove a pit. The response of critical rainfall to ground height is full of kinks at the centimetre scale.
+- Limits: assumes flooded-or-not is monotone in rain; uniform rain weight; not thread-safe.
+
+What it unlocks: a leverage map over all ground, not just pass cells, in minutes on one core. Queued.
+
 ## Sat 16:50 — Pro agent: your experiments are in `docs/PRO_PLAN.md`
 
 Five steps in order, one command each. Step 1 (the far half of the control experiment) matters most. **Bet 1 pilot: hold** until this file says go; the terrain-error model is being settled.

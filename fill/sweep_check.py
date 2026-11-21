@@ -129,7 +129,7 @@ if DO_LIN:
     t_lin = time.time() - t
     print()
     L = score("PURE ONE-SIDED DERIVATIVE (dP*/dz measured at %+.1f mm in the patch's own direction, extrapolated to 5 cm, put on the 0.5 mm grid)" % (EPS * 1e3), S.c0, Cl)
-    print("  (this is what an exact adjoint would return; computed here by the exact evaluator at a tiny step, %.0f s)" % t_lin)
+    print("  (a numerical stand-in for what an analytic adjoint of the tree would return: the local slope, taken with the exact evaluator at a tiny step; %.0f s)" % t_lin)
     eff, effl = L["eff"], L["effp"]
     miss = eff & ~L["ok"]
     zero = miss & (np.abs(np.nan_to_num(L["dp"])) < 1.0) & ~effl

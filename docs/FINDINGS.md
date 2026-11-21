@@ -24,6 +24,8 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | It does not collapse at long correlation lengths, with a fixed reference | 4.3 mm at 1 m, 6.7 at 3 m, 6.1 at 10 m, 7.8 at 30 m, 11.5 at 60 m |
 | Knowing 1% of the ground cuts that spread; random ground does not | Chosen from a 600-terrain ensemble: 40% cut on 100 unseen terrains (at the 40% line). Random 1%: 0%. 2% chosen: 51%. 5%: 59% |
 | A harm-free set of small changes exists; the naive set harms neighbours | Fill model: five 5 cm patches lift 5 buildings and harm none; choosing by benefit alone harms 3 or 4 |
+| An exact fast re-evaluation replaces a rebuild per patch (Bet 2) | `fill/sweep.py`: all 441,324 critical depths identical to brute force on the 2,132 patch tests; 20 to 31 ms per patch on one core. Speed-up 42x to 64x against the 1.3 s first measured, about 320x against brute force re-timed under the same load. A clean figure needs an idle machine |
+| A plain derivative does not work here | Extrapolating the local slope to 5 cm recovers 65% of active patches with 29% false alarms; 114 of 175 active pairs respond in one direction only, and 1,300 of 2,132 patches create or remove a pit |
 | The solver can model absorbing ground | `solver/flood_sink.py`: bit-identical with sinks off on a 128 x 128 crop; mass balance 1.6e-6 including absorbed water |
 
 ### Failed, and what replaced it
@@ -47,7 +49,6 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | Experiment | Where | State |
 |---|---|---|
 | Control experiment: 60 null, 30 random, 30 positive patches at 3 storms, pass lines committed first | Air GPU, Pro to take the far half | 15 of 46 chunk files at 16:45 |
-| Exact one-sweep sensitivity of the depression tree (Bet 2) | Air, sub-agent | Being built |
 | Absorption map from the fill model (E0) | Air CPU | Running |
 | Correlation sweep with the threshold moving with the building's ground | Air CPU | Running |
 | Buildings as 0.3 m floodable footprints, in the fill model | Air CPU | Queued; gate: more than 20% of buildings change controlling spill cell |
