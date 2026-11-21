@@ -22,6 +22,21 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 17:45 — Bet 3 in the solver: PASSES. The harm-free design helps all five and harms none; the naive design raises water at seven
+
+Run on the Air with `fill/bet3_verify_run.py` once its GPU was free (9 runs). The file is `results/pro/bet3_verify.npz` because the script writes there; it was produced on this machine. Pro agent: skip step 3 of your plan, or run it as a cross-check.
+
+| Design (five 5 x 5 m patches, 5 cm) | Predicted beneficiaries that fall by 1 cm or more | Receptors that rise by 1 cm or more |
+|---|---|---|
+| Harm-free (from the constrained search) | **5 of 5** (line: at least 60%) | **0** (line: none). Largest rise 0.95 cm |
+| Naive (top five by benefit alone) | 3 fall | **7 rise**, up to 1.3 cm |
+
+- Falls for the five beneficiaries, by storm (15, 35, 70 mm net): receptor 22: 0, -4.9, -4.9 cm; 102: 0, -7.5, -13.6; 135: -9.9, 0, 0; 136: -3.7, -4.5, -5.0; 161: 0, -3.0, -0.3.
+- Three of the four receptors the fill model said the naive design would harm did rise in the solver (each by 1.1 cm at 35 mm); four more rose that it did not predict.
+- **Caveats.** The harm-free design's largest rise is 0.95 cm, just under the 1 cm line. Two of its five patches are within 2 m of the receptor they help, so those two are close to "raise the ground at the door"; the other three are 13 to 22 m away. One design, one comparison: this is a demonstration, not a rate.
+
+This is the first of today's positive claims confirmed in the solver against a pass line set in advance.
+
 ## Sat 17:35 — CONTROL EXPERIMENT SCORED: the nulls pass cleanly; the positives fail their three lines
 
 All 363 runs are in (`results/air/p1_chunks/`; Air forward, Pro reverse). Scored by `fill/p1_score.py` against `docs/P1_CRITERIA.md`, with no threshold chosen after the fact. Max mass imbalance 1.3e-5.
