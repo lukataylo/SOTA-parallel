@@ -3,6 +3,7 @@ Arms:  A  survey error everywhere      B  error removed on the chosen ground (re
 Each terrain is run up a ladder of rain depths (centred triangle, 40 min + 20 min). Chunked and resumable.
   uv run --with mlx --with numpy --with scipy python fill/bet1_solver_run.py pilot      # 8 terrains x 6 levels x arms A,B = 96 runs
   uv run --with mlx --with numpy --with scipy python fill/bet1_solver_run.py full       # 30 terrains x 12 levels x arms A,B,C = 1,080 runs
+Add a second argument `reverse` to work through the terrains from the last one, so two machines can share a run.
 Error fields are the held-out ones used in the fill-model test (seeds 1000+), 5 cm sd, 3 m correlation."""
 import sys, os, time, numpy as np
 from scipy.ndimage import gaussian_filter
@@ -28,7 +29,7 @@ def terrain(seed, arm):
     if arm == "C": n = np.where(rnd, 0.0, n)
     return np.where(op, z + n, z).astype(np.float32)
 np.savez(f"{out}/setup.npz", levels_net_mm=LEVELS, profile=PROF, arms=np.array(list(ARMS)), n_terrains=NT, loss_mm_h=LOSS, t_end_s=DUR * 60 + 1200.0)
-for seed in range(NT):
+for seed in (range(NT - 1, -1, -1) if (len(sys.argv) > 2 and sys.argv[2] == "reverse") else range(NT)):
     for arm in ARMS:
         f = f"{out}/t{seed:03d}_{arm}.npz"
         if os.path.exists(f): continue
