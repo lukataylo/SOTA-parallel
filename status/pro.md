@@ -1,15 +1,19 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 13:55. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 14:25. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
 ## Where things stand
 
 | Gate | State | Number |
 |---|---|---|
-| Sat 16:00 throughput | **Passed** | 710M cell-steps/s single storm, 470M batched (bare update). 293M for the full solver on real terrain, batch of 8. |
-| Sat 20:00 checks 1 to 3, check 5 | In progress | Mass balance on real terrain already at 1e-5 or better (below). |
-| Sat 22:00 pilot | Waiting on `shared/` | |
-| Sat 23:30 main run | Not started | Estimate: about 19 s per storm, so 1,000 storms is about 5.3 h. |
+| Sat 16:00 throughput | **Passed** | 710M cell-steps/s single storm, 470M batched (bare update). 283M for the full solver on the shared terrain, batch of 8. |
+| Sat 20:00 checks 1 to 3 | **Passed** | JAX agreement 2.4e-6 m; mass imbalance at most 1.5e-5; lake at rest moves 0. |
+| Sat 20:00 check 5 | **Reported** | 1 m and 2 m agree on 96.8% of flooded-or-not decisions (above the 95% line). |
+| Check 4 (analytic case) | Not done yet | Will try if time allows after the pilot. |
+| Sat 22:00 pilot | Running since 14:22 | `results/pro/bruteforce_pilot.npz` expected about 14:45. |
+| Sat 23:30 main run | Not started | About 20 s per storm, so 1,000 storms is about 5.7 h. Feasible at 1 m, full set. |
+
+Now using `shared/terrain_512.npz`, `shared/receptors.npz` and `shared/storms_*.npz`. Rain goes on `open` cells at `max(profile - loss, 0)`, as `status/air.md` asks. Roof rain is not added.
 
 ## Gate 1: throughput (passed)
 
@@ -22,35 +26,64 @@ Bare core update, `scripts/bench_step.py mlx B 512 300`, synthetic terrain:
 | 32 | 470 |
 | 64 | 467 |
 
-Batching does not raise throughput per cell: one 512 x 512 storm already saturates the GPU. Batching is still how the run is organised, but it buys nothing per cell-step.
+Batching does not raise throughput per cell: one 512 x 512 storm already saturates the GPU. This matters for the pitch. On this hardware the ensemble is not faster per storm when batched, so the only way to cut wall-clock is to simulate fewer storms, which is what the cascade does.
 
-Full solver (`solver/flood.py`: walls, per-storm rain, outflow, peak field, mass accounting) on the real tile, 8 stand-in storms run together: **293M cell-steps/s**, 152 s wall for 8 storms. That counts only steps on storms still running; a storm that ends early keeps occupying its batch slot. Sorting storms by expected length before batching is the next speed item.
+Full solver on the shared terrain, 8 pilot storms together: **283M cell-steps/s**, 164 s wall, 10,400 to 26,100 steps per storm. That figure counts only steps on storms still running.
 
-What it means: the main run is feasible at 1 m with about 1,000 storms. No need to drop to 2 m.
+## Correctness checks
+
+Reproduce with `uv run --with mlx --with numpy --with jax --with scipy python solver/checks.py`. Raw numbers in `results/pro/checks.json`.
+
+**Check 1, agreement with the JAX reference: passed.** Synthetic street 1 from `prior/floodlab.py` at 0.25 m, 60 mm in 2 minutes, 300 s, gullies off in both.
+
+| Run | Largest difference in final depth, any cell | Largest difference in peak door depth |
+|---|---|---|
+| Same fixed time step as the reference (5,000 steps) | 0.0024 mm | 0.24 mm |
+| My adaptive time step (2,299 steps) | 1.2 mm | 0.15 mm |
+
+Reference peak door depths are 6.0, 6.8 and 6.7 cm at the three wet doors. The 0.24 mm peak figure compares my mean of per-cell peaks with the reference's peak of the door mean, so it is not quite the same quantity.
+
+**Check 2, mass balance on the real terrain: passed.** 8 pilot storms from 16 to 112 mm. Net rain 1,296 to 17,137 m3. Rain in minus water stored minus water out through the edge: at most **1.5e-5** of rain in. At 2 m: 4.7e-6. The drainage loss never enters the grid, so it needs no balance term.
+
+**Check 3, lake at rest: passed.** Still water at 3.0 m AOD (25,554 wet cells, up to 2.07 m deep) and at 4.0 m AOD (123,387 wet cells), edge outflow off, 600 s: no cell changed depth at all in float32.
+
+**Check 5, resolution: 96.8% agreement.** The same 8 storms at 1 m and at 2 m, 193 receptors (14 dropped because their 2 m cell is mostly building), 1,544 cases.
+
+- Flooded at 1 m: 241. Flooded at 2 m: 226. Flooded at 1 m only: 32. Flooded at 2 m only: 17.
+- Per-storm agreement 95.3% to 100%.
+- Peak depth difference: median 1.3 mm, 95th percentile 4.2 cm.
+- The 2 m run took 24 s against 164 s.
+
+What it means: the flood table depends a little on resolution, about 3% of decisions, and those sit near the threshold. That is the same population the band is meant to catch. Limitation to state: 2 m coarsening here is my own (a coarse cell is open if 2 or more of its 4 cells are open; height is the mean of its open cells).
 
 ## Solver, as built
 
-`solver/flood.py`, function `simulate(z, open, dx, rc, profile, profile_dt_s, loss_mm_h, t_end_s, ...)`.
+`solver/flood.py`, `simulate(...)`. `solver/run.py` wraps it for storm sets.
 
 - Local-inertial scheme (Bates et al. 2010) with semi-implicit Manning friction and a flux limiter that stops a cell giving more water than it holds. Same update as `prior/floodlab.py`.
-- **Time step.** Per storm, `dt = 0.7 * dx / sqrt(g * hmax)`, where `hmax` is that storm's deepest water, refreshed every 10 steps. Capped at 1.0 s (the value for 5 cm of water). Each storm in a batch has its own `dt` and its own clock; a finished storm gets `dt = 0`, which freezes it exactly.
-- **Terrain oddity that sets the cost.** Some open cell ponds to 2.1 to 2.4 m in every stand-in storm, even 26 mm. That pit forces `dt` down to about 0.15 s for the whole domain. Air agent: when you build `shared/terrain_512.npz`, look for a deep pit on open ground (the DTM minimum is -0.43 m AOD). If it is an artefact and you fill it, the solver gets several times faster. I will locate it and report the cell.
-- **32-bit.** MLX on the Apple GPU has no float64. Rain volume and boundary outflow are summed on the host in float64 from the float32 values the GPU used.
+- **Time step.** Per storm, `dt = 0.7 * dx / sqrt(g * hmax)`, with `hmax` that storm's deepest water, refreshed every 10 steps. Capped at 1.0 s (the value for 5 cm of water). Each storm in a batch has its own `dt` and clock; a finished storm gets `dt = 0`, which freezes it exactly. The run aborts on any non-finite depth.
+- **32-bit.** MLX on the Apple GPU has no float64. Rain volume and edge outflow are summed on the host in float64 from the float32 values the GPU used. Mass balance above shows this is adequate.
+- **Outputs.** Peak and final depth at every receptor, mass balance terms, steps, deepest water. The runner also keeps full peak-depth maps locally (`results/pro/fields_*`, not committed), so receptors can be moved without a rerun.
 
-Mass balance on the real tile, 8 stand-in storms, 26 to 115 mm: imbalance between -6.0e-6 and +8.3e-6 of net rain. 
+**For the Air agent, Sunday:** `from run import run_storms` (in `solver/`), then `run_storms("shared/storms_main.npz", indices)` returns `peak_depth`, `final_depth`, `storm_index`, `wall_s` for any subset.
 
-## Assumptions (all provisional until the shared files exist)
+## The pits set the cost
 
-- **Rain on roofs:** currently dropped (`rain_mult=1.0`, rain falls on open cells only). The brief says add it to open ground; uniform redistribution is `rain_mult = 1 / open fraction = 1.53`. One parameter. Air agent: say in `status/air.md` which you assume in the fill model and I will match it.
-- **Drainage loss** is subtracted from the rain rate, floored at zero. It never enters the grid, so water already ponded is not drained after the rain stops. Justification: the brief defines it as "removed from rainfall".
-- **Buildings** hold no water and pass no flow (face masks), so their terrain height is irrelevant to the solver.
-- **Boundary:** critical-depth outflow at every open cell on the domain edge.
+The deepest water is 2.1 to 2.3 m in every storm above about 30 mm, and 0.88 m at 16 mm. Those are the rectangular pits the Air agent noted at rows 190 to 230. The time step is set by the deepest water anywhere, so those pits hold `dt` near 0.15 s for the whole domain. Without them the deepest water would be well under 1 m and the run would be roughly 1.5 to 2 times faster. I have not changed the terrain; it is the Air agent's call and the fill model must see the same ground.
+
+## Assumptions
+
+- **Rain on roofs** is not added to the ground (matches `status/air.md`: roofs drain to sewers). Lowers flooding.
+- **Drainage loss** is subtracted from the rain rate, floored at zero. Water already ponded is not drained after the rain stops. The brief defines the loss as "removed from rainfall".
+- **Buildings** hold no water and pass no flow, by masking faces. Their 20 m raised height is not used.
+- **Boundary:** critical-depth outflow at every open cell on the domain edge. Nothing flows in from outside the 512 m tile, so upstream run-on is ignored.
 - **Manning n = 0.015** everywhere (smooth asphalt), carried over from the prior code. Not calibrated.
-- **Storm profile format I expect:** `profile` as storms x K in mm/h plus a scalar step in seconds. The contract does not name the step; please store it as `profile_dt_s`.
-- Stand-in storms: `standin_storms()` in `solver/flood.py`, brief ranges, Gaussian-bump profiles.
+- **No flux smoothing** (de Almeida 2012 theta = 1). The option exists; the plain scheme has stayed stable and mass-conserving in every run so far.
+- **Rain rate is read at the start of each step**, so a change in the 60 s profile lands up to one step (at most 1 s) late. The mass accounting uses the same value.
+- **Storms that end early keep their batch slot.** Batches are sorted by duration to limit the waste. Wall-clock per storm is the chunk's wall-clock shared equally.
 
 ## Next
 
-1. Checks 1 to 3 (JAX agreement, mass balance, lake at rest), then 5 (1 m against 2 m).
-2. Find the deep pit.
-3. Chunked, resumable batch runner for the pilot and main run.
+1. Pilot finishes; commit `results/pro/bruteforce_pilot.npz`.
+2. Launch the main run early rather than at 23:30, unless the Air agent changes the terrain.
+3. Check 4 (analytic case) if an hour is free.
