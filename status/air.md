@@ -22,6 +22,39 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 17:35 — CONTROL EXPERIMENT SCORED: the nulls pass cleanly; the positives fail their three lines
+
+All 363 runs are in (`results/air/p1_chunks/`; Air forward, Pro reverse). Scored by `fill/p1_score.py` against `docs/P1_CRITERIA.md`, with no threshold chosen after the fact. Max mass imbalance 1.3e-5.
+
+| Line (committed before the runs) | Result | |
+|---|---|---|
+| Nulls: at most 10% of the 60 move any receptor's peak by 1 cm in any storm | **0 of 60.** Largest change from any null patch: 0.27 cm | **Pass** |
+| Positives: sign right in at least 26 of 30 | **25 of 30** | **Fail, by one** |
+| Positives: rank correlation at least 0.7 | **0.51** | **Fail** |
+| Positives: slope between 0.45 and 0.75 | **-0.12** | **Fail** |
+
+Random patches (no line): none of the 30 moved any receptor by 1 cm; largest 0.85 cm.
+
+**As a screen over all 120 patches** (fill model predicts any change, against the solver moving some receptor by 1 cm):
+
+| | Solver moves a receptor | Solver moves nothing |
+|---|---|---|
+| Fill model predicts a change | 22 | 11 |
+| Fill model predicts none | **0** | 87 |
+
+**What this supports.** Ground the fill model dismisses did nothing in the solver: 0 of 87. Ground it selects moved a receptor in 22 of 33. So it is a safe way to throw away most of the ground before spending solver time, on this sample.
+
+**What it does not support.** The fill model's predicted size and even sign for the patches it selects. The committed test of that failed.
+
+**Where the failure sits** (looked at after scoring, so descriptive only):
+- By storm: at 35 mm net the rank correlation is 0.96 and the slope 0.72; at 70 mm, 0.93 and 0.48; at 15 mm, 0.31 and -0.19. The smallest storm is where it breaks.
+- Three of the five wrong signs are one prediction repeated: the fill model says a patch makes one receptor 32 cm deeper in the 15 mm storm (a pond switching on), and the solver has it 12 cm shallower or unchanged. Without the four cases predicted above 8 cm, the slope through the origin is 0.59 to 0.78 and the sign is right in 23 of 26.
+- So the fill model's all-or-nothing switches at small storms are not how the solver behaves. This is the same kinked response that made a plain derivative fail in Bet 2.
+
+**Two machines, same answers.** Four chunk files were computed on both: peak depths differ by at most 0.25 mm between the M4 and the M3 Pro. The Pro took about 100 s per chunk against 210 s here.
+
+**Headline wording this allows:** "the fill model finds the ground that cannot matter, and the solver agrees: 0 of 87"; and "of the ground it flags, two thirds move a building in the solver". Not: "the solver moves the predicted way when those cells change".
+
 ## Sat 17:00 — Correlation length, second scoring: the two bracket the answer. Bet 1 pilot: go, as the kerb-scale scenario
 
 `fill/noise_corr_sweep_riding.py`. Same error fields idea, 5 cm, 60 terrains per length, but the 0.10 m threshold is measured from the building's own (perturbed) ground.

@@ -1,4 +1,4 @@
-# Findings so far (Saturday 16:50)
+# Findings so far (Saturday 17:35)
 
 One page for anyone pulling the repository cold. Detail and timestamps are in `status/air.md` and `status/pro.md`. What to run next on the Pro is in `docs/PRO_PLAN.md`.
 
@@ -14,6 +14,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Finding | Evidence |
 |---|---|
+| **Control experiment: ground the fill model dismisses does nothing in the solver** | 0 of 60 null patches and 0 of 30 random patches moved any receptor's peak by 1 cm, across three storms. As a screen over 120 patches: 22 flagged and active, 11 flagged and inactive, 0 missed, 87 correctly dismissed. Pass line was at most 10% |
 | The solver is correct and reproducible | Matches the JAX reference to 0.002 mm; mass balance 1e-5; lake at rest exact; bit-identical across batch sizes |
 | More rain never gives less peak water | 4 of 4 scaled-storm pairs at all 207 receptors; 10 of 10 envelope groups; no reversal in any depth sweep |
 | The fill model gets settled water right | Against the solver's final depth: recall 85%, critical success index 83%; levels within 1.6 cm at the 90th percentile |
@@ -32,6 +33,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | What failed | Result | Consequence |
 |---|---|---|
+| **Control experiment: size and sign of the effect of flagged ground** | Sign right in 25 of 30 (line 26); rank correlation 0.51 (line 0.7); slope -0.12 (line 0.45 to 0.75) | The fill model is a screen for which ground can matter, not a predictor of how much. The failure is concentrated in the 15 mm storm; at 35 and 70 mm the rank correlation is 0.96 and 0.93 (seen after scoring) |
 | Fill model as a screen to skip solver runs | Recall 66% against the solver's peak; almost no storm has all 207 receptors decided | Dropped. The fill model is used to find ground, not to replace the solver |
 | Predicting the exact flip of a building, first test | 9 of 20 (line was 14) | Storms were placed with the fill model's critical depth, which is too high where water is in motion |
 | Predicting the exact flip, retest on remote patches | 7 of 12 (line was 9) | Peak on unchanged ground predicted to 0.1 cm, but the fill model over-predicts the size of remote effects: slope 0.58 |
@@ -48,7 +50,6 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Experiment | Where | State |
 |---|---|---|
-| Control experiment: 60 null, 30 random, 30 positive patches at 3 storms, pass lines committed first | Air GPU, Pro to take the far half | 15 of 46 chunk files at 16:45 |
 | Absorption map from the fill model (E0) | Air CPU | Running |
 | Buildings as 0.3 m floodable footprints, in the fill model | Air CPU | Queued; gate: more than 20% of buildings change controlling spill cell |
 | Friction, do-no-harm check, measure-where-it-matters pilot, absorption go/no-go | Pro GPU | See `docs/PRO_PLAN.md` |
