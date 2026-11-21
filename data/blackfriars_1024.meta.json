@@ -1,0 +1,33 @@
+{
+ "crs": "EPSG:27700",
+ "res_m": 1.0,
+ "shape": [
+  1024,
+  1024
+ ],
+ "bounds_osgb": {
+  "left": 531109,
+  "bottom": 179531,
+  "right": 532133,
+  "top": 180555
+ },
+ "centre_latlon": [
+  51.504,
+  -0.105
+ ],
+ "row0": "north edge; row index increases southward",
+ "vertical": "metres above Ordnance Datum Newlyn",
+ "dtm_nan": 0,
+ "dsm_nan": 0,
+ "dtm_min": -5.72599983215332,
+ "dtm_max": 9.068000793457031,
+ "dtm_p1_p99": [
+  1.1510000228881836,
+  5.829999923706055
+ ],
+ "building_frac": 0.2185831069946289,
+ "rail_cells": 10633,
+ "osm_entrances": 39,
+ "dsm_minus_dtm_gt2m_frac": 0.5248126983642578,
+ "source": "Environment Agency LIDAR Composite 2022, 1 m DTM and first-return DSM (Open Government Licence v3.0); OpenStreetMap contributors (ODbL)"
+}
