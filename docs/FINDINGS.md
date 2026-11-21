@@ -1,4 +1,4 @@
-# Findings so far (Saturday 18:12)
+# Findings so far (Saturday 18:52)
 
 One page for anyone pulling the repository cold. Detail and timestamps are in `status/air.md` and `status/pro.md`. What to run next on the Pro is in `docs/PRO_PLAN.md`.
 
@@ -14,6 +14,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Finding | Evidence |
 |---|---|
+| **Every open square metre evaluated exactly** | 342,316 what-ifs in 603 s on 8 processes (14 ms per core under load); 5.2 days by rebuilding on one core. 2.7% of open ground (4,653 cells) moves any building; 78% of it is more than 5 m from the building it moves. Clean timing still to do |
 | **Control experiment: ground the fill model dismisses does nothing in the solver** | 0 of 60 null patches and 0 of 30 random patches moved any receptor's peak by 1 cm, across three storms. As a screen over 120 patches: 22 flagged and active, 11 flagged and inactive, 0 missed, 87 correctly dismissed. Pass line was at most 10% |
 | The solver is correct and reproducible | Matches the JAX reference to 0.002 mm; mass balance 1e-5; lake at rest exact; bit-identical across batch sizes |
 | More rain never gives less peak water | 4 of 4 scaled-storm pairs at all 207 receptors; 10 of 10 envelope groups; no reversal in any depth sweep |

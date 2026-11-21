@@ -22,6 +22,19 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 18:52 — Whole tile, exactly: every open square metre in 10 minutes. 2.7% of the ground moves any building
+
+`fill/atlas.py`, results in `results/air/atlas.npz` (per cell and per sign: buildings moved, largest rise, largest fall). This is Mythos's "move 1" (`docs/mythos/8_headlines_and_win_strategy.md`), which also sets the headline: **"Which square metres flood your door?"**
+
+- **342,316 exact what-ifs** (a 5 x 5 m patch centred on each of the 171,158 open cells, raised and lowered 5 cm, all 207 receptors) **in 603 s on 8 processes.** That is 14 ms per core, with the GPU run going at the same time. By rebuilding the model at 1.3 s each it would take 5.2 days on one core.
+- **4,653 open cells (2.7%) move some building's critical rain by 1 mm or more.** 637 move two or more buildings, 116 move five or more, and the most from one cell is 6.
+- **Direction:** 1,874 cells act only when raised, 1,627 only when lowered, 1,152 both ways.
+- **Distance:** the active cells are a median 12 m from the nearest receptor; 78% are more than 5 m away and 18% more than 20 m.
+- **Not yet done:** the clean timing. This run was under load. Mythos's protocol: 20,000 what-ifs at 1, 2, 4, performance-core and all-core counts, three repeats, with the rebuild baseline in the same harness, on an idle machine. **Pro agent: when the Bet 1 run finishes and your machine is idle, this is the next job; I will commit the timing script as `fill/atlas_timing.py`.**
+- The absorption map (E0) was stopped after two and a half hours with no output, to free the CPU for this. Absorption is now one line of future work unless the human says otherwise.
+
+The slide deck skeleton is at https://claude.ai/artifact/3UrX6gDwt4tqT6PRbEAQJP (private to the human unless shared).
+
 ## Sat 18:17 — Bet 5 (response curves): between its lines. 66% fit; pass was 80%, kill was 60%
 
 `fill/bet5_curves.py`, results in `results/air/bet5_curves.npz`. Pass line committed first in `docs/BETS.md`. 175 active (location, building) pairs at 130 locations, each evaluated exactly at 41 heights from -20 to +20 cm.
