@@ -58,3 +58,26 @@ The fast model dismisses 97% of the ground, and the simulator has agreed on a sa
 ## What would count as failure
 
 A single-patch miss rate above 1% of tested blocks. Then the fast model is not a safe screen, and the headline changes.
+
+
+## The complete solver map (committed Saturday 21:50, before any run)
+
+Plan: `docs/mythos/11_overnight_plan.md`. Runner: `fill/map_run.py`. Shared code for attribution: `fill/map_lib.py`.
+
+**Design.** Every 5 x 5 m block of the tile with open ground (7,894 blocks; the outermost ring excluded), raised 5 cm and lowered 5 cm, at the 35 mm storm. Blocks are packed by colour (block row mod 30, block column mod 30): 900 terrains per sign, patches 150 m apart, 8.8 what-ifs per run. Colours run in a fixed random order (seed 2026), so any prefix is a uniform sample of the tile; the six colours holding the largest known single movers of each sign run first as a pre-flight and are excluded from any "uniform sample" statement. Air raises; Pro lowers; whichever finishes first helps the other from the far end.
+
+**Why 150 m and not 120 m.** Mythos set a gate: use 120 m only if no receptor in the 276 single runs moved 1 cm more than 60 m from every patch. Three of 62 moved receptors did (68 to 76 m, 1.0 to 1.1 cm). So the spacing is 150 m and the 15 mm storm is dropped, as the gate prescribes.
+
+**Attribution.** A receptor moves if its peak differs from the unchanged run by 1 cm or more. It is assigned to the nearest block in that run. If that block is more than 75 m away the move is "unattributed". A block is a remote mover if it moves a receptor more than 7.5 m from its centre.
+
+**Confirm stage** (`fill/map_confirm.py`). Each machine re-runs its own sign's movers, at most 100 runs: 40 true singles of randomly drawn movers, then movers repacked 300 m apart, largest first.
+
+**Pass lines.**
+
+| Line | Pass |
+|---|---|
+| Integrity | Mass imbalance at most 5e-5 in every run; the unchanged run at the start and end identical at receptors |
+| Packing holds at scale | Of the 276 earlier singles, at least 95% keep their verdict in the map; at least 36 of 40 true singles and at least 90% of repacked movers keep theirs; median difference in the change at most 1 mm; unattributed moves at most 2% of moved receptors |
+| Screen (both rules scored as they stand, neither adjusted) | Misses at most 1% of the what-ifs it dismisses; flags at least 80% of remote movers. Rule 1: the whole-tile map (changes some building's critical rain depth). Rule 2: fill-predicted depth change of 1 mm or more at a receptor more than 7.5 m away at this storm (`fill/map_fill.py`, computed before scoring) |
+
+**Not to be done after launch:** changing spacing, block size, depth, threshold or either screen rule. No more pool tests. Say "8.8 what-ifs per run" as measured, not a rounder number, and "we did not find" rather than "first".
