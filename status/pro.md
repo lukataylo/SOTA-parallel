@@ -1,6 +1,6 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 18:20.
+Last updated: Sat 21 Nov, 18:20. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
 ## Sat 18:20: control experiment far half and friction test done; Bet 1 full run started (forward)
 
@@ -25,7 +25,7 @@ Last updated: Sat 21 Nov, 18:20.
 
 **Bet 1 full run: started 18:14, forward order,** as `status/air.md` asks. Files go to `results/pro/bet1_full/` and are pushed every 10 minutes; `setup.npz` is left for the Air to commit.
 
-**Other:** `docs/IPHONE_APP.md` is a task breakdown for a separate app agent. The human's Southwark station splat is in `data/scans/southwark_station/`; it is too blurred for centimetre heights. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+**Other:** `docs/IPHONE_APP.md` is a task breakdown for a separate app agent. The human's Southwark station splat is in `data/scans/southwark_station/`; it is too blurred for centimetre heights.
 
 ## Sat 15:20: critical depths from the solver are done. Retest and non-triangular storms not yet run.
 
