@@ -1,6 +1,6 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 13:51. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 13:55. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
 ## Where things stand
 
@@ -9,7 +9,7 @@ Last updated: Sat 21 Nov, 13:51. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, M
 | Sat 16:00 throughput | **Passed** | 710M cell-steps/s single storm, 470M batched (bare update). 283M for the full solver on the shared terrain, batch of 8. |
 | Sat 20:00 checks 1 to 3 | **Passed** | JAX agreement 2.4e-6 m; mass imbalance at most 1.5e-5; lake at rest moves 0. |
 | Sat 20:00 check 5 | **Reported** | 1 m and 2 m agree on 96.8% of flooded-or-not decisions (above the 95% line). |
-| Check 4 (analytic case) | Not done yet | Will try if time allows after the pilot. |
+| Check 4 (analytic case) | **Reported, with a limitation** | Wave front within 0.1% at n = 0.1, 2.4% late at n = 0.03, 7% late at n = 0.01. Model error, not a time-step error. |
 | Sat 22:00 pilot | Running since 13:47 | `results/pro/bruteforce_pilot.npz` expected about 14:10. |
 | Sat 23:30 main run | Not started | About 20 s per storm, so 1,000 storms is about 5.7 h. Feasible at 1 m, full set. |
 
@@ -55,6 +55,18 @@ Reference peak door depths are 6.0, 6.8 and 6.7 cm at the three wet doors. The 0
 - The 2 m run took 24 s against 164 s.
 
 What it means: the flood table depends a little on resolution, about 3% of decisions, and those sit near the threshold. That is the same population the band is meant to catch. Limitation to state: 2 m coarsening here is my own (a coarse cell is open if 2 or more of its 4 cells are open; height is the mean of its open cells).
+
+**Check 4, analytic case: scheme converges, and shows the known limit of the local-inertial model.** A wave advancing at 1 m/s over a flat plane for one hour (the test in Bates et al. 2010, after Hunter 2005; recalled from memory, source not re-read). Exact front at 3,600 m. `solver/checks.py 4`.
+
+| Manning n | Deepest water | Front at dx = 50, 25, 10 m | Depth error (RMSE) at 10 m |
+|---|---|---|---|
+| 0.10 | 6.7 m | 3,725, 3,663, 3,605 m | 4.1 cm |
+| 0.03 | 2.4 m | 3,625, 3,563, 3,515 m | 6.6 cm |
+| 0.01 | 0.93 m | 3,425, 3,363, 3,335 m | 6.1 cm |
+
+- At high friction the front converges on the exact position as the grid refines.
+- At low friction the front settles 2.4% (n = 0.03) and 7% (n = 0.01) behind. Cutting the time step by 3.5 times changed nothing past the fourth digit, so this is not a time-step error. The local-inertial equations drop the advection term, and the exact solution needs it when friction is weak. My reading, not checked against the paper: this is the lag the literature reports for this scheme at low friction.
+- **Limitation for our run:** we use n = 0.015, the low-friction end. Fast, deep flow arrives a few percent late in this solver compared with full shallow water. Ponded depths are unaffected (checks 2 and 3). Both the brute-force table and the cascade use the same solver, so the comparison between them is not affected; the absolute flood timing is.
 
 ## Solver, as built
 

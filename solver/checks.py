@@ -90,4 +90,32 @@ if "25" in which:  # mass balance on real terrain at 1 m, then the same storms a
     np.savez_compressed("results/pro/check_1m_vs_2m.npz", storm_index=pick, peak_1m=o1["peak_depth"],
                         peak_2m=o2["peak_depth"], receptor_ok_at_2m=ok)
 
+if "4" in which:   # analytic case: wave advancing over a flat plane at constant speed (Hunter 2005; Bates 2010 sec. 4.1)
+    import mlx.core as mx
+    from flood import make_step, G
+    u, T = 1.0, 3600.0
+    r4 = {}
+    for n in (0.01, 0.03, 0.1):
+        for dx in (50.0, 25.0, 10.0):
+            N = int(5000 / dx)
+            x = (np.arange(N) + 0.5) * dx
+            exact = lambda t: (7 / 3 * n * n * u ** 3 * np.maximum(t - x / u, 0)) ** (3 / 7)
+            step = make_step(np.zeros((3, N), np.float32), np.ones((3, N), bool), dx, n_manning=n, outflow=False)
+            h = mx.zeros((1, 3, N)); qx = mx.zeros((1, 3, N - 1)); qy = mx.zeros((1, 2, N))
+            pk = h; b = mx.zeros((1,)); zero = mx.zeros((1, 1, 1)); t = 0.0; k = 0
+            while t < T:
+                hmax = max(float(exact(t + 10 * dx)[0]), 0.05)        # inflow depth only rises
+                dt = min(float(os.environ.get("ALPHA", 0.7)) * dx / np.sqrt(G * hmax), T - t)
+                h[:, :, 0] = float(exact(t)[0])                        # prescribed depth at the inflow cell
+                h, qx, qy, pk, b = step(h, qx, qy, pk, b, zero, mx.array(np.float32(dt)).reshape(1, 1, 1))
+                t += dt; k += 1
+                if k % 20 == 0: mx.eval(h, qx, qy)
+            hn = np.array(h)[0, 1]; ex = exact(T)
+            wet = np.where(hn > 1e-3)[0]
+            r4[f"n={n},dx={dx:g}"] = dict(steps=k, rmse_m=float(np.sqrt(np.mean((hn[1:] - ex[1:]) ** 2))),
+                                          max_exact_depth_m=float(ex.max()),
+                                          front_m=float(x[wet.max()]), exact_front_m=u * T)
+    res["check4_analytic_plane_wave"] = r4
+    print(json.dumps(r4, indent=1))
+
 json.dump(res, open(OUT, "w"), indent=1)

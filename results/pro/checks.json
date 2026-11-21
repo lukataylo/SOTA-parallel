@@ -150,5 +150,70 @@
    0.974,
    0.953
   ]
+ },
+ "check4_analytic_plane_wave": {
+  "n=0.01,dx=50": {
+   "steps": 276,
+   "rmse_m": 0.047877477574889346,
+   "max_exact_depth_m": 0.9252332114419592,
+   "front_m": 3425.0,
+   "exact_front_m": 3600.0
+  },
+  "n=0.01,dx=25": {
+   "steps": 534,
+   "rmse_m": 0.057102147208539865,
+   "max_exact_depth_m": 0.9266182922485785,
+   "front_m": 3362.5,
+   "exact_front_m": 3600.0
+  },
+  "n=0.01,dx=10": {
+   "steps": 1304,
+   "rmse_m": 0.06088802635434342,
+   "max_exact_depth_m": 0.9274480173610722,
+   "front_m": 3335.0,
+   "exact_front_m": 3600.0
+  },
+  "n=0.03,dx=50": {
+   "steps": 441,
+   "rmse_m": 0.019460099615007026,
+   "max_exact_depth_m": 2.3725331481618146,
+   "front_m": 3625.0,
+   "exact_front_m": 3600.0
+  },
+  "n=0.03,dx=25": {
+   "steps": 855,
+   "rmse_m": 0.04527796707333313,
+   "max_exact_depth_m": 2.3760848474371414,
+   "front_m": 3562.5,
+   "exact_front_m": 3600.0
+  },
+  "n=0.03,dx=10": {
+   "steps": 2087,
+   "rmse_m": 0.06618804450633013,
+   "max_exact_depth_m": 2.378212473541468,
+   "front_m": 3515.0,
+   "exact_front_m": 3600.0
+  },
+  "n=0.1,dx=50": {
+   "steps": 739,
+   "rmse_m": 0.1154637570872911,
+   "max_exact_depth_m": 6.658770864596236,
+   "front_m": 3725.0,
+   "exact_front_m": 3600.0
+  },
+  "n=0.1,dx=25": {
+   "steps": 1432,
+   "rmse_m": 0.04599798250602103,
+   "max_exact_depth_m": 6.668739092720963,
+   "front_m": 3662.5,
+   "exact_front_m": 3600.0
+  },
+  "n=0.1,dx=10": {
+   "steps": 3497,
+   "rmse_m": 0.04070421583156542,
+   "max_exact_depth_m": 6.674710505480873,
+   "front_m": 3605.0,
+   "exact_front_m": 3600.0
+  }
  }
 }
