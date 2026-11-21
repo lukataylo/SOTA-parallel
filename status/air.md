@@ -22,6 +22,31 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 13:50 — FIRST REAL TEST: the fill model misses a third of flooded cases on real terrain
+
+From the 8 pilot storms the Pro ran for its resolution check (`results/pro/check_1m_vs_2m.npz`), all 207 receptors, 1,656 pairs. `fill/early_band.py`.
+
+| | Count |
+|---|---|
+| Solver peak depth reaches 0.10 m | 272 |
+| Fill model agrees wet | 183 |
+| **Missed by the fill model** | **89** |
+| False alarms | 2 |
+| Agreement over all pairs | 94.5% |
+
+- **The error is on the unsafe side.** On synthetic streets the fill model erred toward false alarms. On the real tile it errs toward misses, 89 to 2.
+- **Mechanism.** The solver's peak depth exceeds the settled fill depth by a median 0.1 cm but 4.9 cm at the 90th percentile, 11 cm at the 99th and 24 cm at most. Misses grow with storm size: 0, 5, 6, 6, 13, 16, 19, 24 across the eight storms. Seven pairs flooded where the fill model has no water at all. On flat ground, water in transit sets the peak, and a still-water model cannot see it.
+- **A fill-depth band cannot fix it.** To catch every error the band must run from zero fill depth to 5 cm above the threshold, which leaves 91% of pairs undecided and no storm decided.
+- **The documented site** crosses the threshold at roughly 15 mm of net rain in the solver, against 33 mm in the fill model.
+
+**So the cascade as designed does not work on this terrain,** for two independent reasons: the fill step is not a safe screen, and even a perfect screen would rarely decide all 207 receptors at once.
+
+Two further forecasts, both small:
+- Handling the deep still ponds separately so they stop setting the time step: at most 2x, because the step scales with the square root of depth. `fill/dt_forecast.py`.
+- Simulating only around undecided receptors: 1.2 to 1.6x (entry below).
+
+Next: when the full 64-storm pilot lands, `fill/job4_pilot.py` repeats this on all of it and tests whether a small number of solver runs can predict the rest of the ensemble.
+
 ## Sat 13:48 (Air clock) — Literature checks: what we may and may not claim as new
 
 Search results and abstracts only; I have not read the papers in full.
