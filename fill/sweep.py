@@ -1,40 +1,46 @@
-"""Fast exact critical rain depths for terrain patches: one linear sweep per patch instead of a FillModel rebuild + 261-storm run.
+"""Exact critical rain depths after a terrain patch, from a repaired depression tree: no FillModel rebuild, no 261-storm run.
 
 What it computes
-    For a terrain z (the base terrain with a patch raised or lowered), the critical net rain depth of every receptor:
-    the smallest P on the grid PG at which the settled water level in the receptor's basin reaches z[receptor] + thr.
-    Same definitions as fill/decisive_par.py (FillModel + run(PG) + depth_at >= thr), reproduced exactly up to float rounding.
+    For the base terrain with a set of open cells raised or lowered (a patch), the critical net rain depth of every
+    receptor: the smallest P on the grid PG at which the settled water level in the receptor's basin reaches
+    z[receptor] + thr.  Same definitions as fill/decisive_par.py (FillModel + run(PG) + depth_at >= thr; outlet = open
+    cells on the domain edge; threshold measured from the receptor cell's own, possibly patched, ground).
+    It is a finite-change evaluation, not a derivative: structure changes inside the 5 cm step (a different pass
+    becoming the lowest, pits created or removed, ponds merging earlier) are followed exactly.
 
-How (three ideas, all exact, none a derivative)
-    1. One ascending sweep.  Passes (lowest pass per pair of adjacent basins), cells and receptor thresholds are merged in
-       height order through a union-find.  Each component carries (number of cells below the sweep height, sum of their
-       heights), so a depression's capacity at its pass is cnt*h - sum the moment it merges, and the volume a receptor
-       needs is cnt*T - sum of its component when the sweep passes T = z_r + thr.  That replaces per-node hypsometry
-       tables; the tree (parent, children, pass leaves, pass height, capacity, catchment area) comes out of the same sweep.
-    2. Root-path evaluation.  In FillModel.run, overflow injected at a node only ever lands in a leaf of the sibling
-       subtree, so the water a node receives depends only on its ancestors.  Whether receptor r is flooded at rain P is
-       therefore decided by walking the root -> n* path (n* = the pond that holds level T), with no pass over the other
-       ~20,000 nodes.  It floods iff some ancestor fills/merges, or n* receives >= the needed volume.
-    3. Flooded-or-not is monotone in P, so the grid critical depth is found by bisection, started from the baseline
-       critical depth (2 path walks if a patch did not move the receptor, 1 if it never floods).
+How
+    Built once: steepest-descent basins, the lowest pass per pair of adjacent basins in merge order, cells sorted by height.
+    Per patch:
+    1. Local repair.  Flow directions can change only in the patch and its 4-neighbours; only cells upstream of a
+       changed direction can change basin; only passes between basin pairs that touch a changed cell are recomputed
+       (by scanning the smaller basin of the pair).  Everything else is reused.
+    2. One ascending sweep (Kruskal over the pass list, with cells and receptor thresholds merged in by height).  Each
+       component carries (number of cells below the sweep height, sum of their heights), so a depression's capacity at
+       its pass is cnt*h - sum at the moment it merges, and the volume a receptor needs is cnt*T - sum of its component
+       when the sweep passes T = z_r + thr.  No per-node hypsometry tables.  Components that hold the outlet, or whose
+       capacity exceeds all the rain that can fall (PG[-1] x open area), can never fill; their cells are skipped.
+    3. Root-path walk.  In FillModel.run, overflow made at a node always lands in a leaf of the sibling subtree, so the
+       water a node receives depends only on its ancestors.  Whether a receptor is flooded at rain P is decided by
+       walking root -> n* (n* = the pond whose height range holds T): flooded iff an ancestor's on-path child fills,
+       or n* receives at least the needed volume.  Receptors share path prefixes.
+    4. Flooded-or-not is monotone in P, so the grid critical depth is found by bisection started at the baseline value
+       (2 walks if the patch did not move the receptor, 1 if it never floods).
 
 Assumptions / limits
-    - Monotone in P (true of the model; checked against the brute-force grid scan in sweep_check.py).
-    - Threshold test is done in volume in float64 (flooded iff volume >= volume needed at T); FillModel inverts to a
-      float32 level first.  They can differ only when a grid point lands within ~1e-6 m of the threshold.
-    - Exact ties T == pass height are treated as "not yet flooded".
-    - Rain weight is uniform over open cells (FillModel's default rainw).
-    - Basins (steepest-descent labels) and pass list are recomputed from the patched grid each time (cheap, linear,
-      compiled); the merge tree is rebuilt by the sweep.  So this is a ~10 ms rebuild, not an incremental repair, and
-      not an analytic derivative: structure changes (new pits, a different pass becoming lowest, earlier merges) are
-      handled because nothing is linearised.
+    - Monotone in P (checked: results equal the brute-force first-wet-grid-point scan, see sweep_check.py).
+    - The threshold test is done in volume in float64; FillModel inverts to a float32 level first.  They can differ
+      only if a grid point lands within about 1e-6 m of the threshold.  Exact ties T == pass height count as dry.
+    - Rain weight uniform over open cells (FillModel's default); open mask and receptors fixed; receptors on open cells.
+    - Cost grows with the number of cells that change basin; above max_relabel the repair is still exact but slower.
+    - Not thread-safe (baseline work arrays are edited in place and restored).
 
 Use
     S = Sweep.from_files()                     # or Sweep(z, open, rc)
     S.c0                                       # baseline critical depths, mm (inf = never within PG)
     S.patch(r, c, dz, rad=2)                   # critical depths (mm) with the patch applied
     S.patches(jobs)                            # (n_jobs, n_receptors)
-    S.pstar(z)                                 # continuous critical depth (m), for derivative experiments
+    S.crit(z)                                  # any terrain that differs from the base on some open cells
+    S.patch(r, c, dz, cont=True), S.pstar()    # continuous critical depth (m), for derivative experiments
 Run with: uv run --with numpy --with scipy --with numba python ...
 """
 import numpy as np
@@ -105,7 +111,7 @@ def _labels_edges(z, openm, outm, first):
             if lj < 0 or lj == li: continue
             w = zf[i] if zf[i] > zf[j] else zf[j]
             key = li * nb + lj if li < lj else lj * nb + li
-            s = ((li * 40503 + lj * 9973) ^ (key >> 7)) & mask
+            s = ((key * 40503) ^ (key >> 9)) & mask
             while True:
                 e = slot[s]
                 if e < 0:
@@ -125,32 +131,36 @@ def _labels_edges(z, openm, outm, first):
 
 
 @njit(cache=True)
-def _flooded(P, Lp, vreq, areastar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, leaving):
-    """Is the pond n* at or above the receptor threshold at rain P?  Arrays are indexed by path position k
-    (0 = n*, Lp-1 = root): for node path[k], pAc/pCc = area/capacity of its on-path child, pAo/pCo = of the other child,
-    pT = leaf position that receives the other child's overflow, pLo/pHi = leaf interval of path[k].
-    j0[k] caches the lowest path index whose node still contains that leaf (-2 = not yet computed);
-    leaving[j] collects overflow whose target leaf drops off the path below path[j]."""
-    for k in range(Lp): leaving[k] = 0.0
+def _flooded(P, D, vreq, areastar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, leaving):
+    """Is the pond n* at or above the receptor threshold at rain P?  Arrays are indexed by depth d on the root path
+    (path[0] = root, path[D] = n*): pAc/pCc = area/capacity of path[d], pAo/pCo = of its sibling, pT = leaf position that
+    receives the sibling's overflow (inside path[d]), pLo/pHi = leaf interval of path[d].
+    j0[d] caches the deepest depth whose node still contains that leaf (-2 = not yet computed);
+    leaving[e] collects overflow whose target leaf is in path[e-1] but not in path[e]."""
+    for d in range(1, D + 2): leaving[d] = 0.0
     X = 0.0                                               # overflow held in leaves of the current path node
-    for k in range(Lp - 1, 0, -1):
-        Xo = leaving[k]; Xc = X - Xo
-        Tc = P * pAc[k] + Xc; To = P * pAo[k] + Xo
-        if Tc > pCc[k]:
+    for d in range(1, D + 1):
+        Xo = leaving[d]; Xc = X - Xo
+        Tc = P * pAc[d] + Xc; To = P * pAo[d] + Xo
+        if Tc > pCc[d]:
             return True                                   # on-path child full: merged, or held at its pass, above the threshold
-        if To > pCo[k]:
-            Eo = To - pCo[k]
-            if Tc + Eo > pCc[k]:
+        if To > pCo[d]:
+            Eo = To - pCo[d]
+            if Tc + Eo > pCc[d]:
                 return True                               # sibling's overflow fills it too: merged above the threshold
-            j = j0[k]
-            if j == -2:
-                p = pT[k]; a = 0; b = k - 1               # path[k-1] contains p; find the lowest index that does
-                while a < b:
+            e = j0[d]
+            if e == -2:
+                p = pT[d]; a = d; st = 1                  # path[a] contains p; gallop down, then bisect
+                b = d + 1
+                while b <= D and p >= pLo[b] and p < pHi[b]:
+                    a = b; st *= 2; b = a + st
+                if b > D: b = D + 1
+                while b - a > 1:                          # path[a] contains p, path[b] does not (or b = D+1)
                     mid = (a + b) // 2
-                    if p >= pLo[mid] and p < pHi[mid]: b = mid
-                    else: a = mid + 1
-                j = a; j0[k] = j
-            leaving[j] += Eo; Xc += Eo                    # leaving[0] is never read: that overflow stays inside n*
+                    if p >= pLo[mid] and p < pHi[mid]: a = mid
+                    else: b = mid
+                e = a; j0[d] = e
+            leaving[e + 1] += Eo; Xc += Eo                # leaving[D+1] is never read: that overflow stays inside n*
         X = Xc
     return P * areastar + X >= vreq
 
@@ -159,63 +169,71 @@ def _flooded(P, Lp, vreq, areastar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, leavin
 def _walks(nstar, vreq, NB, parent, ca, cb, la, lb, cap, area, nleaf, hasout, PG, guess, want_cont):
     """Critical grid index per receptor by root-path walks and bisection (see module docstring)."""
     N = len(parent); nr = len(nstar); nP = len(PG)
-    lo = np.zeros(N, np.int64); hi = np.zeros(N, np.int64); hi[N - 1] = NB
+    lo = np.zeros(N, np.int64); hi = np.zeros(N, np.int64); hi[N - 1] = NB; dep = np.zeros(N, np.int64)
     for m in range(N - 1, NB - 1, -1):
         a = ca[m]; b = cb[m]
         lo[a] = lo[m]; hi[a] = lo[m] + nleaf[a]; lo[b] = hi[a]; hi[b] = hi[m]
+        dep[a] = dep[m] + 1; dep[b] = dep[m] + 1
     out = np.full(nr, nP, np.int64); cont = np.full(nr, INF)
-    pAc = np.empty(N); pCc = np.empty(N); pAo = np.empty(N); pCo = np.empty(N)
-    pT = np.empty(N, np.int64); pLo = np.empty(N, np.int64); pHi = np.empty(N, np.int64); j0 = np.empty(N, np.int64); lv = np.empty(N)
-    nwalk = 0; last = -1; Lp = 0
-    qo = np.argsort(nstar)
+    M = N + 2
+    pAc = np.empty(M); pCc = np.empty(M); pAo = np.empty(M); pCo = np.empty(M)
+    pT = np.empty(M, np.int64); pLo = np.empty(M, np.int64); pHi = np.empty(M, np.int64); j0 = np.empty(M, np.int64); lv = np.empty(M)
+    pnode = np.full(M, -1, np.int64)
+    nwalk = 0; last = -1; D = 0; Dprev = -1
+    key = np.empty(nr, np.int64)
+    for q in range(nr): key[q] = lo[nstar[q]] * N + nstar[q]
+    qo = np.argsort(key)                                   # neighbours in leaf order share most of their root path
     for qq in range(nr):
         q = qo[qq]; ns = nstar[q]; vq = vreq[q]
         if hasout[ns] or vq == INF: continue
-        if ns != last:                                     # receptors in the same pond share the path
-            last = ns; Lp = 1; c = ns; m = parent[ns]
-            pLo[0] = lo[ns]; pHi[0] = hi[ns]
-            while m >= 0:
+        if ns != last:
+            last = ns; D = dep[ns]; d = D; c = ns
+            while d >= 1 and not (d <= Dprev and pnode[d] == c):
+                m = parent[c]
                 if ca[m] == c:
                     o = cb[m]; tgt = la[m]
                 else:
                     o = ca[m]; tgt = lb[m]
-                pAc[Lp] = area[c]; pCc[Lp] = cap[c]; pAo[Lp] = area[o]; pCo[Lp] = cap[o]
-                pT[Lp] = lo[tgt]; pLo[Lp] = lo[m]; pHi[Lp] = hi[m]; j0[Lp] = -2
-                Lp += 1; c = m; m = parent[m]
+                pAc[d] = area[c]; pCc[d] = cap[c]; pAo[d] = area[o]; pCo[d] = cap[o]
+                pT[d] = lo[tgt]; pLo[d] = lo[c]; pHi[d] = hi[c]; j0[d] = -2; pnode[d] = c
+                d -= 1; c = m
+            for t in range(1, d + 1):                      # shared prefix: cached exits stay valid only if strictly above the fork
+                if j0[t] >= d: j0[t] = -2
+            Dprev = D
         ar = area[ns]
         a = -1; b = nP                                     # a: highest index known dry; b: lowest known flooded (nP = none)
         g = guess[q]
         if g >= 0 and g < nP:
             nwalk += 1
-            if _flooded(PG[g], Lp, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv):
+            if _flooded(PG[g], D, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv):
                 b = g
                 if g > 0:
                     nwalk += 1
-                    if _flooded(PG[g - 1], Lp, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): b = g - 1
+                    if _flooded(PG[g - 1], D, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): b = g - 1
                     else: a = g - 1
             else:
                 a = g
         if b == nP:
             nwalk += 1
-            if _flooded(PG[nP - 1], Lp, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): b = nP - 1
+            if _flooded(PG[nP - 1], D, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): b = nP - 1
             else: continue
         while b - a > 1:
             mid = (a + b) // 2; nwalk += 1
-            if _flooded(PG[mid], Lp, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): b = mid
+            if _flooded(PG[mid], D, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): b = mid
             else: a = mid
         out[q] = b
         if want_cont:
             p0 = PG[b - 1] if b > 0 else 0.0; p1 = PG[b]
             for it in range(30):
                 pm = 0.5 * (p0 + p1)
-                if _flooded(pm, Lp, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): p1 = pm
+                if _flooded(pm, D, vq, ar, pAc, pCc, pAo, pCo, pT, pLo, pHi, j0, lv): p1 = pm
                 else: p0 = pm
             cont[q] = p1
     return out, cont, nwalk
 
 
 @njit(cache=True)
-def _crit(z, zf0, openm, outm, first, pcells, rcf, thr, PG, guess, zoff, want_cont, vmax,
+def _crit(z, openm, outm, first, pcells, rcf, thr, PG, guess, zoff, want_cont, vmax,
           rec, lab, nb0, pit0, area0, es_a, es_b, es_w, ek0, ekpos, cz0, clab0, cord, pos0, lptr, lcells,
           mark, idw, skipc, skipe, max_relabel):
     """One patch.  z: patched terrain; pcells: flat indices of the open cells that differ from the base terrain.
@@ -473,7 +491,20 @@ def _crit(z, zf0, openm, outm, first, pcells, rcf, thr, PG, guess, zoff, want_co
             k += 1
         elif hc <= hq:
             if hc1 <= hc2:
-                u = clab0[ic]; zc = hc1; ic += 1
+                lim = he if he < hc2 else hc2             # run of main-stream cells strictly below every other stream head
+                if hq < lim: lim = hq
+                while True:
+                    u = clab0[ic]
+                    if not (skipc[ic] or deadl[u]):
+                        ru = u
+                        while uf[ru] != ru: ru = uf[ru]
+                        if uf[u] != ru: uf[u] = ru
+                        if deadc[ru]: deadl[u] = True
+                        else:
+                            cnt[ru] += 1.0; sm[ru] += cz0[ic] - zoff
+                    ic += 1
+                    if ic >= nc or cz0[ic] >= lim: break
+                continue
             else:
                 i = dc[do[ip]]; ip += 1; u = lab[i]; zc = hc2
                 if deadl[u]: continue
@@ -555,7 +586,7 @@ class Sweep:
 
     def _run(self, z, changed, cont, max_relabel=None):
         mr = self.max_relabel if max_relabel is None else max_relabel
-        idx, ct, nbp, nwalk, st = _crit(z, self.z0.ravel(), self.open, self.outlet, self.first, changed, self.rcf, self.thr, self.PG, self.guess,
+        idx, ct, nbp, nwalk, st = _crit(z, self.open, self.outlet, self.first, changed, self.rcf, self.thr, self.PG, self.guess,
                                         self.zoff, cont, self.vmax, *self._base, mr)
         if st < 0:                                         # very large re-routing: lift the cap (still exact, just slower)
             return self._run(z, changed, cont, z.size)
