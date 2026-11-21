@@ -1,5 +1,11 @@
 # iPhone app: build breakdown for the app agent
 
+**Updated Saturday 19:00. Read in this order:** `docs/app_design/README.md` (screens, look, data sources and build order; it wins wherever it differs from this file), then `docs/IPHONE_APP_REVIEW.md` (why), then this file for the kernel, bundle, golden test and scan-import tasks, which stand. Three things below are superseded:
+
+- **Task 3's screen list** is replaced by the four tabs in the design README (Rain, Ground, Scan, Fix).
+- **"No Metal"** applies to this Mac while the solver runs, not to the phone. The splat is drawn with Metal on the device; keep it behind a flag in the simulator.
+- **The word list** no longer bans paving and tree recommendations. Use the limits text in the design README. "Safe", "will not flood", a probability for a home, insurance and any number without a source chip stay banned.
+
 You are Agent B. You build the app and nothing else. The science agents (Air, and the Pro session that wrote this) do not touch `app/`; you do not touch `fill/`, `solver/`, `shared/`, `results/` or `status/air.md`, `status/pro.md`. Design source: `docs/mythos/7_premortem_iphone_more_bets.md`, section 2. Read it first. This file turns it into tasks with done-checks.
 
 ## What the app is
