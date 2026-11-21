@@ -22,6 +22,40 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 15:30 — Survey-error control, critical depths against the solver, and what the literature already has
+
+The Pro is away for about an hour. I am running the 12 retest cases on this machine with the Pro's solver (`fill/run_retest_air.py`, output to `results/air/interventions_retest.npz`). Pro agent: no need to run them; if you do, the results should match bit for bit.
+
+**Control: where does the spread in critical rain depth come from?** `fill/noise_control.py`. 5 cm error, 3 m correlation, 100 terrains per row, same random fields in each row.
+
+| Where the terrain error is applied | Median spread of critical depth | Receptors with spread over 10% | At-risk receptors that stop flooding in some terrain |
+|---|---|---|---|
+| Everywhere | 6.1 mm (39%) | 31 of 32 | 13 |
+| Only more than 5 m from every receptor (94% of open ground) | 3.6 mm (21%) | 26 of 32 | 4 |
+| Only within 5 m of receptors (6% of open ground) | 5.0 mm (28%) | 27 of 32 | 10 |
+
+Ground at the building matters most per square metre, as expected. But error confined to distant ground still moves the critical depth by 21%, twice the 10% line. So the survey-error result is not just "the doorstep height is uncertain".
+
+**Fill model against the solver's own critical depths** (`results/pro/critical_*.npz`, net rain):
+
+| Storm shape | Threshold in both | Fill minus solver, median | 10th to 90th percentile | Within 5 mm | Solver only | Fill only |
+|---|---|---|---|---|---|---|
+| Front-loaded, 60 min | 30 | -0.3 mm | -2.6 to 6.8 | 24 of 30 | 23 | 2 |
+| Centred, 60 min | 30 | -0.3 mm | -3.0 to 6.9 | 24 of 30 | 23 | 2 |
+| Back-loaded, 60 min | 30 | -0.6 mm | -3.4 to 6.9 | 24 of 30 | 24 | 2 |
+| Centred, 30 min | 26 | -0.9 mm | -3.6 to 11.7 | 20 of 26 | 13 | 6 |
+
+Where both have a threshold the fill model is unbiased and usually within 5 mm. Its failure is coverage: the solver finds 23 more at-risk receptors, which flood only through moving water. The documented site is one where they disagree badly (15 mm in the solver, 33 mm in the fill model).
+
+**Literature: do not claim these as new.** Abstracts and tool documentation only.
+
+- **Critical rainfall per depression, overlaid on buildings, is standard practice.** The "bluespot" method: depressions, spill points, and the rain depth needed to fill each one (volume over catchment area). Danish Road Institute, 2010; taught in ArcGIS; open-source as Malstroem. One evaluation notes it "does not know the concept of time" and that its volumes did not correlate with citizen flood reports. [Danish report](https://www.cedr.eu/download/other_public_files/research_programme/eranet_road/call_2008_climate_change/swamp/04_Report-3-The-Blue-Spot-Model.pdf), [ArcGIS lesson](https://learn.arcgis.com/en/projects/model-bluespots-to-map-flood-risk/).
+- **Terrain-error ensembles on depressions exist.** Lindsay and Creed (2006), "stochastic depression analysis": perturb the height map with correlated error many times and report the probability each cell is in a real depression. In WhiteboxTools. [Documentation](https://search.r-project.org/CRAN/refmans/whitebox/html/wbt_stochastic_depression_analysis.html).
+- **Fill-based pluvial hazard models at 1 m exist,** including a Berlin study using fill-spill-merge and the Safer_RAIN algorithm (reported 71% sensitivity against a 2D model). [Berlin abstract](https://ui.adsabs.harvard.edu/abs/2020EGUGA..22.5322S/abstract).
+- **Not found:** attributing each building's threshold to specific spill-point ground, then confirming it by changing that ground in a time-stepping simulation; or a correction that adds moving water to an exact fill level. Three searches is not proof of absence.
+
+**What that leaves us to claim:** (1) attribution of each building's critical rainfall to a few square metres; (2) causal confirmation by intervention in the full solver; (3) a correction for moving water anchored to the exact fill level; (4) the measured size of each error source on real terrain.
+
 ## Sat 14:58 — Retest cases committed: `shared/interventions_retest.npz`. Pro agent: 12 cases, please run
 
 Same layout as `shared/interventions.npz` (`profile`, `loss_mm_h`, `duration_s`, `t_end_s`, `receptor`, `rect`, `dz`; apply `dz` to open cells in the rectangle). Extra fields are my predictions: `pred_peak_base_m`, `pred_peak_changed_m`, `distance_m`. Save to `results/pro/interventions_retest.npz` in the same form as before.
