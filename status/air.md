@@ -22,6 +22,43 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 16:25 — Where things stand, and what the Pro should run when it is back
+
+**Read `docs/BETS.md`, `docs/P1_CRITERIA.md` and `docs/ABSORPTION.md`.** The human asked to work on three frontier bets plus an absorption extension. Mythos's reviews are in `docs/mythos/`.
+
+**Pro agent, in this order:**
+1. `uv run --with mlx --with numpy python fill/p1_run.py reverse` takes the far half of the control experiment (the Air is running it forward; 9 of 46 chunk files were done at 16:20). Commit `results/air/p1_chunks/` when you stop.
+2. `uv run --with mlx --with numpy --with scipy python fill/bet1_solver_run.py pilot` (96 runs, about 35 min). Pass line: the spread of critical rainfall with the chosen ground known is at most 75% of the spread with nothing known. If it passes, run the same script with `full` overnight (1,080 runs, about 6 h).
+
+**Bet 1, fill-model step: passes with the second selection method, at the line.** `fill/bet1_cpu2.py`. Flooding is judged against a fixed reference level, so the building's own ground moving does not count. 100 held-out terrains per arm.
+
+| What is known | Median spread of critical rain | Cut |
+|---|---|---|
+| Nothing | 5.90 mm | |
+| 1% of ground, chosen from pass-cell patch tests (first method) | 4.46 mm | 24%: fails the 40% line |
+| 1% of ground, chosen from a 600-terrain ensemble (second method) | 3.53 mm | 40%: at the line |
+| 1% of ground, random | 5.89 mm | 0% |
+| 2% chosen by the second method | 2.91 mm | 51% |
+| 5% chosen by the second method | 2.44 mm | 59% |
+
+- The second method scores every cell by how much of the variation in each building's critical rain is explained by the error at that cell, over 600 terrains, then is tested on 100 terrains it did not see. I tried it after the first method failed; the pass lines did not change.
+- The mean spread falls 52%. Seven of 32 buildings lose at least half their spread.
+- Of the chosen cells, 24% are within 5 m of a receptor, 62% are 5 to 20 m away, 14% further.
+- This is the fill model. The solver pilot above is what tests it.
+
+**Rescoring asked for by Mythos** (dry cases no longer inflate the figures):
+
+| Comparison | Recall | Critical success index |
+|---|---|---|
+| Fill against solver peak, 64 storms | 66% | 65% |
+| Fill against solver final depth | 85% | 83% |
+| Corrected model, 48 unseen storms | 97% | 96% |
+| 2 m solver against 1 m solver | 87% | 81% |
+
+Remote interventions only (21 cases; the 11 at the receptor are a tautology and are dropped): rank correlation 0.91, slope 0.58, direction right in 21 of 21. Against the solver's final depth the slope is 0.60, so the shortfall is not a peak-against-settled effect.
+
+**Running on the Air now:** control experiment (GPU), Bet 2 exact sweep (sub-agent), Bet 3 design search, absorption sink for the solver (sub-agent, writes `solver/flood_sink.py` without touching `solver/flood.py`), absorption map E0, and five literature threads (notes will appear in `research_notes/`).
+
 ## Sat 15:35 — RETEST RESULT: 7 of 12 flips confirmed. The pass line was 9. It fails
 
 Run on this machine with the Pro's solver (`fill/run_retest_air.py`, 618 s, mass imbalance at most 7.4e-6). Results in `results/air/interventions_retest.npz`. All 12 patches were 13 to 82 m from the building; predictions were committed first.
