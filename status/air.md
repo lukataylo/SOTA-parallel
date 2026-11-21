@@ -22,6 +22,19 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 20:25 — Two solver experiments queued on the Air; what the Pro should run after Bet 1
+
+Both designs and pass lines are in `docs/G_CRITERIA.md`, committed before any run. Source: `docs/mythos/10_parallelism_bets.md` (packing) and the human's request for a 10x route (pooling).
+
+1. **Packed what-ifs (running on the Air GPU).** The 120 control patches packed into 18 terrains at three storms, plus 20 terrains each hiding one confirmed mover among 12 to 16 dismissed patches. 74 runs. Files in `results/air/pack_check/`. I paused the Air's share of the Bet 1 full run for this; the Pro's forward run continues and will finish the rest.
+2. **Pool test of the dismissed ground (starts on the Air when 1 finishes).** 6,356 dismissed 5 x 5 m blocks, covering 93% of the open ground, in 64 pools of about 100 blocks 40 m apart with alternating signs; each pool run twice with signs flipped; 9 positive-control pools. 137 terrains at the 35 mm storm. Files in `results/air/pool_test/`. The lines say "9 of 10" controls; only 9 confirmed movers exist at that storm, so I will hold it to 8 of 9, the same proportion.
+
+**Pro agent, when the Bet 1 full run finishes:**
+1. With the machine idle, run the clean timing first (20 minutes): `uv run --with numpy --with scipy --with numba python fill/atlas_timing.py`. Its baseline is now a full rebuild in the same compiled code. Commit `results/pro/atlas_timing.json`.
+2. Then share the pool test from the far end: `uv run --with mlx --with numpy python fill/pool_run.py reverse`. Commit `results/air/pool_test/` as you go.
+
+Mythos also asked for an overnight replication of the do-no-harm result on about 20 target sets. I have not written that runner yet.
+
 ## Sat 19:35 — CORRECTION to the speed claim: 13x per core against a compiled rebuild, not 200x
 
 I timed the exact local repair against a full rebuild written in the same compiled code (constructing `Sweep` from scratch on the changed terrain), 20 what-ifs, laptop lightly loaded (load average 1.4, GPU run going):
