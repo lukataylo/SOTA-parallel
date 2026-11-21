@@ -1,0 +1,20 @@
+{
+ "timing": {
+  "b1": 0.09405695798341185
+ },
+ "detail": {
+  "res48_single_s": 0.09405695798341185,
+  "res48_vmap256_s": 0.060763073406405965,
+  "res48_pool2x64_s": 0.04817021517192188,
+  "res12_single_s": 0.0019962500082328916,
+  "res12_vmap256_s": 0.002189028160273665,
+  "res12_pool2x64_s": 0.001092942871082414,
+  "cell_steps_per_storm": 5529600,
+  "Mcell_steps_per_s_single": 58.7899089929659,
+  "Mcell_steps_per_s_vmap256": 91.00263844483284,
+  "Mcell_steps_per_s_pool2x64": 114.79292712861223
+ },
+ "note": "fine solver, single storm, one CPU thread; ground truth",
+ "hardware": "Apple M3 Pro (6P+6E cores, 36 GB), shared with another job. Solver: JAX on CPU (4-process pool). Emulator training: PyTorch on the Apple GPU (MPS)",
+ "config": "rain cap 150 mm/h, volume 30 mm/storm, grid 48x48 @ 10 m"
+}

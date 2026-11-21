@@ -1,0 +1,5 @@
+{"status": "INCOMPLETE", "source": "transcribed from e5.log; the run was killed before it saved (operator error), so only T_iid RMSE (m) per seed survives",
+ "finetune_20": [0.0218, 0.0215, 0.0217], "scratch_20": [0.0348, 0.0367, 0.0333],
+ "finetune_100": [0.0188, 0.0187, 0.0186], "scratch_100": [0.0215, 0.0218, 0.0215],
+ "finetune_500": [null, null, 0.0162], "scratch_500": [null, null, 0.0184],
+ "poseidon": "BLOCKED: checkpoint reachable (HTTP 200) but not downloaded or run", "arms_B_C": "NOT RUN"}
