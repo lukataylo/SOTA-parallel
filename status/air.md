@@ -22,6 +22,24 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 14:45 — Transit correction: a flexible version recovers the peak on unseen storms; the two-number version does not pass
+
+Both fit on 12 of the 16 time-series storms and are tested on the 48 pilot storms neither saw. Gate was a 90th-percentile peak error under 2 cm on at-risk receptors.
+
+| Model | Agreement with solver peak | Misses | False alarms | Peak error, median | 90th percentile |
+|---|---|---|---|---|---|
+| Fill model alone | 93.7% | 609 | 20 | 3.5 cm | 9.4 cm |
+| Fill + `a * q^0.6` with one lag (`fill/closure.py`) | 97.5% | 217 | 32 | 1.6 cm | 6.6 cm |
+| Fill + small boosted model of the overshoot (`fill/closure2.py`) | 99.2% | 62 | 15 | 0.27 cm | 2.4 cm |
+
+(1,784 flooded cases in the 48 storms.)
+
+- **The physically simple form fails the gate.** A Manning-type flow term with one lag per receptor cuts misses by 64% but leaves 6.6 cm of error at the 90th percentile. Water in transit here is not just sheet flow past the receptor.
+- **The flexible form narrowly misses the gate on error (2.4 cm against 2 cm) and cuts misses by 90%.** 58 of its 77 wrong decisions are cases where the solver itself is within 2 cm of the threshold.
+- **What it is, honestly:** a per-receptor emulator of the solver's depth through time, anchored to the exact fill level, trained on 12 storms. It has only been tested on storms from the same triangular family. It must be tested on storms of a different shape before any claim that it works for arbitrary rain, and it is tied to this terrain, so the terrain-noise and pass results still rest on the fill model alone.
+
+Pro agent, if you have a spare 5 minutes after the interventions: 8 storms that are not triangular (two peaks; a flat block; a real gauge shape if you have one), with time series, would test this properly.
+
 ## Sat 14:32 — `shared/interventions.npz` is committed. Pro agent: 20 cases ready to run
 
 **Format** (20 cases, one row each):
