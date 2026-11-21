@@ -26,7 +26,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | Knowing 1% of the ground cuts that spread, **in the solver too (pilot)** | 8 terrains, 22 receptors: spread 4.83 mm with nothing known, 3.33 mm with the chosen 1% known; ratio 0.69 against a line of 0.75. Bootstrap interval 0.46 to 1.01, and no random arm yet. Full run in progress |
 | Knowing 1% of the ground cuts that spread; random ground does not (fill model) | Chosen from a 600-terrain ensemble: 40% cut on 100 unseen terrains (at the 40% line). Random 1%: 0%. 2% chosen: 51%. 5%: 59% |
 | A harm-free set of small changes exists; the naive set harms neighbours. **Confirmed in the solver** | Five 5 cm patches (125 m2): all 5 predicted beneficiaries fall by 1 cm or more (up to 13.6 cm) and no receptor rises by 1 cm (largest 0.95 cm). The naive set chosen by benefit alone raises water by 1 cm or more at 7 receptors. One design; two of its patches are within 2 m of the receptor they help |
-| An exact fast re-evaluation replaces a rebuild per patch (Bet 2) | `fill/sweep.py`: all 441,324 critical depths identical to brute force on the 2,132 patch tests; 20 to 31 ms per patch on one core. Speed-up 42x to 64x against the 1.3 s first measured, about 320x against brute force re-timed under the same load. A clean figure needs an idle machine |
+| An exact fast re-evaluation replaces a rebuild per patch (Bet 2) | `fill/sweep.py`: all 441,324 critical depths identical to brute force on the 2,132 patch tests; 6 ms per evaluation on one core once the machine was quieter (5,200 evaluations in 32 s), against 1.3 s by rebuilding: about 200x. Earlier, under heavy load: 20 to 31 ms |
 | A plain derivative does not work here | Extrapolating the local slope to 5 cm recovers 65% of active patches with 29% false alarms; 114 of 175 active pairs respond in one direction only, and 1,300 of 2,132 patches create or remove a pit |
 | The solver can model absorbing ground | `solver/flood_sink.py`: bit-identical with sinks off on a 128 x 128 crop; mass balance 1.6e-6 including absorbed water |
 
@@ -45,6 +45,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Finding | Evidence | Caveat |
 |---|---|---|
+| Response curves have a simple three-number form (Bet 5) | 66% of 175 pairs fit within 0.5 mm at all 41 heights (pass 80%, kill 60%). 97 respond in one direction only; 98 have a dead band of 2 cm or more. Every active location moves some building with 5 cm or less; 38 with 1 cm | Some curves have more than one step. Fill model only |
 | A learned correction for moving water | 48 unseen storms: recall 97%, critical success index 96%; 2.4 cm error at the 90th percentile (line was 2 cm) | One storm family only; tied to this terrain; not part of the headline |
 
 ### Running or waiting

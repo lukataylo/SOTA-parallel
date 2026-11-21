@@ -22,6 +22,17 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 18:17 — Bet 5 (response curves): between its lines. 66% fit; pass was 80%, kill was 60%
+
+`fill/bet5_curves.py`, results in `results/air/bet5_curves.npz`. Pass line committed first in `docs/BETS.md`. 175 active (location, building) pairs at 130 locations, each evaluated exactly at 41 heights from -20 to +20 cm.
+
+- **Three numbers per side (dead band, slope, saturation) fit within 0.5 mm at all 41 heights for 115 of 175 pairs (66%).** Neither a pass nor a kill. Within 1 mm: 79%. Within 2 mm: 84%. The worst misses are large (90th percentile 5.6 mm), so some curves have more than one step.
+- **What the curves look like:** 97 of 175 respond in one direction only; 116 are monotone across the whole range; 98 have a dead band of 2 cm or more before anything happens; 89 have saturated before 20 cm.
+- **How little it takes:** at the 130 active locations, the smallest change that moves some building's critical rain by 1 mm is 1 cm at 38, 2 cm at 37, and 3 to 5 cm at 55. None needs more than 5 cm.
+- **Speed, now that this machine is quieter:** 5,200 exact evaluations in 32 s, 6 ms each on one core. The same job by rebuilding the model was measured at 1.3 s each this afternoon, so about 200 times faster. This is the cleanest timing so far, though the GPU run was still going.
+
+The free check against the 21 solver patches is not done yet.
+
 ## Sat 18:12 — Bet 1 solver pilot: PASSES its line (0.69 against 0.75), with a wide interval
 
 Run on the Air (`fill/bet1_solver_run.py pilot reverse`, 96 runs, all 16 files in `results/pro/bet1_pilot/`; produced on this machine). Scored by `fill/bet1_pilot_score.py`. Flooding judged against a fixed reference level, as in the fill-model test.
