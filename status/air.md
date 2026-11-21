@@ -22,6 +22,51 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 14:32 — `shared/interventions.npz` is committed. Pro agent: 20 cases ready to run
+
+**Format** (20 cases, one row each):
+- `profile` (20 x 60, mm/h at `profile_dt_s` = 60 s), `loss_mm_h`, `duration_s` (2,400), `t_end_s` (3,600).
+- `receptor`: index into `shared/receptors.npz`.
+- `rect`: `[row_lo, row_hi, col_lo, col_hi]`, half-open. `dz`: height change in metres. Apply `dz` to the **open** cells inside the rectangle only.
+- My predictions, for scoring: `fill_base_wet`, `fill_changed_wet`, `crit_base_mm`, `crit_changed_mm`, `net_mm`.
+
+Please run each storm on the unchanged and the changed terrain and save peak and final depth at **all** receptors for both, to `results/pro/interventions.npz`.
+
+**What the cases are.** Each is a 5 x 5 m patch raised or lowered 5 cm that the fill model says moves one receptor's critical rain depth, with a storm placed between the old and new critical depth. 11 predict dry to wet, 9 wet to dry; 14 distinct receptors. Twelve patches are within 2 m of the receptor, which is the unsurprising kind. Eight are 6 to 35 m away, which is the interesting kind: for example case 12 says raising a patch 35 m from the documented site brings its critical depth from 32.5 to 13.5 mm.
+
+## Sat 14:30 — Go/no-go, Air side: both of my numbers pass
+
+`fill/decisive_par.py`, results in `results/air/decisive.npz`.
+
+**Which ground moves a building's critical rain depth.** 2,132 tests: a 25 m2 patch at each of 1,066 pass locations on the at-risk receptors' spill paths, raised or lowered 5 cm.
+- 188 patches (9%) move some receptor's critical depth by at least 1 mm of rain. The other 91% move nothing.
+- 29 of 32 at-risk receptors can be moved by a single patch; 28 by at least 10% of their critical depth; 19 by at least 5 mm of rain. Four can be taken out of flooding altogether up to 130 mm, and two never-flood receptors can be put at risk.
+
+**How far survey error moves it.** 120 terrains at each noise level, error correlated over about 3 m.
+
+| Terrain error (sd) | Median spread of critical depth | As a share of its value | At-risk receptors that stop flooding in some terrain | Never-flood receptors that flood in 10% or more of terrains |
+|---|---|---|---|---|
+| 2 cm | 2.5 mm | 16% | 5 of 32 | 9 of 175 |
+| 5 cm | 6.5 mm | 38% | 15 of 32 | 27 of 175 |
+| 10 cm | 12.6 mm | 63% | 21 of 32 | 57 of 175 |
+
+The kill line was a median shift under 10% at 5 cm. Measured: 38%.
+
+**Cost.** 360 terrains x 261 rain depths (about 94,000 scenarios) took 93 s on 9 cores.
+
+**Caveats.** The noise also moves the receptor's own ground, which shifts its threshold directly; I have not yet separated that from the effect of distant passes. The noise model (size and correlation length) is my assumption; the Environment Agency's accuracy figure is not yet checked. All of this is the fill model, so it describes settled water.
+
+## Sat 14:27 — Full 64-storm pilot: the fill model's critical depths match the solver's
+
+`results/pro/bruteforce_pilot.npz` against `results/air/fill_pilot.npz`.
+
+- **Critical depth.** For the 30 receptors with a threshold in both, the fill model's critical net depth differs from the solver's peak-based one by a median 0.0 mm, 7.1 mm at the 90th percentile.
+- **Settled water.** 97.7% agreement with the solver's final depth (268 misses, 32 false alarms out of 1,757 wet). Levels within 1.6 cm at the 90th percentile.
+- **Peak.** 94.0% agreement (761 misses, 29 false alarms out of 2,253 wet).
+- **The gap is a group of receptors, not noise.** 24 receptors flood at the peak and never in the fill model; 14 of those are dry again at the end. They are flooded by water passing through.
+- **The overshoot is structured.** Mean peak-minus-fill per storm correlates 0.97 with net depth and 0.87 with peak rain rate.
+- **A critical depth exists in the solver.** For 43 of 54 at-risk receptors, the driest flooding storm is wetter than the wettest non-flooding one. For the other 11 the two overlap, by up to 34 mm.
+
 ## Sat 14:20 — PIVOT. Read `docs/PIVOT.md` before doing anything else
 
 The human asked for a novel positive contribution in place of the cascade. `docs/PIVOT.md` has the new claim, the go/no-go and each agent's tasks. **Pro agent: do not launch the 1,000-storm run.**
