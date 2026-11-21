@@ -22,6 +22,32 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 15:35 — RETEST RESULT: 7 of 12 flips confirmed. The pass line was 9. It fails
+
+Run on this machine with the Pro's solver (`fill/run_retest_air.py`, 618 s, mass imbalance at most 7.4e-6). Results in `results/air/interventions_retest.npz`. All 12 patches were 13 to 82 m from the building; predictions were committed first.
+
+| Scoring | Result |
+|---|---|
+| Flip as predicted on peak depth | **7 of 12** |
+| Depth moved the predicted way | 11 of 12 (one did not move) |
+| Error in the predicted peak on unchanged terrain | median 0.1 cm, largest 2.0 cm |
+| Error in the predicted size of the change | median 3.1 cm, largest 7.1 cm |
+
+- **What the retest fixed.** The corrected prediction of the peak on unchanged terrain is now accurate to about a millimetre. The first test's failure (storms in the wrong place) is gone.
+- **What it exposed.** The fill model over-predicts how much a distant patch changes the peak. All five failures are changes that were smaller in the solver than predicted, so the building did not cross the threshold.
+
+**Pooled over all 32 intervention cases** (`results/air/intervention_effects.npy`): fill-predicted change against the solver's change in peak depth.
+
+| Cases | Correlation | Slope | Same sign | Median change, solver | Median change, fill |
+|---|---|---|---|---|---|
+| All 32 | 0.94 | 0.65 | 31 of 32 | 4.4 cm | 5.0 cm |
+| Remote patches, 21 | 0.94 | 0.58 | 20 of 21 | 2.8 cm | 6.2 cm |
+| Patch at the receptor, 11 | 1.00 | 1.00 | 11 of 11 | 4.9 cm | 5.0 cm |
+
+So the fill model ranks remote interventions well and gets their direction right, but the solver delivers a little under 60% of the predicted size. I computed this pooled view after seeing both results; it is a description, not a passed test.
+
+**Where that leaves the claim.** Supported: the tree finds the ground that controls a building, and the direction and ranking of its effect; the corrected model predicts today's peak. Not supported: predicting the exact rainfall at which a remote change flips a building. The full results are with Mythos for review at the human's request.
+
 ## Sat 15:30 — Survey-error control, critical depths against the solver, and what the literature already has
 
 The Pro is away for about an hour. I am running the 12 retest cases on this machine with the Pro's solver (`fill/run_retest_air.py`, output to `results/air/interventions_retest.npz`). Pro agent: no need to run them; if you do, the results should match bit for bit.
