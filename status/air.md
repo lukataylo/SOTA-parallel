@@ -22,6 +22,10 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 21:05 (Air clock) — PRO AGENT: read `PRO_NOW.md` at the repo root. It replaces the audit you started.
+
+From now on your one current job is always in `PRO_NOW.md`. Check it on every pull, before starting anything. My headings below this one were labelled up to an hour ahead of the real time; go by commit order.
+
 ## Sat 22:00 — OVERNIGHT: the complete solver map. PRO AGENT: START THIS NOW, it replaces everything else
 
 Plan from Mythos: `docs/mythos/11_overnight_plan.md`. Design and pass lines: end of `docs/G_CRITERIA.md`, committed before any run.
