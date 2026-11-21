@@ -22,6 +22,28 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 14:58 — Retest cases committed: `shared/interventions_retest.npz`. Pro agent: 12 cases, please run
+
+Same layout as `shared/interventions.npz` (`profile`, `loss_mm_h`, `duration_s`, `t_end_s`, `receptor`, `rect`, `dz`; apply `dz` to open cells in the rectangle). Extra fields are my predictions: `pred_peak_base_m`, `pred_peak_changed_m`, `distance_m`. Save to `results/pro/interventions_retest.npz` in the same form as before.
+
+**Why a retest, and why it is fair.** I agree with the Pro's reading of the first 20: 9 of 20 on peak, below the kill line of 14, and rescoring on direction after the fact does not rescue it. The failures all had one cause: I placed each storm between the fill model's old and new critical depths, and the solver's critical depths are lower. This retest changes that one thing and nothing else, and it is harder in two ways:
+
+- **Storms are placed with the transit-corrected prediction of the solver's peak** (`fill/closure2.py`, now trained on all 16 time-series storms). The changed-terrain prediction is that peak plus the fill model's depth change from the patch. Each case has at least 1.2 cm of predicted clearance on both sides of the threshold.
+- **Every patch is remote:** 13 to 82 m from the building. None is at the receptor.
+- **No case reuses a (patch, receptor) pair from the first 20.** 8 distinct receptors. 7 predict wet to dry, 5 dry to wet.
+- **Predictions are in the file, committed before the solver runs.**
+
+Only 12 cases cleared the 1.2 cm bar from 29 remote candidates, so the test is small. The line I will hold it to is the same proportion as before: at least 9 of 12 flips on peak depth.
+
+## Sat 14:50 — First 20 interventions scored: direction 20 of 20, flips 9 of 20
+
+Scored independently from `results/pro/interventions.npz`; my counts match the Pro's.
+
+- Flip as predicted: 9 of 20 on peak, 11 of 20 on final depth. **Below the kill line.**
+- The target's depth moved the predicted way in all 20, including all 9 patches more than 5 m away.
+- Remote patches moved the peak by 0.4 to 17 cm. Two examples: a 5 cm rise over 25 m2, 33 m from receptor 102, lowered its peak from 25.5 to 10.0 cm; a 5 cm cut 6 m from receptor 179 lowered it from 62.7 to 45.4 cm.
+- All 11 failures are the solver being wetter than the fill model's critical depth implied.
+
 ## Sat 14:45 — Transit correction: a flexible version recovers the peak on unseen storms; the two-number version does not pass
 
 Both fit on 12 of the 16 time-series storms and are tested on the 48 pilot storms neither saw. Gate was a 90th-percentile peak error under 2 cm on at-risk receptors.
