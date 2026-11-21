@@ -1,14 +1,33 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 14:12. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 14:31. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
 
-## Sat 14:12: following `docs/PIVOT.md`
+## Sat 14:31: pivot tasks (`docs/PIVOT.md`)
 
-- **The 1,000-storm run is not running.** I launched it at 14:09, one minute before pulling the pivot, and stopped it at once. No chunk had finished; nothing from it is kept.
-- **Pilot is committed:** `results/pro/bruteforce_pilot.npz`.
-- **Task 2, time series: running.** First 16 pilot storms, depth at all 207 receptors every 30 s, to `results/pro/pilot_timeseries.npz`. Arrays: `depth` (16 x 163 x 207, m; NaN after a storm's end), `t_s`, `t_end_s`, `storm_index`, `peak_depth`, `final_depth`. Each sample is taken at the first step past the 30 s mark, so up to 1 s late.
-- **Task 4, order check: queued behind it.** 4 pilot storms against themselves scaled by 1.1, 1.2, 1.3, 1.2.
-- **Task 3, intervention pairs: ready, waiting for `shared/interventions.npz`.** The solver now takes a different terrain per batch member, so unchanged and changed terrain run side by side. Air agent, the format I will read: per case `storm_profile` (K rain rates in mm/h at 60 s; or an index into a storm file), `loss_mm_h`, `t_end_s` or `duration_s`, `receptor` index, and the terrain change as cell rows, cell columns and height changes in metres. Any layout that carries those is fine; say which in `status/air.md`.
+| Task | State | Result |
+|---|---|---|
+| 1. Pilot committed, main run not launched | Done | `results/pro/bruteforce_pilot.npz`. I launched the 1,000-storm run at 14:09, a minute before pulling the pivot, and stopped it at once; nothing from it is kept. |
+| 2. Receptor time series | **Done** | `results/pro/pilot_timeseries.npz` |
+| 3. Intervention pairs | Ready, waiting for `shared/interventions.npz` | |
+| 4. Order check | **Done: holds** | Larger storm at least as deep at every receptor, all 4 pairs |
+| 5. Critical depths from the solver | Running since 14:30, about 40 min | `results/pro/critical_*.npz` |
+
+**Task 2, time series.** Pilot storms 0 to 15, depth at all 207 receptors every 30 s. Arrays: `depth` (16 x 159 x 207, m; NaN after a storm's own end), `t_s`, `t_end_s`, `storm_index`, `peak_depth`, `final_depth`.
+
+- Peak depths are identical, bit for bit, to the pilot run. The solver is reproducible across batch sizes.
+- **The 30 s samples miss the true peak by up to 1.6 cm.** Use `peak_depth` in the file for the peak, not the maximum of the series. Each sample is taken at the first step past its 30 s mark, so up to 1 s late.
+- Mass imbalance at most 1.7e-5. 458 s for 16 storms.
+
+**Task 4, order check: holds.** Four pilot storms (31, 60, 86, 108 mm) each against itself with every rain rate multiplied by 1.1, 1.2, 1.3, 1.2, same loss and same end time. `solver/pivot_runs.py order`, numbers in `results/pro/order_check.json`.
+
+- **Peak depth at receptors:** the larger storm is deeper at all 207 receptors in all 4 pairs. Smallest margin +0.017 mm. No receptor flooded in the smaller storm and not in the larger.
+- **Peak depth at any of the 262,144 cells:** the larger storm is lower by at most 0.13 mm, and by 1 mm or more nowhere.
+- **Final depth:** lower in the larger storm by at most 0.03 mm at receptors. Over all cells, by at most 1.5 mm, in 2 cells of one pair. Final depth is a snapshot of water still moving, so it is not strictly ordered; the peak is, to float32 noise.
+- What it means: "more rain at every instant gives at least as much peak water" held in every case, so a critical depth per receptor and storm shape is well defined, and one sweep over depth brackets every receptor at once.
+
+**Task 5, critical depths.** `solver/critical_depth.py`. Four shapes, triangular as in `fill/make_shared.py`: front-loaded, centred and back-loaded at 60 minutes (24 depths, 10 to 120 mm) and centred at 30 minutes (16 depths, 10 to 60 mm, keeping the Air agent's 120 mm/h cap on mean intensity). The 0.10 m crossing is interpolated linearly in peak depth inside its bracket, so it is good to a fraction of the 4.8 mm (3.3 mm) grid spacing, not exact. Each file has `critical_depth_mm` and `critical_net_depth_mm` per receptor (NaN if it never floods or already floods at the lowest depth; flags say which), plus the full `peak_depth` grid.
+
+**Task 3, intervention pairs.** The solver takes a different terrain per batch member, so unchanged and changed terrain run side by side. Air agent, what I need per case: the rain profile (60 rates in mm/h at 60 s, or an index into a storm file), `loss_mm_h`, `duration_s`, the receptor index, and the terrain change as cell rows, cell columns and height changes in metres. Any layout carrying those is fine; say which in `status/air.md`.
 
 ## Where things stand
 
@@ -113,6 +132,5 @@ The deepest water is 2.1 to 2.3 m in every storm above about 30 mm, and 0.88 m a
 
 ## Next
 
-1. Time series, then the order check; commit both.
-2. Intervention pairs as soon as `shared/interventions.npz` lands.
-3. Critical depths by bisection for 3 to 6 storm shapes.
+1. Critical-depth sweep finishes; commit.
+2. Intervention pairs as soon as `shared/interventions.npz` lands (they take priority over the sweep).
