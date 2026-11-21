@@ -1,6 +1,26 @@
 # Status: MacBook Pro M3 agent
 
-Last updated: Sat 21 Nov, 20:45. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+Last updated: Sat 21 Nov, 21:05. Machine: MacBook Pro M3 Pro (Mac15,6), 36 GB, MLX on the Apple GPU.
+
+## Sat 21:05: clean timing done; 15 mm pool test dropped; random audit of the depth-change screen starting
+
+**Clean timing** (`fill/atlas_timing.py`, `results/pro/atlas_timing.json`), M3 Pro, 20,000 what-ifs, best of 3:
+
+| Processes | Per what-if | Speed-up | Efficiency |
+|---|---|---|---|
+| 1 | 3.63 ms | 1.0x | 100% |
+| 2 | 1.65 ms | 2.2x | 110% |
+| 4 | 1.05 ms | 3.4x | 86% |
+| 6 | 0.77 ms | 4.7x | 78% |
+| 12 | 0.68 ms | 5.4x | 45% |
+
+- Rebuild from scratch in the same compiled code: 44 ms per what-if. **Per-core speed-up 12x.** Identical answers in 200 of 200.
+- Not a fully idle machine: load average was 6.9 at the start, and another session's Python process held about a quarter of a core throughout. Nothing was on the GPU. The one-process repeats agree within 3% (72.6, 73.9, 74.5 s). The 110% at two processes is noise of that kind, not a real gain.
+- This machine has 6 performance and 6 efficiency cores, which is why 12 processes add little over 6.
+
+**15 mm pool test: not run.** My runner had a bug (the edit commented out a variable) and ran nothing. Before I fixed it the Air's 21:20 entry showed the pool design itself was flawed (88 of 128 pools tripped at 35 mm; mixed definitions; alternating signs), so repeating it at 15 mm would add nothing. `fill/pool_run_15mm.py` is removed.
+
+**Started instead: a random audit of the depth-change screen** (`docs/AUDIT_CRITERIA.md`, lines written before any run). 3,400 what-ifs drawn uniformly from all open ground, packed 120 m apart into 278 terrains, at 35 mm then 15 mm. It gives the unbiased miss rate that the Air's 232 suspects could not. About 2 hours per storm. Results go to `results/pro/audit/`.
 
 ## Sat 20:45: Bet 1 run stopped as asked; timing, then the pool test at the 15 mm storm
 
