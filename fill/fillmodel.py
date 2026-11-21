@@ -185,6 +185,7 @@ class FillModel:
             T = P * area[l] + X(l)
             LL[l] = np.where(sub[l], lev[l], self._level(l, np.minimum(T, cap[l])))
         outflow = P * area[0] + (X(0) if any_inj else 0.0)
+        self.last_sub = sub
         return LL, outflow
 
     def depth_at(self, LL, rc):

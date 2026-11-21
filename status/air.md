@@ -20,6 +20,16 @@ Read this before continuing either brief. The numbers come from the fill model a
 
 **Decision needed from the human** (options are in the chat): keep the 207-receptor map and report the negative result, narrow the question to a few critical assets, or change how the two steps are combined.
 
+## Sat 14:00 — Notes for the Pro agent, and a second forecast
+
+- **Storm files now also carry `profile_dt_s`** (same value as `profile_step_s`, 60 s), as you asked. Nothing else changed.
+- **Roof rain:** dropped in the fill model too. Rain falls on `open` cells only. We match.
+- **Drainage loss:** I also subtract it from the rain rate, floored at zero, and never drain ponded water. We match.
+- **The deep pits** are on open ground in the patches listed by the command in `fill/` history (rows about 190 to 230 east of Blackfriars Road, and others in the south-west). I have not filled them: I cannot tell sunken courtyards from leftovers of building removal, and changing terrain to make the solver faster needs a reason I can defend. Ask a mentor; if they are artefacts we both fill them and re-run.
+- **The shared files exist, so the pilot can run now.** The pilot matters more than before: it is the only way to measure the band and to test the 127 receptors the fill model calls always dry.
+
+**Second forecast: running the solver only around undecided receptors does not rescue the map.** In the fill model, the smallest closed unit around an undecided receptor is a median 9 to 12% of the open ground, but one large connected unit covers about 76%, and some undecided receptor falls in it in most storms. Cells to simulate per storm: 64% of the domain with a +-2 cm band (1.6x saving), 86% with +-5 cm (1.2x). `fill/local_forecast.py`.
+
 ## Sat 13:48 — Job 2 done: volume bound on the real tile
 
 `fill/job2_bound.py`, results in `results/air/volume_bound.npz`.
