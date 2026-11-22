@@ -42,6 +42,10 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .inset p { margin: 6px 0 0; font: 400 11px var(--mono); color: var(--muted) }
 .inset h2 { margin: 0 0 6px; font: 600 17px var(--sans) }
 .inset .wall { margin: 8px 0 0; font: 600 17px var(--sans); color: var(--fg); letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums }
+.src { align-self: flex-start; display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px 10px 12px; color: var(--fg) }
+.src svg { width: 38px; height: 38px; flex: none; color: var(--cool) }
+.src b { display: block; font: 600 16px/1.2 var(--sans) }
+.src span { display: block; font: 400 12px/1.3 var(--mono); color: var(--muted) }
 .act { pointer-events: auto; align-self: flex-start; font: 600 17px var(--sans); color: var(--bg); background: var(--fg); border: 0; border-radius: 999px; padding: 13px 24px; cursor: pointer }
 .act:focus-visible { outline: 3px solid var(--hot); outline-offset: 3px }
 .story.wide { width: min(760px, 60vw) }
@@ -86,6 +90,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
     <button class="act" id="kerbBtn" hidden>Lower kerb</button>
     <div class="rows" id="rows" hidden></div>
     <div class="cards" id="cards" hidden></div>
+    <div class="src" id="src" hidden><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 24a7 7 0 0 1 1.2-13.9A9 9 0 0 1 30.5 13 5.6 5.6 0 0 1 29 24Z"/><path d="M14 29l-1.6 4M21 29l-1.6 4M28 29l-1.6 4"/></svg><div><b id="src-name"></b><span id="src-note"></span></div></div>
   </div>
   <div class="inset" id="inset" hidden>
     <h2>Kerb cross-section</h2>
@@ -198,7 +203,7 @@ const d0 = D.design[4], d1 = D.design[1], kb = [POS.kb[0], POS.kb[1], 150, 311, 
 const SCENES = [
   { kick: 'Southwark, London', head: 'Which bit of pavement floods a building?', body: 'This is half a kilometre of London around Southwark Underground station, built from the Environment Agency’s height survey. Over a weekend we tested every 5 metre square of open ground in a flood simulation. That came to 15,788 tests.', cam: { x: 200, y: 130, zoom: .82 }, on: { water: 1, places: 1 }, storm: [8, 34, 9] },
   { kick: 'The problem', head: 'More homes are at risk from rain than from rivers', big: ['4.6M', 'properties in England at risk of flooding from heavy rain'], body: 'Flood maps show where the water ends up. They don’t show which part of the street sent it there, so nobody knows which kerb to change.', cam: { x: 185, y: 10, zoom: 1.05 }, on: { water: 1, places: 1 }, storm: [20, 45, 7] },
-  { kick: 'Why now', head: 'Heavy rain is getting more common', big: ['7%', 'more water in the air for each degree of warming'], body: 'The climate has warmed by more than a degree. A Met Office study expects downpours of 20 mm an hour, enough for flash floods, <b>four times as often</b> in the UK by 2080 as in the 1980s if emissions stay high. This is our street under 70 mm in an hour, twice the storm we tested.', cam: { x: 300, y: 210, zoom: 1.7 }, on: { water: 1 }, storm: [0, 60, 10], heavy: 1, clock: 1 },
+  { kick: 'Why now', head: 'Heavy rain is getting more common', big: ['7%', 'more water in the air for each degree of warming'], body: 'The climate has warmed by more than a degree. A Met Office study expects downpours of 20 mm an hour, enough for flash floods, <b>four times as often</b> in the UK by 2080 as in the 1980s if emissions stay high. This is our street under 70 mm in an hour, twice the storm we tested.', cam: { x: 300, y: 210, zoom: 1.7 }, on: { water: 1 }, storm: [0, 60, 10], heavy: 1, clock: 1, source: ['Source: Met Office', 'Kendon et al., Nature Communications, 2023'] },
   { kick: 'One simulation', head: 'One storm takes 13 seconds to simulate', body: 'We drop 35 mm of rain on the street in an hour. The simulation follows the water across every square metre as it runs downhill, fills the low spots and spills over. Each run takes about 13 seconds on a laptop’s graphics chip.', cam: { x: STORM.spots[0][0], y: STORM.spots[0][1], zoom: 2.4 }, on: { water: 1 }, storm: [0, 60, 12], clock: 1 },
   { kick: 'The experiment', head: 'Lower this kerb and watch the wall', body: 'We lower the pink patch by 5 cm, about the height of a low kerb, and run the storm again. Then we check the water against the building 9 metres away. If the highest water there moves by a centimetre or more, the patch counts.', cam: { x: 160, y: 300, zoom: 4.4 }, on: { patch: 1 }, inset: 1, pitch: .85 },
   { kick: 'The cost', head: 'That is 15,788 runs', big: ['55', 'hours of graphics-chip time if every change gets its own run, as in a published study'], body: 'The street has 7,894 squares of open ground. We want each one raised and each one lowered. One at a time, that’s more than two days on a laptop.', cam: { x: 256, y: 256, zoom: 1.0 }, on: { pack: 1 }, pulse: 1 },
@@ -223,6 +228,10 @@ const SCENES = [
     cam: { x: 256, y: 256, zoom: .8 }, on: { moves: .0 }, spin: 1 },
   { kick: 'What we claim', head: 'What we claim', rows: [['ok', '<b>15,788</b> tests in <b>1,956</b> runs, an eighth of the compute on the same laptops'], ['ok', '<b>84</b> of 7,894 squares change the highest water at a building, typically from 20 m away'], ['ok', 'A fix chosen from the map lowered the water at <b>5</b> buildings and raised it at none']], body: 'This is one neighbourhood and one storm, with no sewer data. It shows which ground the simulation reacts to, and it isn’t a forecast. London has about 6,000 neighbourhoods this size, and each could be run separately.', cam: { x: 200, y: 140, zoom: .82 }, on: { moves: 1, design: 1, water: .5, places: 1 }, minute: 45 }
 ];
+function faceAngle(d) {                                             // the view angle that puts this square in front of its nearest building
+  let best = null, bd = 1e9; for (const m of models) for (const r of m.loops) for (const p of r) { const q = Math.hypot(p[0] - d[0], p[1] - d[1]); if (q < bd) { bd = q; best = m; } }
+  const t = Math.atan2(d[0] - best.x, d[1] - best.y), cur = cam.angle; return cur + Math.atan2(Math.sin(t - cur), Math.cos(t - cur));
+}
 // ---- playing a scene ----
 let idx = -1, tl = null, loops = [];
 function words(el, text) { el.innerHTML = text.split(' ').map(w => '<span class="w">' + w + ' </span>').join(''); }
@@ -241,14 +250,14 @@ function go(n) {
     $('kick').textContent = sc.kick; words($('head'), sc.head); $('head').style.fontSize = sc.head.length > 40 ? 'clamp(28px, 3.5vw, 56px)' : sc.head.length > 26 ? 'clamp(32px, 4.3vw, 70px)' : ''; $('body').innerHTML = sc.body || ''; $('body').hidden = !sc.body;
     $('big').hidden = !sc.big; if (sc.big) $('big').innerHTML = (Array.isArray(sc.big[0]) ? sc.big : [sc.big]).map(([n, u]) => '<div class="stat"><span class="n">' + n + '</span><span class="u">' + u + '</span></div>').join('');
     $('race').hidden = !sc.race; $('rows').hidden = !sc.rows; if (sc.rows) $('rows').innerHTML = sc.rows.map(([k, t]) => '<div class="row ' + (k === 'fail' ? 'fail' : '') + '"><i></i><span>' + t + '</span></div>').join('');
-    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; S.lower = 0; sketch(0); $('kerbBtn').hidden = !sc.inset; $('kerbBtn').textContent = 'Lower kerb'; $('story').classList.toggle('wide', !!sc.cards); $('cards').hidden = !sc.cards; if (sc.cards) $('cards').innerHTML = sc.cards.map(([c, h, t, v]) => '<div class="card"><div class="cite">' + c + '</div><h3>' + h + '</h3><p>' + t + '</p><p class="v">' + v + '</p></div>').join('');
+    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; S.lower = 0; sketch(0); $('kerbBtn').hidden = !sc.inset; $('kerbBtn').textContent = 'Lower kerb'; $('src').hidden = !sc.source; if (sc.source) { $('src-name').textContent = sc.source[0]; $('src-note').textContent = sc.source[1]; } $('story').classList.toggle('wide', !!sc.cards); $('cards').hidden = !sc.cards; if (sc.cards) $('cards').innerHTML = sc.cards.map(([c, h, t, v]) => '<div class="card"><div class="cite">' + c + '</div><h3>' + h + '</h3><p>' + t + '</p><p class="v">' + v + '</p></div>').join('');
     S.storm = sc.heavy ? 1 : 0; if (sc.minute != null) S.minute = sc.minute; if (sc.storm) S.minute = sc.storm[0]; if (sc.kerb != null) S.kerbAt = sc.kerb; S.kerbAll = sc.all ? 1 : 0; S.sel = sc.tour ? 1 : 4; S.spin = 0; race.t = 0; setRace(0); S.moves = on.moves && !sc.sweep ? Math.max(S.moves, 0) : S.moves;
     gsap.set('#story > *', { opacity: 0, x: 0, y: 0 }); gsap.set('#inset', { opacity: 0, y: 12 });
   });
   const t0 = tl.duration();
   tl.to(S, { drains: on.drains, patch: on.patch, places: on.places, water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
   tl.to(S, { moves: on.moves, duration: (sc.sweep ? 2.6 : .9) * D0, ease: 'power1.out' }, t0 + (sc.sweep ? .9 : 0));
-  tl.to(cam, { x: sc.cam.x, y: sc.cam.y, pitch: sc.pitch || .64, angle: -.46, duration: 1.1 * D0 }, t0).to(cam, { zoom: sc.cam.zoom, duration: 1.4 * D0, ease: 'power2.inOut' }, t0 + .25 * D0);
+  tl.to(cam, { x: sc.cam.x, y: sc.cam.y, pitch: sc.pitch || .64, angle: sc.tour ? faceAngle(D.design[1]) : -.46, duration: 1.1 * D0 }, t0).to(cam, { zoom: sc.cam.zoom, duration: 1.4 * D0, ease: 'power2.inOut' }, t0 + .25 * D0);
   tl.to('#kick', { opacity: 1, duration: .4 * D0 }, t0 + .3 * D0);
   tl.fromTo('#head .w', { opacity: 0, y: 34, rotate: 3 }, { opacity: 1, y: 0, rotate: 0, duration: .6 * D0, stagger: .055 * D0, ease: 'back.out(1.6)' }, t0 + .4 * D0).set('#head', { opacity: 1 }, t0);
   if (sc.big) tl.fromTo('#big', { opacity: 0, scale: .7, transformOrigin: 'left bottom' }, { opacity: 1, scale: 1, duration: .7 * D0, ease: 'expo.out' }, t0 + .9 * D0);
@@ -257,12 +266,13 @@ function go(n) {
   if (sc.race) { tl.to('#race', { opacity: 1, duration: .4 * D0 }, t0 + .9 * D0); tl.to(race, { t: 55, duration: 7 * D0, ease: 'none', onUpdate: () => setRace(race.t) }, t0 + 1.2 * D0); }
   if (sc.inset) { tl.to('#inset', { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.2 * D0).to('#kerbBtn', { opacity: 1, duration: .4 * D0 }, t0 + 1.3 * D0); tl.add(() => lowerKerb(1), t0 + 3.2 * D0); }
   tl.to(S, { trees: on.trees, duration: (on.trees ? 2.2 : .4) * D0, ease: on.trees ? 'elastic.out(1,.55)' : 'power2.in' }, t0 + (on.trees ? 1.2 : 0) * D0);
+  if (sc.source) tl.fromTo('#src', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.5 * D0);
   if (sc.cards) tl.set('#cards', { opacity: 1 }, t0).fromTo('#cards .card', { opacity: 0, y: 46, rotate: i => (i % 2 ? 5 : -5) }, { opacity: 1, y: 0, rotate: i => [-1.2, .8, .6, -.9, 1.1, -.5][i % 6], duration: .6 * D0, stagger: .16 * D0, ease: 'back.out(1.4)' }, t0 + .9 * D0);
   if (sc.all) tl.to(S, { kerb: 1, duration: 1.8 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0);
   if (sc.storm) { const [a, b, dur] = sc.storm; S.minute = a; const l = gsap.to(S, { minute: b, duration: reduced ? 0 : dur, ease: 'none', delay: reduced ? 0 : 1, repeat: reduced ? 0 : -1, repeatDelay: 1.5, onUpdate: () => { $('clock').textContent = 'minute ' + Math.floor(S.minute) + ' of 60'; } }); loops.push(l); }
   if (sc.pulse && !reduced) loops.push(gsap.to(S, { packPulse: 110, duration: 30, ease: 'none', repeat: -1 }));
   if (sc.spin && !reduced) loops.push(gsap.to(S, { spin: .5, duration: 26, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
-  if (sc.tour && !reduced) { const order = [1, 2, 3, 0, 4]; const t = gsap.timeline({ repeat: -1, delay: 6 }); order.forEach((i, k) => { const d = D.design[order[(k + 1) % 5]]; t.to(cam, { zoom: 1.5, duration: .8, ease: 'power2.inOut' }, k * 5).add(() => { S.sel = order[(k + 1) % 5]; }, k * 5 + .7).to(cam, { x: (d[0] + d[2]) / 2, y: (d[1] + d[3]) / 2, duration: 1.2, ease: 'power3.inOut' }, k * 5 + .4).to(cam, { zoom: 2.9, duration: 1.1, ease: 'power2.inOut' }, k * 5 + 1.3); }); loops.push(t); }
+  if (sc.tour && !reduced) { const order = [1, 2, 3, 0, 4]; const t = gsap.timeline({ repeat: -1, delay: 6 }); order.forEach((i, k) => { const d = D.design[order[(k + 1) % 5]]; t.to(cam, { zoom: 1.5, duration: .8, ease: 'power2.inOut' }, k * 5).add(() => { S.sel = order[(k + 1) % 5]; gsap.to(cam, { angle: faceAngle(d), duration: 1.2, ease: 'power3.inOut' }); }, k * 5 + .4).to(cam, { x: (d[0] + d[2]) / 2, y: (d[1] + d[3]) / 2, duration: 1.2, ease: 'power3.inOut' }, k * 5 + .4).to(cam, { zoom: 2.9, duration: 1.1, ease: 'power2.inOut' }, k * 5 + 1.3); }); loops.push(t); }
 }
 function lowerKerb(to) { gsap.to(S, { lower: to, duration: reduced ? 0 : 1.4, ease: 'power2.inOut', onUpdate: () => sketch(S.lower) }); $('kerbBtn').textContent = to ? 'Put it back' : 'Lower kerb'; }
 $('kerbBtn').onclick = () => lowerKerb(S.lower > .5 ? 0 : 1);
