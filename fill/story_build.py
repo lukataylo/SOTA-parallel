@@ -30,4 +30,11 @@ def place(x, y):
 POS = {"moves": [place(m[0], m[1]) for m in Dj["moves"]], "design": [place(m[0], m[1]) for m in Dj["design"]], "kb": place(147, 302)}
 print("markers moved:", sum(abs(p[0] - m[0]) + abs(p[1] - m[1]) > 1 for p, m in zip(POS["moves"] + POS["design"], Dj["moves"] + Dj["design"])), "of", len(Dj["moves"]) + 5, POS["design"], POS["kb"])
 out = pathlib.Path("fill/story_template.html").read_text().replace("__DATA_JS__", js).replace("__PLACES__", json.dumps([[274, 268, "Southwark Underground station", "closed by a burst water main flood, Jan 2020"], [152, -41, "1–2 Paris Garden", "40 m beyond the model's north edge"]], ensure_ascii=False)).replace("__POS__", json.dumps(POS)).replace("__GREEN__", json.dumps(GREEN)).replace("__RAISED__", json.dumps(sys.argv[2] if len(sys.argv) > 2 else ""))
+# photos are added only to a copy outside the repository: they belong to their owners and are not committed
+import base64, os
+pd = os.environ.get("STORY_PHOTOS")
+if pd:
+    imgs = "".join('<img alt="%s" src="data:image/jpeg;base64,%s">' % (alt, base64.b64encode(pathlib.Path(pd, f).read_bytes()).decode()) for f, alt in (("p1.jpg", "Firefighters wading through flood water outside the entrance to Southwark Underground station"), ("p2.jpg", "Flood water and scattered rubble across the junction by Southwark station, behind police tape"), ("p3.jpg", "A cyclist riding through flood water past a fire engine outside Southwark station")))
+    pathlib.Path(pd, "story_photos.html").write_text(out.replace("__PHOTOS__", '<div class="ph">' + imgs + "</div>").replace("__CREDIT__", "Photos: London Fire Brigade and news coverage, 21 January 2020. More: "))
+out = out.replace("__PHOTOS__", "").replace("__CREDIT__", "Photos of the flood: ")
 pathlib.Path("docs/story.html").write_text(out); print("%.1f MB" % (len(out) / 1e6), len(GREEN["trees"]), "trees", len(GREEN["drains"]), "drains", len(GREEN["fell"]), "fell")
