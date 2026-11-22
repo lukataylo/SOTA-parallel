@@ -1,47 +1,59 @@
 <title>Flood Tests Answer Cards</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@600;800&family=Space+Grotesk:wght@400;500;600&family=Space+Mono&display=swap">
 <style>
-/* Layout: one card fills the screen. The question sits small at the top, the answer in very large lines below, controls along the bottom. */
-:root { --bg:#ffffff; --fg:#15161a; --muted:#5b5f69; --line:#dcdde2; --soft:#f4f4f6; --hot:#e0116f; --ok:#0f8a5f;
-  --display:'Big Shoulders Display', Impact, 'Arial Narrow', sans-serif; --sans:'Instrument Sans', Arial, sans-serif; --mono:'DM Mono', ui-monospace, Menlo, monospace; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#16161a; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --soft:#22222a; --hot:#ff4fa3; --ok:#4fd6a0; color-scheme: dark } }
-:root[data-theme="dark"] { --bg:#16161a; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --soft:#22222a; --hot:#ff4fa3; --ok:#4fd6a0; color-scheme: dark }
-* { box-sizing: border-box }
+/* Layout: a dark instrument panel for a phone. Status strip, one answer card, a waveform, then the controls within thumb reach. One look, dark only. */
+:root { --bg:#000000; --panel:#0d0d0d; --fg:#f5f5f5; --muted:#8a8a8a; --line:#262626; --hot:#d71921; --dot:#1c1c1c; color-scheme: dark;
+  --matrix:'Doto', 'Space Mono', ui-monospace, monospace; --sans:'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; --mono:'Space Mono', ui-monospace, Menlo, monospace; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
 html, body { height: 100% }
-body { background: var(--bg); color: var(--fg); font-family: var(--sans); display: flex; flex-direction: column; padding-block: 18px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+body { background: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 14px 14px; color: var(--fg); font-family: var(--sans); display: flex; flex-direction: column; gap: 10px; padding-block: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
 [hidden] { display: none !important }
-.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font: 400 13px var(--mono); color: var(--muted) }
-.card { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(14px, 3vh, 34px); padding-block: 12px; max-width: 1300px; width: 100%; margin: 0 auto }
-.q { font: 600 clamp(20px, 2.6vw, 34px)/1.25 var(--sans); color: var(--muted); text-wrap: balance; margin: 0 }
-.q b { color: var(--hot); font-weight: 600 }
-.a { display: flex; flex-direction: column; gap: clamp(10px, 2vh, 22px); margin: 0; padding: 0; list-style: none }
-.a li { font: 600 clamp(28px, 4.6vw, 68px)/1.08 var(--sans); letter-spacing: -.02em; text-wrap: balance }
-.a li.wait { color: var(--muted); font-weight: 500 }
-.tag { font: 400 13px var(--mono); color: var(--muted) }
-.live { font: 500 clamp(18px, 2.2vw, 28px)/1.3 var(--sans); color: var(--hot); min-height: 1.3em }
-.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; max-width: 1300px; width: 100%; margin: 0 auto }
-button { font: 600 17px var(--sans); color: var(--fg); background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 12px 20px; cursor: pointer }
-button:disabled { opacity: .4; cursor: default }
-button.mic { background: var(--fg); color: var(--bg); border-color: var(--fg) }
-button.mic.on { background: var(--hot); border-color: var(--hot); color: #fff }
-button:focus-visible, input:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px }
-form { flex: 1; display: flex; gap: 10px; min-width: 240px }
-input { flex: 1; min-width: 0; font: 400 17px var(--sans); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px }
-.count { font: 400 14px var(--mono); color: var(--muted); min-width: 7ch; text-align: center; font-variant-numeric: tabular-nums }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font: 800 15px var(--matrix); letter-spacing: .08em; text-transform: uppercase }
+.top .led { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px }
+.top.on .led { background: var(--hot); box-shadow: 0 0 10px var(--hot); animation: blink 1.1s steps(2) infinite }
+#status { color: var(--muted); text-align: right; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.card { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(12px, 2.4vh, 26px); background: var(--panel); border: 1px solid var(--line); border-radius: 26px; padding: clamp(18px, 4vw, 44px); max-width: 1100px; width: 100%; margin: 0 auto }
+.card.pop { animation: pop .45s cubic-bezier(.2, 1.4, .4, 1) }
+.tag { font: 600 13px var(--matrix); letter-spacing: .1em; text-transform: uppercase; color: var(--hot); margin: 0 }
+.q { font: 500 clamp(17px, 2.4vw, 28px)/1.3 var(--sans); color: var(--muted); text-wrap: balance; margin: 0 }
+.a { display: flex; flex-direction: column; gap: clamp(10px, 1.8vh, 20px); margin: 0; padding: 0; list-style: none }
+.a li { font: 600 clamp(26px, 6.4vw, 62px)/1.08 var(--sans); letter-spacing: -.02em; text-wrap: balance; overflow-wrap: anywhere; animation: rise .4s ease both }
+.a li:nth-child(2) { animation-delay: .06s } .a li:nth-child(3) { animation-delay: .12s } .a li:nth-child(4) { animation-delay: .18s }
+.a li.wait { color: var(--muted); font-family: var(--matrix); font-weight: 800 }
+.wave { height: 56px; width: 100%; max-width: 1100px; margin: 0 auto; display: block }
+.live { font: 400 15px/1.35 var(--mono); color: var(--hot); min-height: 1.35em; max-width: 1100px; width: 100%; margin: 0 auto; text-align: center }
+.bar { display: flex; gap: 10px; align-items: center; justify-content: center; max-width: 1100px; width: 100%; margin: 0 auto }
+button { font: 800 15px var(--matrix); letter-spacing: .08em; text-transform: uppercase; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 14px 18px; cursor: pointer; min-height: 48px }
+button:disabled { opacity: .35; cursor: default }
+button.mic { width: 76px; height: 76px; padding: 0; border-radius: 50%; background: var(--fg); color: var(--bg); border: 0; font-size: 13px; flex: none }
+button.mic.on { background: var(--hot); color: #fff; box-shadow: 0 0 0 8px rgba(215, 25, 33, .18) }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--hot); outline-offset: 3px }
+.nav { flex: 1; max-width: 170px }
+.count { font: 800 15px var(--matrix); color: var(--muted); min-width: 6ch; text-align: center; font-variant-numeric: tabular-nums }
+form { display: flex; gap: 8px; width: 100%; max-width: 1100px; margin: 0 auto }
+input { flex: 1; min-width: 0; font: 400 16px var(--sans); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 13px 18px }
+input::placeholder { color: var(--muted) }
+@keyframes pop { from { transform: scale(.94) translateY(14px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes rise { from { transform: translateY(10px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes blink { 50% { opacity: .35 } }
+@media (prefers-reduced-motion: reduce) { .card.pop, .a li, .top.on .led { animation: none } }
 </style>
-<div class="top"><span>Southwark flood tests · answers for questions</span><span id="status">Type a question, or press Listen</span></div>
+<div class="top" id="top"><span><i class="led"></i>Flood tests</span><span id="status">Ready</span></div>
 <main class="card" id="card" aria-live="polite">
   <p class="tag" id="tag"></p>
   <p class="q" id="q"></p>
   <ul class="a" id="a"></ul>
 </main>
-<div class="bar"><div class="live" id="live" aria-live="polite"></div></div>
+<canvas class="wave" id="wave" aria-hidden="true"></canvas>
+<div class="live" id="live" aria-live="polite"></div>
 <div class="bar">
-  <button id="prev" aria-label="Previous card">← Back</button><span class="count" id="count"></span><button id="next" aria-label="Next card">Next →</button>
+  <button class="nav" id="prev" aria-label="Previous card">Back</button>
   <button class="mic" id="mic" hidden>Listen</button>
-  <form id="form"><input id="ask" autocomplete="off" placeholder="Type a question and press Enter" aria-label="Question"><button type="submit" id="send">Ask</button></form>
+  <button class="nav" id="next" aria-label="Next card">Next</button>
 </div>
+<div class="bar"><span class="count" id="count"></span></div>
+<form id="form"><input id="ask" autocomplete="off" placeholder="Or type a question" aria-label="Question"><button type="submit" id="send">Ask</button></form>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -83,7 +95,7 @@ function show() {
   const ul = $('a'); ul.replaceChildren(); const ls = c.a ? lines(c.a) : [c.pending ? 'Thinking…' : '']; ls.forEach(t => { const li = document.createElement('li'); li.textContent = t; if (!c.a) li.className = 'wait'; ul.append(li); });
   $('count').textContent = (at + 1) + ' / ' + cards.length; $('prev').disabled = at === 0; $('next').disabled = at === cards.length - 1;
 }
-function go(n) { at = Math.max(0, Math.min(cards.length - 1, n)); show(); }
+function go(n) { const was = at; at = Math.max(0, Math.min(cards.length - 1, n)); show(); if (at !== was) { const c = $('card'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
 $('prev').onclick = () => go(at - 1); $('next').onclick = () => go(at + 1);
 window.addEventListener('keydown', e => { if (e.target === $('ask')) return; if (e.key === 'ArrowLeft') go(at - 1); if (e.key === 'ArrowRight') go(at + 1); });
 let sample = null, dict = null, perms = null, busy = false;
@@ -100,18 +112,33 @@ async function ask(q) {
     c.pending = false; c.error = true; const code = e && e.code;
     c.a = code === 'not_granted' ? 'Asking Claude is switched off for this page. The prepared cards still work.' : code === 'rate_limited' ? 'Too many questions at once. Wait a moment and ask again.' : (e && e.text) ? e.text : 'The answer did not come through. Ask again.';
   }
-  busy = false; $('status').textContent = dict && dict.active() ? 'Listening' : 'Type a question, or press Listen'; if (cards[at] === c) show();
+  busy = false; $('status').textContent = dict && dict.active() ? 'Listening' : 'Ready'; if (cards[at] === c) show();
 }
 $('form').addEventListener('submit', e => { e.preventDefault(); const v = $('ask').value; $('ask').value = ''; ask(v); });
 // ---- listening: each pause of about two seconds sends what was heard as one question ----
-let heard = '', timer = null;
+let heard = '', timer = null, listening = false, kick = 0;
+// ---- waveform: a row of dots that lifts while listening and jumps when words arrive. It shows activity, not measured sound level. ----
+(function wave() {
+  const cv = $('wave'), cx = cv.getContext('2d'), still = window.matchMedia('(prefers-reduced-motion: reduce)').matches; let t = 0;
+  function frame() {
+    const w = cv.clientWidth, h = cv.clientHeight, d = Math.min(window.devicePixelRatio || 1, 2); if (cv.width !== Math.round(w * d)) { cv.width = Math.round(w * d); cv.height = Math.round(h * d); }
+    cx.setTransform(d, 0, 0, d, 0, 0); cx.clearRect(0, 0, w, h); const n = Math.max(24, Math.floor(w / 9)), gap = w / n; t += still ? 0 : .06; kick *= .94;
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1), env = Math.sin(Math.PI * u), amp = (listening ? .22 + .78 * kick : busy ? .3 : .04) * env;
+      const v = amp * (.55 + .45 * Math.sin(t * 2.1 + i * .55) * Math.sin(t * .9 + i * .21)), bars = Math.max(1, Math.round(Math.abs(v) * h / 9));
+      for (let k = 0; k < bars; k++) { const y = h / 2 + (k - (bars - 1) / 2) * 7; cx.fillStyle = listening ? (k === 0 || k === bars - 1 ? '#d71921' : '#f5f5f5') : busy ? '#f5f5f5' : '#3a3a3a'; cx.beginPath(); cx.arc(i * gap + gap / 2, y, 2, 0, 7); cx.fill(); }
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
 function flush() { timer = null; const t = heard.trim(); heard = ''; $('live').textContent = ''; if (t) ask(t); }
 function wire() {
-  dict.onPartial(({ text }) => { $('live').textContent = (heard + ' ' + text).trim(); if (timer) { clearTimeout(timer); timer = null; } });
-  dict.onFinal(({ text }) => { heard = (heard + ' ' + text).trim(); $('live').textContent = heard; if (timer) clearTimeout(timer); timer = setTimeout(flush, 2200); });
+  dict.onPartial(({ text }) => { kick = 1; $('live').textContent = (heard + ' ' + text).trim(); if (timer) { clearTimeout(timer); timer = null; } });
+  dict.onFinal(({ text }) => { kick = 1; heard = (heard + ' ' + text).trim(); $('live').textContent = heard; if (timer) clearTimeout(timer); timer = setTimeout(flush, 2200); });
   dict.onState(({ state, reason }) => {
-    const on = state === 'listening' || state === 'starting'; $('mic').classList.toggle('on', on); $('mic').textContent = on ? 'Stop listening' : 'Listen';
-    $('status').textContent = on ? 'Listening' : reason === 'not_granted' ? 'Microphone not allowed. Type the question instead.' : reason === 'time_limit' ? 'Listening timed out. Press Listen again.' : 'Type a question, or press Listen';
+    const on = state === 'listening' || state === 'starting'; $('mic').classList.toggle('on', on); $('top').classList.toggle('on', on); $('mic').textContent = on ? 'Stop' : 'Listen'; listening = on;
+    $('status').textContent = on ? 'Listening' : reason === 'not_granted' ? 'Microphone not allowed. Type the question instead.' : reason === 'time_limit' ? 'Listening timed out. Press Listen again.' : 'Ready';
     if (!on && heard.trim() && !timer) flush();
   });
 }
@@ -123,9 +150,9 @@ $('mic').onclick = () => {
 };
 show();
 (async () => {
-  const use = window.claude && window.claude.use; if (!use) { $('status').textContent = 'Prepared cards only (open in claude.ai to ask new questions)'; return; }
+  const use = window.claude && window.claude.use; if (!use) { $('status').textContent = 'Prepared cards only'; return; }
   [sample, dict, perms] = await Promise.all([window.claude.use('sample'), window.claude.use('dictation'), window.claude.use('permissions')]);
   if (dict) { wire(); $('mic').hidden = false; }
-  if (!sample) $('status').textContent = 'Prepared cards only here';
+  if (!sample) $('status').textContent = 'Prepared cards only';
 })();
 </script>
