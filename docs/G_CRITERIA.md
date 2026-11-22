@@ -162,3 +162,9 @@ London Fire Brigade incident records (London Datastore, 2009 to October 2026; lo
 - London-wide the same records show 582 flooding call-outs on 12 July 2021, so the storm is in the data; it did not produce calls here.
 - Over all years the tile has 88 "Flooding" call-outs, 70 of them at dwellings and never more than 2 on one day. The category has no cause field and is mostly plumbing.
 - Under the rule committed above (fewer than 10 incidents: anecdote, no line), nothing is compared with the model. The honest statement stays: this tile has no recorded rain flood to validate against. A validation needs a different tile, chosen where the July 2021 call-outs cluster; the same records would support that.
+
+## Sunday results as they land (07:50)
+
+- **Dense re-map at 75 m (lowered half): PASS.** 225 runs, 7,894 what-ifs, 35.1 per run. Known lowered movers seen: 34 of 34 (line 95%). One move had no known mover within 125 m: receptor 206, lower block (48,56), 9 m away. Traced with one single run (`fill/dense_trace.py`): alone it moves that receptor 0.996 cm, just under the 1 cm line; packed at 75 m it read 1.00 cm. So it is the block's own effect, pushed over the line by about 0.04 mm, not a new mover. After tracing, zero unexplained. Only the lowered half was tested at 75 m and no confirm runs were made at that spacing, so the reported speedup stays 8.1x.
+- **Derivative (ten times a 5 mm change): mover half FAILS the line.** It names 54 of 98 movers (55%; line 90%). Predicted over true effect: median 0.71, quartiles 0.24 to 1.26. False flags among the dismissed are scored when the random-dismissed runs finish (0 of 23 so far).
+- **Persist at Manning n 0.03: PASS**, 81 of 98. **Persist at 70 mm: FAIL**, 53 of 98.
