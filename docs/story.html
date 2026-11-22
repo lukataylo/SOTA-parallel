@@ -98,7 +98,7 @@ const landMask = new Image(); landMask.src = STORM.mask;
 const waterLayer = document.createElement('canvas'); waterLayer.width = waterLayer.height = 512; const wc = waterLayer.getContext('2d');
 // ---- the state every scene animates ----
 const cam = { x: 256, y: 256, zoom: 1, angle: -.46, pitch: .64 };
-const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0 };
+const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0, places: 0 };
 const race = { t: 0 };
 let W, H, s, cs, sn, cp, sp, dark = isDark();
 function project(x, y, h = 0) { x -= cam.x; y -= cam.y; return [W * (W > 760 ? .62 : .5) + s * (x * cs - y * sn), H * (W > 760 ? .5 : .36) + s * ((x * sn + y * cs) * sp - h * cp)]; }
@@ -153,9 +153,11 @@ function draw() {
   if (S.moves > .01) { const n = Math.ceil(D.moves.length * S.moves); D.moves.forEach(([x, y, rx, ry, e, keep], i) => { if (i >= n || (S.keepOnly > .5 && !keep)) return; const c = e > 0 ? '#f50e80' : (dark ? '#71d6e2' : '#087f94'), a = project(x, y, 2), b = project(rx, ry, 2); line(a, b, c, 1.5); shape([[a[0] - 3, a[1]], [a[0], a[1] - 3], [a[0] + 3, a[1]], [a[0], a[1] + 3]], c); dot(b, 2, dark ? '#fff' : '#292937'); });
     if (S.keepOnly > .5) D.moves.forEach(([x, y, rx, ry, e, keep]) => { if (keep) return; const a = project(x, y, 2); ctx.strokeStyle = dark ? '#ff9a62' : '#c2410c'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(...a, 5, 0, 7); ctx.stroke(); }); }
   if (S.design > .01) { ctx.save(); ctx.globalAlpha = S.design; D.design.forEach(([x, y, rx, ry], i) => { const o = i === S.sel, c = o ? '#ff1485' : '#868691'; line(project(x, y, 1), project(rx, ry, 2), c, o ? 2 : 1); pin(x, y, c, o); dot(project(rx, ry, 2), o ? 4 : 2, c); }); ctx.restore(); }
+  if (S.places > .01) { ctx.save(); ctx.globalAlpha = S.places; PLACES.forEach(([x, y, name, note]) => { const a = project(x, y), p = project(x, y, 46); line(a, p, dark ? '#fff' : '#15161a', 1.4); dot(a, 3.5, '#ff1485'); ctx.font = '600 14px Instrument Sans, Arial'; const w1 = ctx.measureText(name).width; ctx.font = '400 11px DM Mono, monospace'; const w2 = ctx.measureText(note).width, w = Math.max(w1, w2) + 20; ctx.fillStyle = dark ? '#f2f0ea' : '#15161a'; ctx.fillRect(p[0] - w / 2, p[1] - 42, w, 42); ctx.fillStyle = dark ? '#15161a' : '#fff'; ctx.textAlign = 'center'; ctx.font = '600 14px Instrument Sans, Arial'; ctx.fillText(name, p[0], p[1] - 24); ctx.font = '400 11px DM Mono, monospace'; ctx.fillText(note, p[0], p[1] - 9); ctx.textAlign = 'start'; }); ctx.restore(); }
   if (S.kerb > 0) { if (S.kerbAll > .5) D.design.forEach(d => kerbBlock(d[0], d[1], S.kerb, d[6] === 1)); else { const d = D.design[S.kerbAt]; kerbBlock(d[0], d[1], S.kerb, false); } }
   if (S.design > .5 && S.kerbAll > .5) { const d = D.design[S.sel], p = project(d[2], d[3], 16), k = Math.min(1, S.kerb), v = d[4] + (d[5] - d[4]) * k; ctx.font = '600 ' + Math.max(13, Math.min(18, s * 5)) + 'px Instrument Sans, Arial'; const t = d[4].toFixed(1) + ' → ' + v.toFixed(1) + ' cm'; const w = ctx.measureText(t).width; ctx.fillStyle = dark ? '#202026ee' : '#ffffffee'; ctx.fillRect(p[0] - w / 2 - 8, p[1] - 20, w + 16, 28); ctx.fillStyle = '#ff1485'; ctx.textAlign = 'center'; ctx.fillText(t, p[0], p[1]); ctx.textAlign = 'start'; }
 }
+const PLACES = [[274, 268, "Southwark Underground station", "closed by a burst water main flood, Jan 2020"], [152, -41, "1–2 Paris Garden", "40 m beyond the model's north edge"]];
 // ---- sketch of the kerb ----
 function sketch(k, depth) {
   const lip = 108 - 14 * k, lvl = 112 - 26 - 14 * k * .0, door = 112 - depth;
@@ -167,8 +169,8 @@ function sketch(k, depth) {
 // ---- the storyboard: one camera move per scene, plus what is on screen ----
 const d0 = D.design[4], d1 = D.design[1];
 const SCENES = [
-  { kick: 'Southwark, London', head: 'What makes a building flood?', body: 'This is half a kilometre of real London around Southwark station, built from the Environment Agency’s height survey. We asked a simple question of it, and answered it 15,788 times.', cam: { x: 256, y: 256, zoom: .95 }, on: { water: 1 }, storm: [8, 34, 9], spin: 1 },
-  { kick: 'The problem', head: 'Rain floods more homes than rivers do', big: ['4.6M', 'properties in England at risk from rain that the drains cannot take'], body: 'Flood maps show <b>where</b> the water ends up. They do not show which bit of street is <b>to blame</b>. That is the part you could fix.', cam: { x: 300, y: 200, zoom: 1.5 }, on: { water: 1 }, storm: [20, 45, 7] },
+  { kick: 'Southwark, London', head: 'What makes a building flood?', body: 'This is half a kilometre of real London around Southwark Underground station and Blackfriars Road, built from the Environment Agency’s height survey. We asked a simple question of it, and answered it 15,788 times.', cam: { x: 200, y: 130, zoom: .82 }, on: { water: 1, places: 1 }, storm: [8, 34, 9] },
+  { kick: 'The problem', head: 'Rain floods more homes than rivers do', big: ['4.6M', 'properties in England at risk from rain that the drains cannot take'], body: 'Flood maps show <b>where</b> the water ends up. They do not show which bit of street is <b>to blame</b>. That is the part you could fix.', cam: { x: 185, y: 10, zoom: 1.05 }, on: { water: 1, places: 1 }, storm: [20, 45, 7] },
   { kick: 'One simulation', head: 'An hour of rain, in thirteen seconds', body: '35 mm of rain in an hour. Water runs downhill, fills the dips, and spills on to the next. A physics simulation works this out for every square metre. One run takes about 13 seconds on a laptop’s graphics chip.', cam: { x: STORM.spots[0][0], y: STORM.spots[0][1], zoom: 2.4 }, on: { water: 1 }, storm: [0, 60, 12], clock: 1 },
   { kick: 'The experiment', head: 'Move one square. Run it again.', body: 'Take one 5 metre square of pavement. Raise it 5 cm, the height of a low kerb. Simulate the storm again. Did the peak water at any building change by a centimetre? If so, that square matters.', cam: { x: d0[0] + 6, y: d0[1] + 4, zoom: 3.3 }, on: { water: .55 }, minute: 40, kerb: 4, inset: [21.9, 20.2] },
   { kick: 'The cost', head: '15,788 floods to simulate', big: ['55', 'GPU-hours, one change per simulation. That is how a published study of this kind does it.'], body: 'There are 7,894 squares of open ground here. Each one raised, each one lowered. Run one at a time, the laptop is busy for more than two days.', cam: { x: 256, y: 256, zoom: 1.0 }, on: { pack: 1 }, pulse: 1 },
@@ -178,7 +180,7 @@ const SCENES = [
   { kick: 'The result', head: 'One square in a hundred', big: ['84', 'of 7,894 squares change the peak water at a building'], body: 'Pink ground makes a building wetter when raised. Blue makes it drier. Each line joins a square to the building it affects, typically 20 metres away. Nobody could have guessed these by looking.', cam: { x: 440, y: 185, zoom: 2.3 }, on: { moves: 1 }, sweep: 1 },
   { kick: 'Using it', head: 'Five small changes. Five drier doors.', big: ['5 / 0', 'buildings with less water / buildings made worse'], body: 'We picked five squares from the map alone, raised two and lowered three by 5 cm, and ran all five in one simulation. The five buildings fell by 1.8 to 6.5 cm. Nothing else rose by a centimetre. The result matched the map to 0.2 mm.', cam: { x: (d1[0] + d1[2]) / 2, y: (d1[1] + d1[3]) / 2, zoom: 2.9 }, on: { design: 1, five: 1, water: .4 }, minute: 40, tour: 1, all: 1 },
   { kick: 'What did not work', head: 'Four things we tried and lost', rows: [['fail', 'Running more simulations at once: <b>no gain</b>. One already fills the chip'], ['fail', 'A ten-minute shortcut model as a filter: found <b>77%</b>, we needed 80%. The circled squares are the ones it missed'], ['fail', 'A textbook derivative from a tiny change: found only <b>55%</b>. Kerb-sized changes are not small'], ['fail', 'Double the rain: <b>53 of 98</b> findings hold. Each storm needs its own map']], cam: { x: 256, y: 256, zoom: 1.1 }, on: { moves: 1, keepOnly: 1 } },
-  { kick: 'What we claim', head: 'The few square metres that matter', rows: [['ok', '<b>15,788</b> experiments in <b>1,956</b> simulations: 8 times less compute on the same laptops'], ['ok', '<b>84</b> squares out of 7,894 change a building’s flood, typically 20 m from the door'], ['ok', 'A fix taken from the map helped <b>5</b> buildings and harmed <b>0</b>']], body: 'One neighbourhood, one storm, no sewer data: this shows which ground the simulation is sensitive to, not a forecast. London is about 6,000 neighbourhoods like this one, and each can run on its own.', cam: { x: 256, y: 256, zoom: .92 }, on: { moves: 1, design: 1, water: .5 }, minute: 45, spin: 1 }
+  { kick: 'What we claim', head: 'The few square metres that matter', rows: [['ok', '<b>15,788</b> experiments in <b>1,956</b> simulations: 8 times less compute on the same laptops'], ['ok', '<b>84</b> squares out of 7,894 change a building’s flood, typically 20 m from the door'], ['ok', 'A fix taken from the map helped <b>5</b> buildings and harmed <b>0</b>']], body: 'One neighbourhood, one storm, no sewer data: this shows which ground the simulation is sensitive to, not a forecast. London is about 6,000 neighbourhoods like this one, and each can run on its own.', cam: { x: 200, y: 140, zoom: .82 }, on: { moves: 1, design: 1, water: .5, places: 1 }, minute: 45 }
 ];
 // ---- playing a scene ----
 let idx = -1, tl = null, loops = [];
@@ -188,7 +190,7 @@ function go(n) {
   n = Math.max(0, Math.min(SCENES.length - 1, n)); if (n === idx) return; const first = idx < 0; idx = n; const sc = SCENES[n];
   if (tl) tl.kill(); loops.forEach(l => l.kill()); loops = []; gsap.killTweensOf([cam, S, race]);
   [...$('dots').children].forEach((b, i) => { b.setAttribute('aria-current', String(i === n)); b.classList.toggle('done', i < n); }); $('count').textContent = (n + 1) + ' / ' + SCENES.length; $('next').textContent = n === SCENES.length - 1 ? 'Start again ↺' : 'Next →';
-  const D0 = reduced ? 0 : 1, on = Object.assign({ water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
+  const D0 = reduced ? 0 : 1, on = Object.assign({ places: 0, water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
   tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
   // text out, camera pulls back, then pushes in on the new subject
   if (!first) tl.to('#story > *', { opacity: 0, x: -24, duration: .3 * D0, stagger: .03 * D0, ease: 'power2.in' }, 0).to('#inset', { opacity: 0, y: 12, duration: .25 * D0 }, 0);
@@ -203,7 +205,7 @@ function go(n) {
     gsap.set('#story > *', { opacity: 0, x: 0, y: 0 }); gsap.set('#inset', { opacity: 0, y: 12 });
   });
   const t0 = tl.duration();
-  tl.to(S, { water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
+  tl.to(S, { places: on.places, water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
   tl.to(S, { moves: on.moves, duration: (sc.sweep ? 2.6 : .9) * D0, ease: 'power1.out' }, t0 + (sc.sweep ? .9 : 0));
   tl.to(cam, { x: sc.cam.x, y: sc.cam.y, duration: 1.1 * D0 }, t0).to(cam, { zoom: sc.cam.zoom, duration: 1.4 * D0, ease: 'power2.inOut' }, t0 + .25 * D0);
   tl.to('#kick', { opacity: 1, duration: .4 * D0 }, t0 + .3 * D0);
