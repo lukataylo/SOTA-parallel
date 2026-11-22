@@ -591,3 +591,7 @@ Waiting on the human decision above. Meanwhile: an independent small solver run 
 - Bug fixed in `fill/map_lib.py` before the final score: Pro's runs were compared with Air's unchanged run. The two machines differ by 0.03 mm, so nothing changed at the 1 cm threshold, but each run is now compared with its own machine's base.
 - Traced every unplaced move with 30 single runs (`fill/map_trace.py`): 25 of 25 reproduced by one block alone, 76 to 124 m from the building. Cause is long ponds, not interference between patches. Final list in `results/air/map_final.npz`: 98 what-ifs on 84 squares. Figure: `docs/figures/map.png` (`fill/map_figure.py`).
 - **Pro: nothing more to run.** The map is complete. Please leave the GPU idle unless `PRO_NOW.md` changes.
+
+## Sunday 11:00: runs stopped
+
+Final state of the Sunday checks is in `docs/G_CRITERIA.md` (last section) and the README table. Passed: design from map, persist at n 0.03 (81/98), drainage at inlets (79/98), random dismissed (0/120), dense 75 m lowered half (34/34). Failed: persist at 70 mm (53/98), derivative (55%). No verdict: dense 75 m raised half (167/225 runs, 38/38 seen), 70 mm map (59/161 runs).

@@ -2,6 +2,8 @@
 
 *Entry to the SoTA Scientific Parallelism Hackathon, London, 21 to 22 November 2026. Challenge: flood uncertainty.*
 
+[Open the interactive Blackfriars 3D experiment](docs/blackfriars-simulation.html) — download the HTML and open it in a browser to explore spatial packing, fast-fill screening and the five-square street design.
+
 ## Abstract
 
 Surface-water flood maps show where water goes in a storm. They do not show which ground is responsible, which is what is needed to fix a street or to know where the height data must be trusted. We answer that question directly for a 512 m square of central London at 1 m resolution: every 5 x 5 m square of open ground (7,894 of them) is raised and lowered by 5 cm in a 2D shallow-water solver, and the change in peak water depth is recorded at 207 points on building edges. The existing way to do this is one simulation per change, 15,788 simulations. Running more simulations at once gave no gain, because one already saturates the GPU. We instead use the physics: a 5 cm change moves water only nearby (median 20 m), so changes 150 m apart can share one simulation. The whole map took 1,800 simulations, 8.77 scenarios per simulation, or 1,956 and 8.07 with every confirmation run counted: about 7 GPU-hours on two laptops against about 55 for one at a time, with the same solver, grid and storm. We find that 98 scenarios on 84 squares (1.06% of squares) move a building's peak water by 1 cm or more, typically 20 m away, 60 deeper and 38 shallower. All pass lines were written down before the runs. Four failed and are reported: about 1 move in 20 travels further than the 75 m we assumed, along ponds, so re-running each finding apart from the others is a required step; a fast fill model finds only 77% of the ground that matters; and only 53 of the 98 findings persist at twice the rain, so the map must be made per storm.
@@ -92,12 +94,13 @@ Running several simulations in one batch did not raise throughput per cell on ei
 | Movers persist with synthetic road inlets in place of the uniform loss | at least 66 of 98 | 79 | Pass |
 | 120 dismissed scenarios, each run alone, move a receptor 1 cm | 0 | 0 (largest change 0.80 cm) | Pass |
 | Re-map with squares 75 m apart, lowered half (225 simulations, 35.1 scenarios each): known lowered movers seen; unexplained moves after tracing | at least 95%; zero | 34 of 34; zero (one traced: 0.996 cm alone) | Pass |
+| Re-map 75 m apart, raised half: stopped by the clock at 167 of 225 simulations (35.8 scenarios each) | at least 95% of known raised movers seen; zero unexplained | 38 of 38 in the simulations done; zero | No verdict (incomplete) |
 | Ten times a 5 mm change names the movers (a small-perturbation slope, the quantity an adjoint computes; not an adjoint run) | at least 90% | 54 of 98 (55%) | **Fail** |
 | The same slope falsely flags dismissed scenarios | at most 1% | 0 of 120 | Pass |
 | Fast fill model flags the movers | at least 80% | 75 of 98 (77%) | **Fail** |
 | Fast fill model wrongly dismisses | at most 1% | 0.15% | Pass |
 
-Checks still running at the time of writing (lines in `docs/G_CRITERIA.md`): the raised half of the 75 m re-map; a packed map at the 70 mm storm. The synthetic inlets (303, the lowest road cell in each 25 m square, together able to take what the uniform loss could) are not real drainage. No recorded flood could be compared: the London Fire Brigade logged no flooding call-out inside the tile on 12 July 2021 and one, 14 m outside it, on 25 July 2021.
+All runs stopped at 11:00 on Sunday. Two checks were unfinished and carry no verdict: the raised half of the 75 m re-map (167 of 225 simulations) and the packed map at the 70 mm storm (59 of 161 simulations, not scored). The 75 m re-map raised 37 candidates for a confirm run in the lowered half and 48 in the part of the raised half that ran; those confirm runs were not made, so the reported speedup remains 8.1x at 150 m. The synthetic inlets (303, the lowest road cell in each 25 m square, together able to take what the uniform loss could) are not real drainage. No recorded flood could be compared: the London Fire Brigade logged no flooding call-out inside the tile on 12 July 2021 and one, 14 m outside it, on 25 July 2021.
 
 ### 3.4 Why the 75 m line failed
 

@@ -184,3 +184,11 @@ The lowered half passed at 75 m. The raised half is run the same way after the c
 The laptop slept for about 35 minutes during the 70 mm slice, so the queue would have passed 11:00. The 70 mm slice was stopped at 59 of 161 runs and the raised half at 75 m is run first; the 70 mm slice resumes after it. Whatever is unfinished at 11:00 is reported as a count with no verdict.
 
 - **Drainage at inlets: PASS (09:36).** 79 of 98 move the same building 1 cm the same way (line 66). Receptors at 0.10 m or more: 30 with the uniform loss, 30 with inlets. The inlets are synthetic, not real drainage.
+
+## At the 11:00 stop (Sunday)
+
+All runs were stopped by a timer at 11:00.
+- **Dense re-map, raised half: no verdict (incomplete).** 167 of 225 runs, 5,972 what-ifs, 35.8 per run. Known raised movers seen: 38 of 38 in the runs done (the other 26 known raised movers are in runs that did not happen). Moves with no known mover within 125 m: 0. Candidates a 75 m map would send to a confirm run: 48 in these 167 runs; 37 in the 225 lowered runs.
+- **What we say:** "Packed at 75 m, every known finding the runs covered was seen again (72 of 72) and nothing new appeared; the raised half was three quarters done at the stop." The 75 m candidates were not run alone. The reported speedup stays 8.1x.
+- **Packed map at 70 mm: no verdict.** 59 of 161 runs; not scored.
+- **Drainage at inlets: PASS**, 79 of 98. **Random dismissed: PASS**, 0 of 120. **Derivative: FAIL**, 54 of 98 named (line 90%); 0 of 120 falsely flagged.
