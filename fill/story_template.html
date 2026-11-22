@@ -113,7 +113,7 @@ const landMask = new Image(); landMask.src = STORM.mask;
 const waterLayer = document.createElement('canvas'); waterLayer.width = waterLayer.height = 512; const wc = waterLayer.getContext('2d');
 // ---- the state every scene animates ----
 const cam = { x: 256, y: 256, zoom: 1, angle: -.46, pitch: .64 };
-const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0, places: 0, patch: 0, lower: 0 };
+const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0, places: 0, patch: 0, lower: 0, trees: 0, drains: 0 };
 const race = { t: 0 };
 let W, H, s, cs, sn, cp, sp, dark = isDark();
 function project(x, y, h = 0) { x -= cam.x; y -= cam.y; return [W * (W > 760 ? .62 : .5) + s * (x * cs - y * sn), H * (W > 760 ? .5 : .36) + s * ((x * sn + y * cs) * sp - h * cp)]; }
@@ -168,6 +168,10 @@ function draw() {
   if (S.moves > .01) { const n = Math.ceil(D.moves.length * S.moves); D.moves.forEach(([x, y, rx, ry, e, keep], i) => { if (i >= n || (S.keepOnly > .5 && !keep)) return; const c = e > 0 ? '#f50e80' : (dark ? '#71d6e2' : '#087f94'), a = project(x, y, 2), b = project(rx, ry, 2); line(a, b, c, 1.5); shape([[a[0] - 3, a[1]], [a[0], a[1] - 3], [a[0] + 3, a[1]], [a[0], a[1] + 3]], c); dot(b, 2, dark ? '#fff' : '#292937'); });
     if (S.keepOnly > .5) D.moves.forEach(([x, y, rx, ry, e, keep]) => { if (keep) return; const a = project(x, y, 2); ctx.strokeStyle = dark ? '#ff9a62' : '#c2410c'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(...a, 5, 0, 7); ctx.stroke(); }); }
   if (S.design > .01) { ctx.save(); ctx.globalAlpha = S.design; D.design.forEach(([x, y, rx, ry], i) => { const o = i === S.sel, c = o ? '#ff1485' : '#868691'; line(project(x, y, 1), project(rx, ry, 2), c, o ? 2 : 1); pin(x, y, c, o); dot(project(rx, ry, 2), o ? 4 : 2, c); }); ctx.restore(); }
+  if (S.drains > .01) { ctx.save(); ctx.globalAlpha = S.drains; const r = Math.max(2, s * 1.1); GREEN.drains.forEach(([x, y]) => { const p = project(x, y); ctx.fillStyle = dark ? '#9fd0ff' : '#1c4f9c'; ctx.fillRect(p[0] - r, p[1] - r * .6, 2 * r, 1.2 * r); }); ctx.restore(); }
+  if (S.trees > .01) { const k = S.trees, order = GREEN.trees.map(t => t).sort((a, b) => (a[0] * sn + a[1] * cs) - (b[0] * sn + b[1] * cs));
+    order.forEach(([x, y], i) => { const g = Math.max(0, Math.min(1.15, k * 1.6 - i / order.length * .6)); if (g <= 0) return; const a = project(x, y), b = project(x, y, 9 * g), R = Math.max(4, s * 4.2) * g; line(a, b, dark ? '#c9b79a' : '#6b5038', Math.max(1.5, s * .5)); ctx.beginPath(); ctx.ellipse(a[0], a[1], R * .8, R * .8 * sp, 0, 0, 7); ctx.fillStyle = 'rgba(30,110,60,.18)'; ctx.fill(); dot([b[0], b[1] - R * .5], R, dark ? '#3fbf7a' : '#1f9d57'); dot([b[0] - R * .3, b[1] - R * .8], R * .45, dark ? '#7fe0a8' : '#58c98a'); });
+    ctx.save(); ctx.globalAlpha = Math.min(1, k); GREEN.fell.forEach(([x, y, f]) => { const p = project(x, y, 2); ctx.strokeStyle = dark ? '#71d6e2' : '#087f94'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p[0], p[1], 6, 0, 7); ctx.stroke(); ctx.font = '600 12px Instrument Sans, Arial'; const t = '−' + f.toFixed(1) + ' cm', w = ctx.measureText(t).width; ctx.fillStyle = dark ? '#202026ee' : '#ffffffee'; ctx.fillRect(p[0] + 9, p[1] - 9, w + 8, 18); ctx.fillStyle = dark ? '#71d6e2' : '#087f94'; ctx.fillText(t, p[0] + 13, p[1] + 4); }); ctx.restore(); }
   if (S.places > .01) { ctx.save(); ctx.globalAlpha = S.places; PLACES.forEach(([x, y, name, note]) => { const a = project(x, y), p = project(x, y, 46); line(a, p, dark ? '#fff' : '#15161a', 1.4); dot(a, 3.5, '#ff1485'); ctx.font = '600 14px Instrument Sans, Arial'; const w1 = ctx.measureText(name).width; ctx.font = '400 11px DM Mono, monospace'; const w2 = ctx.measureText(note).width, w = Math.max(w1, w2) + 20; ctx.fillStyle = dark ? '#f2f0ea' : '#15161a'; ctx.fillRect(p[0] - w / 2, p[1] - 42, w, 42); ctx.fillStyle = dark ? '#15161a' : '#fff'; ctx.textAlign = 'center'; ctx.font = '600 14px Instrument Sans, Arial'; ctx.fillText(name, p[0], p[1] - 24); ctx.font = '400 11px DM Mono, monospace'; ctx.fillText(note, p[0], p[1] - 9); ctx.textAlign = 'start'; }); ctx.restore(); }
   if (S.patch > .01) { ctx.save(); ctx.globalAlpha = S.patch; const d = kb, c = [[d[0] - 2.5, d[1] - 2.5], [d[0] + 2.5, d[1] - 2.5], [d[0] + 2.5, d[1] + 2.5], [d[0] - 2.5, d[1] + 2.5]].map(p => project(...p)), a = project(d[0], d[1]), b = project(d[2], d[3], 3);
     shape(c, S.lower > .5 ? '#c40f68' : '#ff5aa8', '#e0116f', 2); line(a, b, '#e0116f', 2.5); dot(b, 6, '#ff1485'); dot(b, 2.2, '#fff');
@@ -176,7 +180,7 @@ function draw() {
   if (S.kerb > 0) { if (S.kerbAll > .5) D.design.forEach(d => kerbBlock(d[0], d[1], S.kerb, d[6] === 1)); else { const d = D.design[S.kerbAt]; kerbBlock(d[0], d[1], S.kerb, false); } }
   if (S.design > .5 && S.kerbAll > .5) { const d = D.design[S.sel], p = project(d[2], d[3], 16), k = Math.min(1, S.kerb), v = d[4] + (d[5] - d[4]) * k; ctx.font = '600 ' + Math.max(13, Math.min(18, s * 5)) + 'px Instrument Sans, Arial'; const t = d[4].toFixed(1) + ' → ' + v.toFixed(1) + ' cm'; const w = ctx.measureText(t).width; ctx.fillStyle = dark ? '#202026ee' : '#ffffffee'; ctx.fillRect(p[0] - w / 2 - 8, p[1] - 20, w + 16, 28); ctx.fillStyle = '#ff1485'; ctx.textAlign = 'center'; ctx.fillText(t, p[0], p[1]); ctx.textAlign = 'start'; }
 }
-const PLACES = __PLACES__;
+const PLACES = __PLACES__, GREEN = __GREEN__;
 // ---- sketch of the kerb ----
 function sketch(k) {
   const top = 34 + 24 * k;
@@ -199,6 +203,11 @@ const SCENES = [
   { kick: 'Is it right?', head: 'Pass marks were set before each check', rows: [['ok', '<b>93%</b> of findings held when we re-ran them away from the others. We traced the rest to the square that caused them'], ['ok', '<b>0 of 120</b> squares the map ruled out moved a building when run alone'], ['ok', '<b>81 of 98</b> findings held on rougher ground, and <b>79 of 98</b> with water leaving through road drains'], ['ok', 'At 75 m apart, 35 tests per run, <b>34 of 34</b> lowered findings showed up again' + RAISED_75]], cam: { x: 256, y: 256, zoom: 1.05 }, on: { moves: 1 } },
   { kick: 'The result', head: 'About one square in a hundred matters', big: ['84', 'of 7,894 squares change the highest water at a building'], body: 'Pink squares made a building wetter when we moved them. Blue ones made it drier. Each line joins a square to its building, typically 20 metres away, and most are more than 10 metres from it.', cam: { x: 440, y: 185, zoom: 2.3 }, on: { moves: 1 }, sweep: 1 },
   { kick: 'Using it', head: 'We tried a fix on five buildings', big: ['5 / 0', 'buildings with less water / with more'], body: 'We picked five squares from the map, raised two, lowered three, and ran them together. Water at the five buildings fell by 1.8 to 6.5 cm. No other building rose by a centimetre, and the result matched the five single tests added up, to 0.2 mm.', cam: { x: (d1[0] + d1[2]) / 2, y: (d1[1] + d1[3]) / 2, zoom: 2.9 }, on: { design: 1, five: 1, water: .4 }, minute: 40, tour: 1, all: 1 },
+  { kick: 'Trees and drains', head: 'Trees and drains are not fully tested yet', rows: [
+    ['ok', '<b>20 street trees</b> with soil pits, put where kerb water is deepest, lowered the water at <b>8 buildings</b> by 1 to 1.7 cm in the 35 mm storm. None rose'],
+    ['fail', 'No building dropped below the 10 cm flood line. The pits took 79 of 5,989 cubic metres of rain. Placed at random, the same trees helped 1 building, and at 70 mm none'],
+    ['ok', 'With water leaving through <b>303 road drains</b>, <b>79 of 98</b> of our ground findings still held']],
+    body: 'Green dots are the trees, dark marks the drains, and the numbers show how far the water fell. Each was one run with one placement. The tree run came after our cut-off, the pit size is an upper limit, and the drains were placed by rule, not from real records.', cam: { x: 330, y: 130, zoom: 1.6 }, on: { trees: 1, drains: 1, water: .55 }, minute: 40 },
   { kick: 'What did not work', head: 'Four things that didn’t work', rows: [['fail', 'Running several simulations at once was <b>no faster</b>. One already fills the graphics chip'], ['fail', 'A ten-minute shortcut model found <b>77%</b> of the squares. Our pass mark was 80%. The circles show what it missed'], ['fail', 'Estimating from a 5 mm change found only <b>55%</b>, so a derivative would have missed nearly half the map'], ['fail', 'At double the rain only <b>53 of 98</b> findings held, so each storm size needs its own map']], cam: { x: 256, y: 256, zoom: 1.1 }, on: { moves: 1, keepOnly: 1 } },
   { kick: 'What already exists', head: 'What we read, and where each approach stops', cards: [
     ['National flood maps · Environment Agency', 'Where the water goes', 'Maps of flood depth for every street in England.', 'They do not say which ground is responsible.'],
@@ -218,7 +227,7 @@ function go(n) {
   n = Math.max(0, Math.min(SCENES.length - 1, n)); if (n === idx) return; const first = idx < 0; idx = n; const sc = SCENES[n];
   if (tl) tl.kill(); loops.forEach(l => l.kill()); loops = []; gsap.killTweensOf([cam, S, race]);
   [...$('dots').children].forEach((b, i) => { b.setAttribute('aria-current', String(i === n)); b.classList.toggle('done', i < n); }); $('count').textContent = (n + 1) + ' / ' + SCENES.length; $('next').textContent = n === SCENES.length - 1 ? 'Start again ↺' : 'Next →';
-  const D0 = reduced ? 0 : 1, on = Object.assign({ patch: 0, places: 0, water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
+  const D0 = reduced ? 0 : 1, on = Object.assign({ trees: 0, drains: 0, patch: 0, places: 0, water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
   tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
   // text out, camera pulls back, then pushes in on the new subject
   if (!first) tl.to('#story > *', { opacity: 0, x: -24, duration: .3 * D0, stagger: .03 * D0, ease: 'power2.in' }, 0).to('#inset', { opacity: 0, y: 12, duration: .25 * D0 }, 0);
@@ -233,7 +242,7 @@ function go(n) {
     gsap.set('#story > *', { opacity: 0, x: 0, y: 0 }); gsap.set('#inset', { opacity: 0, y: 12 });
   });
   const t0 = tl.duration();
-  tl.to(S, { patch: on.patch, places: on.places, water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
+  tl.to(S, { drains: on.drains, patch: on.patch, places: on.places, water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
   tl.to(S, { moves: on.moves, duration: (sc.sweep ? 2.6 : .9) * D0, ease: 'power1.out' }, t0 + (sc.sweep ? .9 : 0));
   tl.to(cam, { x: sc.cam.x, y: sc.cam.y, duration: 1.1 * D0 }, t0).to(cam, { zoom: sc.cam.zoom, duration: 1.4 * D0, ease: 'power2.inOut' }, t0 + .25 * D0);
   tl.to('#kick', { opacity: 1, duration: .4 * D0 }, t0 + .3 * D0);
@@ -243,6 +252,7 @@ function go(n) {
   if (sc.rows) tl.set('#rows', { opacity: 1 }, t0).fromTo('#rows .row', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: .5 * D0, stagger: .28 * D0, ease: 'power3.out' }, t0 + 1.0 * D0);
   if (sc.race) { tl.to('#race', { opacity: 1, duration: .4 * D0 }, t0 + .9 * D0); tl.to(race, { t: 55, duration: 7 * D0, ease: 'none', onUpdate: () => setRace(race.t) }, t0 + 1.2 * D0); }
   if (sc.inset) { tl.to('#inset', { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.2 * D0).to('#kerbBtn', { opacity: 1, duration: .4 * D0 }, t0 + 1.3 * D0); tl.add(() => lowerKerb(1), t0 + 3.2 * D0); }
+  tl.to(S, { trees: on.trees, duration: (on.trees ? 2.2 : .4) * D0, ease: on.trees ? 'elastic.out(1,.55)' : 'power2.in' }, t0 + (on.trees ? 1.2 : 0) * D0);
   if (sc.cards) tl.set('#cards', { opacity: 1 }, t0).fromTo('#cards .card', { opacity: 0, y: 46, rotate: i => (i % 2 ? 5 : -5) }, { opacity: 1, y: 0, rotate: i => [-1.2, .8, .6, -.9, 1.1, -.5][i % 6], duration: .6 * D0, stagger: .16 * D0, ease: 'back.out(1.4)' }, t0 + .9 * D0);
   if (sc.all) tl.to(S, { kerb: 1, duration: 1.8 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0);
   if (sc.storm) { const [a, b, dur] = sc.storm; S.minute = a; const l = gsap.to(S, { minute: b, duration: reduced ? 0 : dur, ease: 'none', delay: reduced ? 0 : 1, repeat: reduced ? 0 : -1, repeatDelay: 1.5, onUpdate: () => { $('clock').textContent = 'minute ' + Math.floor(S.minute) + ' of 60'; } }); loops.push(l); }
