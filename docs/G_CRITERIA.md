@@ -137,3 +137,19 @@ The hardware gain (one cloud GPU against one laptop) is reported as a separate n
 - **Random dismissed is cut to 120**: every second what-if of the committed seed-2026 draw of 240 (even positions). Line unchanged: 0 move a receptor. The claim becomes "the map misses under 2.5%". If the Pro runs, it does the full 240.
 - **New: packed map at the 70 mm storm, a slice.** One unchanged run, then the first 80 colours in seed-2026 order, raised and lowered (160 packed runs, about 1,400 what-ifs), attributed as in the 35 mm map. Then each mover alone, at most 40, largest effect first. **Line:** at least 90% of those movers keep their verdict alone. The number of movers not on the 35 mm list is reported with no line. If it fails we say: "Water reaches further in a bigger storm; the spacing, and so the speedup, must be set per storm."
 - Order on the Air: persist at 70 mm and at n 0.03 (running), dense, the 70 mm slice, random dismissed, persist at 15 mm last if time allows. Stop by the clock at 11:00, never by results.
+
+## Three further experiments (committed Sunday 06:10, before any of these runs)
+
+Asked for by the human after a review of what the work does not yet show. Order on the Air: dense (running), derivative, random dismissed, drainage, the 70 mm slice. Persist at 15 mm is dropped.
+
+**1. Would a derivative have found the same ground?** An adjoint (reverse-mode) flood model gives the slope of a building's peak water with respect to every ground cell. We have no adjoint code and storing 18,000 steps for one is beyond a laptop. What we can measure is the same quantity by a small change: each what-if re-run alone with 5 mm in place of 5 cm, and the result multiplied by ten. This is a small-perturbation slope, the thing an adjoint computes; it is not an adjoint run and is never called one.
+- Runs: the 98 movers and the 120 random dismissed what-ifs, each alone at 5 mm, same sign (218 runs).
+- Line: the slope is an adequate substitute if it names at least 90% of the 98 movers (ten times the 5 mm change is 1 cm or more, same receptor, same direction) and flags at most 1% of the dismissed that the solver did not move.
+- If adequate we say: "A derivative would have found this map; an adjoint solver is the cheaper route and we did not build one." If not: "Ten times a 5 mm change found X% of the ground a 5 cm change moves and falsely flagged Y%: kerb-sized changes are not small."
+
+**2. Drainage at inlets in place of a uniform loss.** We have no sewer or gully data. The constant 12 mm/h loss is replaced by synthetic road gullies: in every 25 m square that contains road, the lowest road cell becomes an inlet. Every inlet takes water standing on it at the same rate, set so that all inlets together can take exactly what the uniform loss could (12 mm/h over all open ground). Rain is applied in full. This changes where water is removed, not how much could be. It is not real drainage.
+- Runs: the unchanged terrain and the 98 movers alone, 35 mm storm (99 runs).
+- Line: at least 66 of 98 move the same receptor 1 cm the same way, as for the other persistence checks.
+- If it fails we say: "Which ground matters depends on how drainage is represented. Real inlet and sewer data are needed before any street-level use."
+
+**3. Recorded floods.** No door-level record exists for this tile. The London Fire Brigade publishes every incident with a location rounded to about 50 m. If flooding call-outs on the two storm days of July 2021 (12th and 25th) fall inside the tile, we compare them with simulated peak depth. The line is committed separately once the number of incidents is known and before any comparison. With fewer than 10 incidents the result is reported as anecdote, with no line.

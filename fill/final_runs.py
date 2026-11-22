@@ -1,13 +1,18 @@
 """Sunday morning checks. See docs/G_CRITERIA.md. uv run --with mlx --with numpy python fill/final_runs.py <job> <air|pro> [reverse]
 Jobs: persist70, persistn, persist15, dense, random, design. One file per terrain in results/<machine>/final/<job>/; work done by either machine is skipped."""
 import sys, os, time, numpy as np
-sys.path.insert(0, "solver"); from flood import simulate
+sys.path.insert(0, "solver"); sys.path.insert(0, "fill"); from flood import simulate
 JOB, MACH = sys.argv[1], sys.argv[2]; REV = len(sys.argv) > 3 and sys.argv[3] == "reverse"
 t = np.load("shared/terrain_512.npz"); d = np.load("shared/p1_cases.npz"); rc = np.load("shared/receptors.npz")["rc"]; z, op, dx = t["z"], t["open"], float(t["dx"]); F = np.load("results/air/map_final.npz")
-def bump(zc, k, i, j): sl = (slice(5 * i, 5 * i + 5), slice(5 * j, 5 * j + 5)); zc[sl] += np.where(op[sl], 0.05 if k == 0 else -0.05, 0).astype(np.float32)
+AMP = 0.005 if JOB == "deriv" else 0.05
+def bump(zc, k, i, j): sl = (slice(5 * i, 5 * i + 5), slice(5 * j, 5 * j + 5)); zc[sl] += np.where(op[sl], AMP if k == 0 else -AMP, 0).astype(np.float32)
 S, NM = 1, 0.015
 if JOB.startswith("persist"):
     S, NM = {"persist70": (2, 0.015), "persistn": (1, 0.03), "persist15": (0, 0.015)}[JOB]; W = [[(int(k), int(F["i"][n]), int(F["j"][n]))] for k in (0, 1) for n in np.flatnonzero(F["mover"][k])]
+elif JOB in ("deriv", "drain"):                                          # deriv: the 98 movers then the 120 random dismissed, at 5 mm; drain: the 98 movers with inlets
+    W = [[(int(k), int(F["i"][n]), int(F["j"][n]))] for k in (0, 1) for n in np.flatnonzero(F["mover"][k])]
+    if JOB == "deriv":
+        sc = np.load("results/air/map_scored.npz")["mover"] | F["mover"]; kk, nn = np.nonzero(~sc); pick = sorted(np.random.default_rng(2026).choice(len(kk), 240, replace=False))[::2]; W += [[(int(kk[p]), int(F["i"][nn[p]]), int(F["j"][nn[p]]))] for p in pick]
 elif JOB == "dense":
     P = 15; W = [[(1, i, j) for i in range(c // P or P, 101, P) for j in range(c % P or P, 101, P)] for c in range(P * P)]
 elif JOB == "random":
@@ -31,7 +36,10 @@ while True:
     todo = [n for n in order if not done(n) or (n < 0 and not os.path.exists(f"{out}/base.npz"))][:6]
     if not todo: break
     m = len(todo); t0 = time.time()
-    o = simulate(np.array([terrain(n) for n in todo]), op, dx, rc, np.repeat(d["profile"][S][None], m, 0), float(d["profile_dt_s"]), np.full(m, float(d["loss_mm_h"]), np.float32), np.full(m, float(d["t_end_s"]), np.float32), n_manning=NM)
+    if JOB == "drain":
+        from flood_sink import simulate_sink; from inlets import inlets; cells, rate = inlets(t["road"], z, op, float(d["loss_mm_h"])); room = np.zeros(z.shape, np.float32); room[cells[:, 0], cells[:, 1]] = 1e6; fr = np.zeros(z.shape, np.float32); fr[cells[:, 0], cells[:, 1]] = rate
+        o = simulate_sink(np.array([terrain(n) for n in todo]), op, dx, rc, np.repeat(d["profile"][S][None], m, 0), float(d["profile_dt_s"]), np.zeros(m, np.float32), np.full(m, float(d["t_end_s"]), np.float32), s2_m=room, f_m_s=fr)
+    else: o = simulate(np.array([terrain(n) for n in todo]), op, dx, rc, np.repeat(d["profile"][S][None], m, 0), float(d["profile_dt_s"]), np.full(m, float(d["loss_mm_h"]), np.float32), np.full(m, float(d["t_end_s"]), np.float32), n_manning=NM)
     for q, n in enumerate(todo): f = f"{out}/{name(n)}.npz"; np.savez(f + ".tmp.npz", n=n, peak=o["peak_depth"][q], imbalance=o["imbalance"][q], wall_s=(time.time() - t0) / m); os.replace(f + ".tmp.npz", f)
     print("%s %s: %.0f s each" % (JOB, todo, (time.time() - t0) / m), flush=True)
 print("done", JOB)

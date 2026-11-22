@@ -47,3 +47,23 @@ if ch:
     G = np.load("shared/map_design.npz"); d = ch[0]; s = G["single"].sum(0); tg = G["target"]
     print("  targets %s fall by %s cm (sum of singles said %s); receptors falling 1 cm: %d; largest rise %.2f cm; largest gap from the sum of singles %.2f mm -> %s" % (tg.tolist(), np.round(-100 * d[tg], 1).tolist(), np.round(-100 * s[tg], 1).tolist(), (d <= -THR).sum(), 100 * d.max(), 1000 * np.abs(d - s).max(), "pass" if (d[tg] <= -THR).all() and d.max() < THR and np.abs(d - s).max() <= 0.005 else "FAIL"))
     b = np.load("results/air/final/design/base.npz")["peak"].astype(float); print("  targets' peak depth before -> after, m: %s" % [(round(b[q], 2), round(b[q] + d[q], 2)) for q in tg])
+
+print("== derivative (ten times a 5 mm change; line: names 90% of movers, flags at most 1% of dismissed)")
+ch = load("deriv"); rnd = load("random")
+if ch:
+    hit = [abs(10 * ch[t][F["receptor"][k, n]]) >= THR and np.sign(ch[t][F["receptor"][k, n]]) == np.sign(F["effect"][k, n]) for t, (k, n) in enumerate(MV) if t in ch]
+    ratio = [10 * ch[t][F["receptor"][k, n]] / F["effect"][k, n] for t, (k, n) in enumerate(MV) if t in ch]
+    sc = np.load("results/air/map_scored.npz")["mover"] | F["mover"]; kk, nn = np.nonzero(~sc); pick = sorted(np.random.default_rng(2026).choice(len(kk), 240, replace=False)); fa = tot = 0
+    for u in range(120):
+        t = 98 + u
+        if t not in ch or 2 * u not in rnd: continue
+        n = nn[pick[2 * u]]; D = np.hypot(5 * F["i"][n] + 2 - rc[:, 0], 5 * F["j"][n] + 2 - rc[:, 1]) > 7.5; tot += 1; fa += (np.abs(10 * ch[t])[D].max() >= THR) and not (np.abs(rnd[2 * u])[D].max() >= THR)
+    print("  movers named by the slope: %d of %d (%.0f%%); predicted over true effect: median %.2f, quartiles %.2f to %.2f; dismissed falsely flagged: %d of %d" % (sum(hit), len(hit), 100 * np.mean(hit), np.median(ratio), np.percentile(ratio, 25), np.percentile(ratio, 75), fa, tot))
+else: print("  not run")
+print("== drainage at inlets (line: at least 66 of 98)")
+ch = load("drain")
+if ch:
+    same = [abs(ch[t][F["receptor"][k, n]]) >= THR and np.sign(ch[t][F["receptor"][k, n]]) == np.sign(F["effect"][k, n]) for t, (k, n) in enumerate(MV) if t in ch]
+    b0 = np.load("results/air/map/s1_raise/base_start.npz")["peak"].astype(float); b1 = np.load("results/air/final/drain/base.npz")["peak"].astype(float)
+    print("  %d of %d move the same building 1 cm the same way; receptors at 0.10 m or more: uniform loss %d, inlets %d; median peak depth %.3f -> %.3f m" % (sum(same), len(same), (b0 >= 0.1).sum(), (b1 >= 0.1).sum(), np.median(b0), np.median(b1)))
+else: print("  not run")
