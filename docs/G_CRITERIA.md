@@ -178,3 +178,9 @@ The lowered half passed at 75 m. The raised half is run the same way after the c
 - **If both halves pass we say:** "Packed at 75 m, 450 runs see every finding of the 1,800-run map and nothing new." The all-in run count for a 75 m map is 450 plus one confirm run per candidate it raises (counted from the data by `fill/final_score.py`), and the factor from that count is reported beside the 8.1x, which stays the figure for the map we fully confirmed. The 75 m candidates were not themselves run alone; that is said.
 - **If it fails we say:** "Raising ground reaches further than lowering it; 75 m works for one half only."
 - Stop by the clock at 11:00. If it is not finished, the count done is reported with no verdict.
+
+## Order change (Sunday 09:38, no line changed)
+
+The laptop slept for about 35 minutes during the 70 mm slice, so the queue would have passed 11:00. The 70 mm slice was stopped at 59 of 161 runs and the raised half at 75 m is run first; the 70 mm slice resumes after it. Whatever is unfinished at 11:00 is reported as a count with no verdict.
+
+- **Drainage at inlets: PASS (09:36).** 79 of 98 move the same building 1 cm the same way (line 66). Receptors at 0.10 m or more: 30 with the uniform loss, 30 with inlets. The inlets are synthetic, not real drainage.
