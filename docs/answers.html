@@ -1,0 +1,131 @@
+<title>Flood Tests Answer Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one card fills the screen. The question sits small at the top, the answer in very large lines below, controls along the bottom. */
+:root { --bg:#ffffff; --fg:#15161a; --muted:#5b5f69; --line:#dcdde2; --soft:#f4f4f6; --hot:#e0116f; --ok:#0f8a5f;
+  --display:'Big Shoulders Display', Impact, 'Arial Narrow', sans-serif; --sans:'Instrument Sans', Arial, sans-serif; --mono:'DM Mono', ui-monospace, Menlo, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#16161a; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --soft:#22222a; --hot:#ff4fa3; --ok:#4fd6a0; color-scheme: dark } }
+:root[data-theme="dark"] { --bg:#16161a; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --soft:#22222a; --hot:#ff4fa3; --ok:#4fd6a0; color-scheme: dark }
+* { box-sizing: border-box }
+html, body { height: 100% }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); display: flex; flex-direction: column; padding-block: 18px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+[hidden] { display: none !important }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font: 400 13px var(--mono); color: var(--muted) }
+.card { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(14px, 3vh, 34px); padding-block: 12px; max-width: 1300px; width: 100%; margin: 0 auto }
+.q { font: 600 clamp(20px, 2.6vw, 34px)/1.25 var(--sans); color: var(--muted); text-wrap: balance; margin: 0 }
+.q b { color: var(--hot); font-weight: 600 }
+.a { display: flex; flex-direction: column; gap: clamp(10px, 2vh, 22px); margin: 0; padding: 0; list-style: none }
+.a li { font: 600 clamp(28px, 4.6vw, 68px)/1.08 var(--sans); letter-spacing: -.02em; text-wrap: balance }
+.a li.wait { color: var(--muted); font-weight: 500 }
+.tag { font: 400 13px var(--mono); color: var(--muted) }
+.live { font: 500 clamp(18px, 2.2vw, 28px)/1.3 var(--sans); color: var(--hot); min-height: 1.3em }
+.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; max-width: 1300px; width: 100%; margin: 0 auto }
+button { font: 600 17px var(--sans); color: var(--fg); background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 12px 20px; cursor: pointer }
+button:disabled { opacity: .4; cursor: default }
+button.mic { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+button.mic.on { background: var(--hot); border-color: var(--hot); color: #fff }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px }
+form { flex: 1; display: flex; gap: 10px; min-width: 240px }
+input { flex: 1; min-width: 0; font: 400 17px var(--sans); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px }
+.count { font: 400 14px var(--mono); color: var(--muted); min-width: 7ch; text-align: center; font-variant-numeric: tabular-nums }
+</style>
+<div class="top"><span>Southwark flood tests · answers for questions</span><span id="status">Type a question, or press Listen</span></div>
+<main class="card" id="card" aria-live="polite">
+  <p class="tag" id="tag"></p>
+  <p class="q" id="q"></p>
+  <ul class="a" id="a"></ul>
+</main>
+<div class="bar"><div class="live" id="live" aria-live="polite"></div></div>
+<div class="bar">
+  <button id="prev" aria-label="Previous card">← Back</button><span class="count" id="count"></span><button id="next" aria-label="Next card">Next →</button>
+  <button class="mic" id="mic" hidden>Listen</button>
+  <form id="form"><input id="ask" autocomplete="off" placeholder="Type a question and press Enter" aria-label="Question"><button type="submit" id="send">Ask</button></form>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+// Everything the answers may draw on. Kept in one place so the model cannot wander outside it.
+const FACTS = `PROJECT: a weekend hackathon entry (SoTA Scientific Parallelism Hackathon, London, November 2026). The brief asks what we could learn if computing were faster or could run many possibilities at once. Its flood example is running thousands of rainfall scenarios.
+WHAT WE DID: We took half a kilometre of London around Southwark Underground station and Blackfriars Road (512 by 512 metres, one-metre grid, Environment Agency laser height survey of 2022). We kept the storm fixed and changed the ground. Every 5 metre square of open ground (7,894 squares) was raised 5 cm and lowered 5 cm, and the storm re-run. That is 15,788 tests. A test counts if the highest water at a point on a building wall, more than 7.5 m away, moves by 1 cm or more. There are 207 wall points. A wall point counts as flooded at 10 cm.
+THE SIMULATION: a standard 2D shallow-water flood model (the local-inertial form of Bates and colleagues, 2010), running on laptop graphics chips (an M4 MacBook Air and an M3 MacBook Pro). About 18,000 time steps of about 0.15 seconds. One run takes about 13 seconds. Buildings are solid walls. Water leaves freely at the edges. Water balance is checked after every run and agrees to about 1 part in 100,000.
+THE STORM: rain builds for 20 minutes to about 125 mm an hour, then eases for 20 minutes; about 43 mm falls. Drains are assumed to take 12 mm an hour while it rains, leaving 35 mm on the ground. The run lasts one hour. We also ran storms leaving 15 mm and 70 mm for some checks. Rain on roofs is removed (assumed to go to the sewer). The ground soaks up nothing. One ground roughness everywhere (Manning 0.015, like tarmac).
+THE PARALLEL IDEA: a 5 cm change mostly affects water nearby (half the effects reach less than 20 m). So squares 150 m apart are changed in the same run, about nine tests per run (8.8 on average), and each change in water is credited to the nearest changed square. This idea comes from Curtis, Powell and Reid (1974), who used it for sparse derivatives. We did not find it used for flood tests. A long pool can connect distant patches, so every apparent finding is re-run with different neighbours; that check is part of the method.
+THE SPEEDUP: 15,788 tests in 1,956 runs (1,800 map runs, 126 confirmation runs, 30 tracing runs). About 7 hours of graphics-chip time (6.9) against about 55 hours one test per run. The 55 hours is an estimate from timed single runs (15,788 times about 13 seconds); we did not run it. That is 8 times less compute (8.1), on the same solver, laptops and storm. It is per storm. Running several simulations at once on the laptop chip gave no gain, because one simulation already fills it.
+THE RESULT: 98 tests on 84 squares move a building wall's highest water by 1 cm or more. That is about 1 square in 100. Typical distance from square to wall is 20 m; 86% are more than 10 m away; the furthest about 100 m. Typical effect 1.7 cm, largest 7.8 cm. 60 make a wall wetter, 38 drier. 16 of the 98 take a wall point across the 10 cm flood line (8 each way). Some squares are on railway land.
+THE FIX: we picked five squares from the map (raised two, lowered three) and ran them together. Water at five building walls fell by 1.8 to 6.5 cm. Nowhere rose by 1 cm or more (largest rise 0.24 cm). The combined result matched the sum of the five single tests to 0.2 mm. The fix was chosen for the 35 mm storm.
+CHECKS THAT PASSED (pass marks were written down before each check was run): findings re-run alone, 68 of 73 gave the same answer (93%); repacked 300 m apart, 96 of 103; 120 squares the map ruled out were run alone and none moved a building, which puts the miss rate under about 2.5%, not zero; with the ground twice as rough, 81 of 98 findings held; with water leaving through 303 road drains placed by rule instead of a flat allowance, 79 of 98 held; packed twice as tight (75 m apart, 35 tests per run), the lowered half finished and all 34 of 34 known results showed up.
+CHECKS THAT FAILED: crediting the nearest square was wrong 4.75% of the time (pass mark 2%), because long ponds carry effects past 75 m; the re-run step fixes it. At double the rain only 53 of 98 findings held (pass mark 66), so each storm needs its own map. A ten-minute shortcut model that fills dips with no flow physics found 77% of the squares (pass mark 80%); two improved versions tested on half the street they had not seen also found 77%; it ranks ground but cannot safely rule ground out, because it models where water rests, not how high it gets. Scaling up a tiny 5 mm change found only 55% of findings, which suggests a derivative method would miss many; we did not build an adjoint.
+NO VERDICT: the raised half of the 75 m packing stopped at 167 of 225 runs when a laptop went to sleep (38 of 38 seen so far). A map at the 70 mm storm also did not finish.
+TREES AND DRAINS (first look only, one run each): 20 street trees with soil pits placed where kerb water is deepest lowered the water at 8 building walls by 1 to 1.7 cm in the 35 mm storm; none rose; no wall dropped below 10 cm; placed at random the trees helped 1 wall; at 70 mm none.
+LIMITS: one neighbourhood, one storm size for the full map. No real sewer data. No recorded rain flood on this street to check against, so the model has not been validated; it shows which ground the simulation reacts to and is not a forecast. The only large flood here was a burst 36-inch water main on 21 January 2020, which closed Southwark station; that was a pipe, not rain, and we did not simulate it; our 35 mm storm puts 17 cm of water on the same low stretch of road. The height survey is good to about 5 cm point to point on open ground (15 cm absolute by specification), the same size as the changes we test. A one-metre grid blurs kerbs. The animation in the presentation is a simplified 4 metre replay; every number comes from the 1 metre runs. No cloud computing was used for any number.
+WHY IT MATTERS: the Environment Agency counts 4.6 million properties in England at risk from surface water, against 2.4 million from rivers and the sea. A Met Office study (Kendon and colleagues, 2023) expects 20 mm-an-hour downpours four times as often in the UK by 2080 as in the 1980s if emissions stay high. Insured losses from the London floods of 12 to 14 July 2021 were about 281 million pounds (PERILS). If a few squares decide a building's flooding, those are the squares worth surveying on foot or changing. We did no insurance analysis.
+SCALE: London is about 6,000 neighbourhoods this size. One map costs about 7 laptop graphics-chip hours per storm in place of 55. Each neighbourhood can run on its own machine. We have not run a second neighbourhood, so we do not know if 150 m spacing works elsewhere.
+PRIOR WORK: national Environment Agency flood maps show where water goes, not which ground is responsible. A published study (arXiv 2311.00420) tests changes one simulation at a time. Blue Spot, SCALGO and similar fill models give the rain needed to flood a point. De Almeida, Bates and Ozdemir (2018) showed street height changes of tens of centimetres change simulated floods. Our search was one weekend, so we say "we did not find", not "first".`;
+const PREPARED = [
+  ["What did you do, in one breath?", "We tested every 5 metre square of half a kilometre of London.\nWe raised and lowered each one by 5 cm and re-ran the storm.\nAbout 1 square in 100 changes the water at a building."],
+  ["How do you know the model is right?", "We don't.\nNo rain flood is on record for this street.\nThis shows what the model reacts to. It is not a forecast."],
+  ["Did you run the 55-hour baseline?", "No.\nIt is 15,788 runs times the 13 seconds we measured.\nThe 8 times is a count of runs: 15,788 against 1,956."],
+  ["Where is the parallelism?", "In space.\nOne simulation carries about nine separate tests.\nThey sit 150 metres apart, so they don't disturb each other."],
+  ["0 of 120 is a small sample. What did you miss?", "It shows the miss rate is under about 2.5%.\nIt is not zero.\n98 is what we found, not a proven total."],
+  ["Why not use an adjoint?", "We didn't build one.\nA tiny 5 mm change, scaled up, found only 55%.\nThat suggests slopes miss water spilling over a lip."],
+  ["Only 53 of 98 held at double the rain.", "Yes. That failed our pass mark.\nIt means each storm needs its own map.\nThat is why a map should cost 7 hours, not 55."],
+  ["Does any change take a building across the flood line?", "Yes.\n16 of the 98 cross the 10 cm line.\n8 go each way."],
+  ["Real floods come from sewers. You have none.", "Correct. It is our biggest gap.\nWith 303 drains placed by rule, 79 of 98 findings held.\nThat is not the same as sewers backing up."],
+  ["Will 150 metres work on another street?", "We don't know.\nHere about 5% of effects travelled past 75 metres.\nSo the re-run check must be repeated on every site."]
+];
+let cards = PREPARED.map(([q, a]) => ({ q, a, prepared: true })), at = 0;
+try { const s = JSON.parse(localStorage.getItem('flood-answer-cards') || '[]'); if (Array.isArray(s)) cards = cards.concat(s.filter(c => c && c.q && c.a)); } catch (e) {}
+function save() { try { localStorage.setItem('flood-answer-cards', JSON.stringify(cards.filter(c => !c.prepared && c.a && !c.pending).slice(-40))); } catch (e) {} }
+function lines(t) { return t.replace(/\r/g, '').split(/\n+|(?<=[.?!])\s+(?=[A-Z0-9"“])/).map(x => x.trim()).filter(Boolean); }
+function show() {
+  const c = cards[at]; $('q').textContent = c.q; $('tag').textContent = c.prepared ? 'Prepared answer' : c.pending ? 'Answering…' : c.error ? 'Could not answer' : 'Answered from the project facts';
+  const ul = $('a'); ul.replaceChildren(); const ls = c.a ? lines(c.a) : [c.pending ? 'Thinking…' : '']; ls.forEach(t => { const li = document.createElement('li'); li.textContent = t; if (!c.a) li.className = 'wait'; ul.append(li); });
+  $('count').textContent = (at + 1) + ' / ' + cards.length; $('prev').disabled = at === 0; $('next').disabled = at === cards.length - 1;
+}
+function go(n) { at = Math.max(0, Math.min(cards.length - 1, n)); show(); }
+$('prev').onclick = () => go(at - 1); $('next').onclick = () => go(at + 1);
+window.addEventListener('keydown', e => { if (e.target === $('ask')) return; if (e.key === 'ArrowLeft') go(at - 1); if (e.key === 'ArrowRight') go(at + 1); });
+let sample = null, dict = null, perms = null, busy = false;
+async function ask(q) {
+  q = q.trim(); if (q.split(/\s+/).length < 2 || busy) return;
+  const c = { q, a: '', pending: true }; cards.push(c); go(cards.length - 1);
+  if (!sample) { c.pending = false; c.error = true; c.a = 'This page cannot reach Claude here. Open it in claude.ai while signed in. The prepared cards still work.'; show(); return; }
+  busy = true; $('status').textContent = 'Answering…';
+  const prompt = 'You are helping a presenter answer a judge\'s question about their hackathon project, live, on a big screen.\n\nRules:\n- Use only the facts below. Never invent a number, a result or a source.\n- Answer in 2 to 4 short sentences. Put each sentence on its own line. No bullets, no bold, no headings.\n- Plain words a non-specialist understands. Say "we". Lead with the direct answer (Yes, No, We don\'t know).\n- If the facts do not cover the question, say "We did not test that." and then give the nearest fact that helps.\n- Be honest about limits and failed checks. Do not oversell.\n- The question came from speech recognition and may contain mishearings; answer the most likely intended question.\n\n<facts>\n' + FACTS + '\n</facts>\n\n<question>\n' + q + '\n</question>';
+  try {
+    const r = await sample(prompt, { modelTier: 'quick', cache: false, onText: u => { c.a = u.text; if (cards[at] === c) show(); } });
+    c.a = (r.text || c.a || '').trim() || 'No answer came back. Try asking again.'; c.pending = false; save();
+  } catch (e) {
+    c.pending = false; c.error = true; const code = e && e.code;
+    c.a = code === 'not_granted' ? 'Asking Claude is switched off for this page. The prepared cards still work.' : code === 'rate_limited' ? 'Too many questions at once. Wait a moment and ask again.' : (e && e.text) ? e.text : 'The answer did not come through. Ask again.';
+  }
+  busy = false; $('status').textContent = dict && dict.active() ? 'Listening' : 'Type a question, or press Listen'; if (cards[at] === c) show();
+}
+$('form').addEventListener('submit', e => { e.preventDefault(); const v = $('ask').value; $('ask').value = ''; ask(v); });
+// ---- listening: each pause of about two seconds sends what was heard as one question ----
+let heard = '', timer = null;
+function flush() { timer = null; const t = heard.trim(); heard = ''; $('live').textContent = ''; if (t) ask(t); }
+function wire() {
+  dict.onPartial(({ text }) => { $('live').textContent = (heard + ' ' + text).trim(); if (timer) { clearTimeout(timer); timer = null; } });
+  dict.onFinal(({ text }) => { heard = (heard + ' ' + text).trim(); $('live').textContent = heard; if (timer) clearTimeout(timer); timer = setTimeout(flush, 2200); });
+  dict.onState(({ state, reason }) => {
+    const on = state === 'listening' || state === 'starting'; $('mic').classList.toggle('on', on); $('mic').textContent = on ? 'Stop listening' : 'Listen';
+    $('status').textContent = on ? 'Listening' : reason === 'not_granted' ? 'Microphone not allowed. Type the question instead.' : reason === 'time_limit' ? 'Listening timed out. Press Listen again.' : 'Type a question, or press Listen';
+    if (!on && heard.trim() && !timer) flush();
+  });
+}
+$('mic').onclick = () => {
+  if (!dict) return;
+  if (dict.active()) { dict.stop().catch(() => {}); return; }
+  dict.start({ language: 'en-GB' }).catch(e => { $('status').textContent = e && e.code === 'not_granted' ? 'Microphone not allowed. Type the question instead.' : 'Could not start listening. Type the question instead.'; });
+  if (perms) perms.request(['sample']).catch(() => {});
+};
+show();
+(async () => {
+  const use = window.claude && window.claude.use; if (!use) { $('status').textContent = 'Prepared cards only (open in claude.ai to ask new questions)'; return; }
+  [sample, dict, perms] = await Promise.all([window.claude.use('sample'), window.claude.use('dictation'), window.claude.use('permissions')]);
+  if (dict) { wire(); $('mic').hidden = false; }
+  if (!sample) $('status').textContent = 'Prepared cards only here';
+})();
+</script>
