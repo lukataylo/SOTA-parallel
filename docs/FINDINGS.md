@@ -1,4 +1,4 @@
-# Findings so far (Saturday 21:00)
+# Findings so far (Sunday 01:15)
 
 One page for anyone pulling the repository cold. Detail and timestamps are in `status/air.md` and `status/pro.md`. What to run next on the Pro is in `docs/PRO_PLAN.md`.
 
@@ -14,9 +14,10 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Finding | Evidence |
 |---|---|
+| **Every open 5 x 5 m square of the tile tested in the solver, both directions** | 15,788 what-ifs in 1,800 packed runs (8.77 per run; 8.07 counting 156 check runs), 6.3 GPU-hours against about 55 one at a time. 98 what-ifs (0.62%) on 84 squares (1.06%) move a building more than 7.5 m away by 1 cm: median 20 m away, 86% more than 10 m, largest effect 7.8 cm, 60 deeper and 38 shallower. 274 of 276 earlier single runs agree; 68 of 73 movers re-run alone agree. Lines and verdicts in `docs/G_CRITERIA.md`; figure `docs/figures/map.png` |
 | **Ground changes 120 m apart can share one solver run** | Packed against single runs: all 34 flagged patches keep their verdict, 0 of 86 dismissed show a new mover, changes agree to 0.2 mm, 20 of 20 hidden movers found. Up to 14.5 what-ifs per run. One dismissed patch in those runs moved a building by 1.3 cm at the 15 mm storm: a likely miss of the screen, to be confirmed |
 | Which ground matters survives treating buildings as floodable footprints | Fill model: 28 of 29 buildings keep some of the same controlling ground, 1 keeps none (gate was 20%); 69% of active pairs stay active; critical rain falls a median 6 mm; building order kept (rank correlation 0.90) |
-| **Every open square metre evaluated exactly** | 342,316 what-ifs in 603 s on 8 processes (14 ms per core under load); about 3 hours on one core by a compiled rebuild. 2.7% of open ground (4,653 cells) moves any building; 78% of it is more than 5 m from the building it moves. Clean timing still to do |
+| **Every open square metre evaluated exactly** | 342,316 what-ifs in 603 s on 8 processes (14 ms per core under load); about 3 hours on one core by a compiled rebuild. 2.7% of open ground (4,653 cells) moves any building's critical rain in the fill model; the solver map later showed this rule finds only 43% of the ground that matters, so 2.7% is a fill-model number, not a verified one |
 | **Control experiment: ground the fill model dismisses does nothing in the solver** | 0 of 60 null patches and 0 of 30 random patches moved any receptor's peak by 1 cm, across three storms. As a screen over 120 patches: 22 flagged and active, 11 flagged and inactive, 0 missed, 87 correctly dismissed. Pass line was at most 10% |
 | The solver is correct and reproducible | Matches the JAX reference to 0.002 mm; mass balance 1e-5; lake at rest exact; bit-identical across batch sizes |
 | More rain never gives less peak water | 4 of 4 scaled-storm pairs at all 207 receptors; 10 of 10 envelope groups; no reversal in any depth sweep |
@@ -37,6 +38,8 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | What failed | Result | Consequence |
 |---|---|---|
+| **Naming the block by "nearest within 75 m" in the packed map** | 18 of 379 moves (4.75%; line 2%) had no block within 75 m, and 7 of 103 movers did nothing when re-run alone | Long ponds carry a change 76 to 124 m. All 25 cases were reproduced by one block run alone (30 extra runs). The packed runs add up; the confirm stage is a required part of the method |
+| **The quick estimate as a screen for the solver map** | Finds 75 of 98 movers (77%; line 80%); the earlier whole-tile rule finds 42 (43%). Both wrongly dismiss under 0.4% of what they dismiss | The solver map is the product. The quick estimate is a prior for where to look first, not a filter |
 | **Control experiment: size and sign of the effect of flagged ground** | Sign right in 25 of 30 (line 26); rank correlation 0.51 (line 0.7); slope -0.12 (line 0.45 to 0.75) | The fill model is a screen for which ground can matter, not a predictor of how much. The failure is concentrated in the 15 mm storm; at 35 and 70 mm the rank correlation is 0.96 and 0.93 (seen after scoring) |
 | Fill model as a screen to skip solver runs | Recall 66% against the solver's peak; almost no storm has all 207 receptors decided | Dropped. The fill model is used to find ground, not to replace the solver |
 | Predicting the exact flip of a building, first test | 9 of 20 (line was 14) | Storms were placed with the fill model's critical depth, which is too high where water is in motion |

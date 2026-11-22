@@ -8,11 +8,11 @@ def load(sign):
     files = {}; imb = 0.0; wall = []
     for m in ("air", "pro"):
         for f in glob.glob(f"results/{m}/map/s{S}_{sign}/c*.npz"): files.setdefault(int(os.path.basename(f)[1:4]), f)
-    b = [np.load(f)["peak"].astype(np.float64) for m in ("air", "pro") for f in sorted(glob.glob(f"results/{m}/map/s{S}_{sign}/base_*.npz"))]
+    bm = {m: [np.load(f)["peak"].astype(np.float64) for f in sorted(glob.glob(f"results/{m}/map/s{S}_{sign}/base_*.npz"))] for m in ("air", "pro")}; b = bm["air"] + bm["pro"]
     if not b: return None, {}, {}
-    ch = {}
-    for c, f in files.items(): q = np.load(f); ch[c] = q["peak"].astype(np.float64) - b[0]; imb = max(imb, abs(float(q["imbalance"]))); wall.append(float(q["wall_s"]))
-    return b[0], ch, dict(max_imbalance=imb, base_spread=max(np.abs(x - b[0]).max() for x in b), n_base=len(b), wall_s=float(np.sum(wall)))
+    ch = {}                                                   # each run is compared with the unchanged run from its own machine
+    for c, f in files.items(): q = np.load(f); own = bm[f.split("/")[1]] or b; ch[c] = q["peak"].astype(np.float64) - own[0]; imb = max(imb, abs(float(q["imbalance"]))); wall.append(float(q["wall_s"]))
+    return b[0], ch, dict(max_imbalance=imb, base_spread=max(max(np.abs(x - v[0]).max() for x in v) for v in bm.values() if v), cross_machine=max(np.abs(x - b[0]).max() for x in b), n_base=len(b), wall_s=float(np.sum(wall)))
 def attribute(sign):
     """Per block: largest change at a receptor more than NEAR m away, attributed to the nearest block in the run. Returns records and counts."""
     base, ch, integ = load(sign); rec = {}; moved = unatt = 0

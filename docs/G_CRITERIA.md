@@ -81,3 +81,26 @@ Plan: `docs/mythos/11_overnight_plan.md`. Runner: `fill/map_run.py`. Shared code
 | Screen (both rules scored as they stand, neither adjusted) | Misses at most 1% of the what-ifs it dismisses; flags at least 80% of remote movers. Rule 1: the whole-tile map (changes some building's critical rain depth). Rule 2: fill-predicted depth change of 1 mm or more at a receptor more than 7.5 m away at this storm (`fill/map_fill.py`, computed before scoring) |
 
 **Not to be done after launch:** changing spacing, block size, depth, threshold or either screen rule. No more pool tests. Say "8.8 what-ifs per run" as measured, not a rounder number, and "we did not find" rather than "first".
+
+### Result (scored Sunday 01:10; `fill/map_score.py`, `fill/map_trace_score.py`)
+
+All 1,800 runs finished: 15,788 what-ifs, 8.77 per run. With the 126 confirm runs and 30 trace runs it is 1,956 runs, 8.07 per run.
+
+| Line | Result | Verdict |
+|---|---|---|
+| Integrity | Worst mass imbalance 1.2e-5. Start and end unchanged runs identical on each machine. Air and Pro differ by 0.03 mm, so each run is compared with its own machine's unchanged run | Pass |
+| 276 earlier singles keep their verdict | 274 of 276 (99.3%); median difference 0.02 mm | Pass |
+| True singles keep their verdict | 68 of 73 (93%; line 90%) | Pass |
+| Repacked movers keep theirs | 96 of 103 (93%; line 90%) | Pass |
+| Median difference in the change | 0.00 mm | Pass |
+| Unattributed moves at most 2% | 18 of 379 (4.75%) | **Fail** |
+| Screen rule 1: misses at most 1% of dismissed | 61 of 15,270 (0.40%) | Pass |
+| Screen rule 1: flags at least 80% of movers | 42 of 103 (41%) | **Fail** |
+| Screen rule 2: misses at most 1% of dismissed | 29 of 15,182 (0.19%) | Pass |
+| Screen rule 2: flags at least 80% of movers | 74 of 103 (72%) | **Fail** |
+
+**Why the unattributed line failed, traced after scoring (`fill/map_trace.py`, 30 single runs, no line changed).** The 18 unattributed moves and the 7 movers that did nothing when re-run alone are the same thing: a block that changes the level of a long pond moves buildings 76 to 124 m away, further than the 75 m reach the attribution rule assumed. Each of the 25 was reproduced by one block of the same colour run on its own, to within 2 mm. So the packed runs add up correctly; what failed is "nearest block within 75 m" as a way to name the block. The confirm stage caught every wrong name.
+
+**Final list:** 96 confirmed movers plus 2 found only by tracing: 98 of 15,788 what-ifs (0.62%), on 84 of 7,894 blocks (1.06%). 60 make a building deeper, 38 shallower. Median distance to the building 20 m, 90th percentile 49 m; 86% are more than 10 m away. Median effect 1.7 cm, largest 7.8 cm. 39 buildings affected. Against this list rule 2 finds 75 of 98 (77%) and rule 1 finds 42 (43%).
+
+**What the slides may say.** "Every open 5 x 5 m square raised and lowered 5 cm in a 2D solver: 15,788 what-ifs in 1,800 runs. 98 move a building by 1 cm, typically 20 m away." And, since the screen failed its recall line: "The quick estimate finds 77% of the ground that matters and wrongly dismisses 0.15%. The solver map is the product; the quick estimate is a prior." Not to be said: that 150 m spacing isolates every change. It does not for long ponds; the confirm stage is part of the method.

@@ -583,3 +583,11 @@ Storm arrays: `depth_mm`, `duration_s`, `profile` (storms x 60 rain rates in mm/
 ## Next
 
 Waiting on the human decision above. Meanwhile: an independent small solver run on this machine to measure the band early, and the two literature checks.
+
+## Sunday 01:15 (Air clock) - complete solver map scored
+
+- Both halves finished (1,800 runs), confirm stages finished on both machines (74 + 52 terrains). `fill/map_score.py` scores every line in `docs/G_CRITERIA.md`; results table appended there.
+- Passes: integrity, 276 singles (274 keep verdict), true singles (68 of 73), repacked (96 of 103), median difference. Fails: unattributed moves (4.75% against 2%), and both screen rules on recall (43% and 72% against 80%).
+- Bug fixed in `fill/map_lib.py` before the final score: Pro's runs were compared with Air's unchanged run. The two machines differ by 0.03 mm, so nothing changed at the 1 cm threshold, but each run is now compared with its own machine's base.
+- Traced every unplaced move with 30 single runs (`fill/map_trace.py`): 25 of 25 reproduced by one block alone, 76 to 124 m from the building. Cause is long ponds, not interference between patches. Final list in `results/air/map_final.npz`: 98 what-ifs on 84 squares. Figure: `docs/figures/map.png` (`fill/map_figure.py`).
+- **Pro: nothing more to run.** The map is complete. Please leave the GPU idle unless `PRO_NOW.md` changes.
