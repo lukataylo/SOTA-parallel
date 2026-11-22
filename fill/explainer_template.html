@@ -1,0 +1,156 @@
+<title>Southwark Flood Tests Explained</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column with a sticky contents list beside it on wide screens. */
+:root { --bg:#ffffff; --fg:#15161a; --muted:#5b5f69; --line:#dcdde2; --soft:#f5f5f7; --hot:#e0116f; --cool:#087f94; --ok:#0f8a5f; --bad:#b4480f;
+  --display:'Big Shoulders Display', Impact, 'Arial Narrow', sans-serif; --sans:'Instrument Sans', Arial, sans-serif; --mono:'DM Mono', ui-monospace, Menlo, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#1b1b20; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --soft:#25252c; --hot:#ff4fa3; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark } }
+:root[data-theme="dark"] { --bg:#1b1b20; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --soft:#25252c; --hot:#ff4fa3; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 17px/1.55 var(--sans); padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.page { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px }
+nav { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); align-self: start; font-size: 14px; display: flex; flex-direction: column; gap: 6px }
+nav a { color: var(--muted); text-decoration: none } nav a:hover, nav a:focus-visible { color: var(--hot) }
+main { min-width: 0; max-width: 72ch }
+h1 { font: 900 clamp(40px, 6vw, 76px)/.95 var(--display); text-transform: uppercase; margin: 0 0 14px; text-wrap: balance }
+.lede { font-size: 20px; line-height: 1.45; margin: 0 0 22px }
+h2 { font: 600 26px/1.2 var(--sans); margin: 44px 0 10px; text-wrap: balance; scroll-margin-top: 20px }
+h3 { font: 600 18px/1.3 var(--sans); margin: 22px 0 6px }
+p { margin: 0 0 12px } ul { margin: 0 0 12px; padding-left: 22px } li { margin-bottom: 6px }
+a { color: var(--cool) }
+figure { margin: 18px 0 8px } figure img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); display: block }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 6px }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 }
+.stat { border-top: 3px solid var(--hot); padding-top: 8px }
+.stat b { display: block; font: 900 44px/1 var(--display); font-variant-numeric: tabular-nums }
+.stat span { font-size: 14px; color: var(--muted) }
+.tw { overflow-x: auto; margin: 12px 0 16px }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 520px }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line) }
+th { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .04em }
+td.n { font-variant-numeric: tabular-nums; white-space: nowrap }
+.note { background: var(--soft); border-radius: 10px; padding: 12px 14px; font-size: 15px; margin: 12px 0 }
+.ok { color: var(--ok); font-weight: 600 } .bad { color: var(--bad); font-weight: 600 }
+@media (max-width: 860px) { .page { grid-template-columns: 1fr; gap: 16px } nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px 14px } }
+</style>
+<div class="page">
+<nav aria-label="Contents">
+  <a href="#what">What we did</a><a href="#rain">How the rain is simulated</a><a href="#lidar">How accurate the height survey is</a><a href="#drains">Drainage and trees</a><a href="#impact">What impact we show</a><a href="#insurance">Why insurers would care</a><a href="#burst">The 2020 burst water main</a><a href="#prior">Earlier work by others</a><a href="#limits">What this does not show</a>
+</nav>
+<main>
+<h1>Which bit of pavement floods a building?</h1>
+<p class="lede">A weekend experiment on half a kilometre of London around Southwark Underground station, explained for someone who has never worked on floods.</p>
+<figure><img alt="A white 3D model of the streets around Southwark station seen from above, with blue water lying along Blackfriars Road and in the side streets" src="__IMG__"><figcaption>Our simulation of 35 mm of rain in an hour. Ground heights and building heights are from the Environment Agency survey. Blue is water 3 cm deep or more at its highest.</figcaption></figure>
+
+<h2 id="what">What we did</h2>
+<p>When heavy rain falls faster than the drains can take it, the water runs downhill along the street, fills the low spots and collects against buildings. Flood maps show where that water ends up. They do not show which part of the street sent it there.</p>
+<p>We tested that directly. We split the open ground into 5 metre squares, 7,894 of them. For each square we raised it by 5 cm, about the height of a low kerb, ran the storm again in a physics simulation, and looked at whether the highest water at any building wall changed by a centimetre or more. Then we did the same with the square lowered. That is 15,788 tests.</p>
+<p>Done one at a time, the tests would take about 55 hours of graphics-chip time on our laptops. A 5 cm change mostly affects water within about 20 metres, so squares 150 metres apart can be changed in the same run without disturbing each other. That cut the work to 1,956 runs and about 7 hours, with the checking runs included.</p>
+<div class="stats">
+  <div class="stat"><b>15,788</b><span>tests of raised or lowered ground</span></div>
+  <div class="stat"><b>1,956</b><span>simulation runs needed, checks included</span></div>
+  <div class="stat"><b>8×</b><span>less compute than one test per run</span></div>
+  <div class="stat"><b>84</b><span>of 7,894 squares change the water at a building</span></div>
+</div>
+<p>About one square in a hundred matters. The square is typically 20 metres from the building it affects, and some are on railway land between buildings. We then picked five squares from the results, changed all five in one run, and the water at five buildings fell by 1.8 to 6.5 cm with no other building rising by a centimetre.</p>
+
+<h2 id="rain">How the rain is simulated</h2>
+<ul>
+  <li><b>The storm.</b> 35 mm of rain falls in one hour, evenly over the whole area, heavier in the middle of the hour than at the start and end. We also ran 15 mm and 70 mm for some checks. For scale, London's severe storms in July 2021 brought roughly 40 to 60 mm in an hour.</li>
+  <li><b>The ground.</b> A grid of one-metre squares, 512 by 512, each with a height from the Environment Agency's laser survey. Buildings are solid walls that water cannot enter.</li>
+  <li><b>The physics.</b> The program tracks how deep the water is in every square and moves it to lower neighbours using the standard equations for shallow flowing water. It takes about 18,000 small time steps to cover the hour and the draining afterwards.</li>
+  <li><b>The drains.</b> We remove 12 mm of rain an hour everywhere as a stand-in for the sewers. See the drainage section for how that compares with the national maps.</li>
+  <li><b>What we read off.</b> The highest water reached at 207 points on building walls that face a street. We count a point as flooded at 10 cm.</li>
+</ul>
+
+<h2 id="lidar">How accurate the height survey is</h2>
+<p>The ground heights come from the Environment Agency's LIDAR survey: a plane measures the ground with a laser, giving one height for every square metre.</p>
+<div class="tw"><table>
+<tr><th>Kind of error</th><th>Stated size</th><th>What it means</th></tr>
+<tr><td>Absolute height</td><td class="n">within ±15 cm</td><td>The official specification for how far a height can be from the true height above sea level.</td></tr>
+<tr><td>Recent surveys</td><td class="n">about ±5 cm</td><td>What the Environment Agency says newer flights achieve.</td></tr>
+<tr><td>Point to point</td><td class="n">no more than ±5 cm</td><td>How much neighbouring points can be off relative to each other. This is the one that matters for where water flows.</td></tr>
+<tr><td>Position on the map</td><td class="n">±40 cm</td><td>How far sideways a point can be.</td></tr>
+</table></div>
+<p>These are best-case figures. They are checked on flat, open surfaces such as car parks. No published figure covers ground next to buildings or under trees, where the survey has to fill in. A one-metre grid also cannot reliably see a kerb, which is about 12 cm high and a few centimetres wide.</p>
+<p class="note">This is why the result matters. The changes we tested, 5 cm, are the same size as the survey's own error. If one square in a hundred decides a building's flooding, those are the squares worth measuring properly on foot. The other ninety-nine can be left as they are.</p>
+
+<h2 id="drains">Drainage and trees</h2>
+<p>We have no data on the real sewers under these streets, so drainage is handled in two simple ways.</p>
+<ul>
+  <li><b>A flat allowance.</b> In the main experiment, 12 mm of rain an hour disappears everywhere. The national flood map of 2013 used the same 12 mm an hour, and the 2025 version uses 18. The Environment Agency itself calls drain capacity the largest source of uncertainty in its mapping.</li>
+  <li><b>Road drains placed by rule.</b> As a check, we replaced the flat allowance with 303 drains, one at the lowest point of the road in every 25 metre square, together able to take the same amount of water. <span class="ok">79 of our 98 findings still held.</span> The drains are invented positions, not real ones.</li>
+  <li><b>Street trees, a first look.</b> 20 trees with soil pits, placed where water at the kerb is deepest, lowered the water at 8 buildings by 1 to 1.7 cm in the 35 mm storm. No building dropped below 10 cm. Placed at random, the same trees helped one building; in the 70 mm storm, none. This was one run with one placement, made after our cut-off time, and the pit size is an upper limit, so treat it as untested.</li>
+</ul>
+
+<h2 id="impact">What impact we show</h2>
+<div class="tw"><table>
+<tr><th>Storm, in one hour</th><th>Building points with 10 cm or more, of 207</th><th>With the five-square fix</th></tr>
+<tr><td class="n">15 mm</td><td class="n">14</td><td class="n">13</td></tr>
+<tr><td class="n">35 mm</td><td class="n">30</td><td class="n">29</td></tr>
+<tr><td class="n">70 mm</td><td class="n">45</td><td class="n">44</td></tr>
+</table></div>
+<p>We report water depth at building walls and nothing beyond that. We do not estimate water inside buildings, damage or cost. As a guide, the Environment Agency says water over 15 cm tops a standard kerb and floods some properties, and 30 cm is likely to flood a property, because floors usually sit about 20 cm above the ground outside.</p>
+<p>The fix was chosen for the 35 mm storm and carries over only partly to the others. Our findings also change with the storm: at double the rain, <span class="bad">53 of 98 held</span>, so each storm size needs its own set of tests.</p>
+
+<h2 id="insurance">Why insurers would care</h2>
+<p>We did no insurance analysis. This section is our reading of how the result could matter, with the outside figures sourced.</p>
+<ul>
+  <li><b>Rain floods are a large and growing share of risk.</b> The Environment Agency counts 4.6 million properties in England at risk from surface water, against 2.4 million from rivers and the sea. A Met Office study expects downpours of 20 mm an hour four times as often in the UK by 2080 as in the 1980s if emissions stay high.</li>
+  <li><b>The losses are real.</b> The industry body PERILS put insured losses from the London floods of 12 to 14 July 2021 at £281 million.</li>
+  <li><b>Small local features decide claims.</b> A broker's study of those 2021 claims found many were driven by boundary walls, blocked drains, drain backup and basements. Our result says the same thing from the simulation side: a few square metres of ground, often 20 metres away, change the water at a wall by centimetres.</li>
+  <li><b>Pricing a single property.</b> Insurers price flood risk per address from maps built on the same height survey. If a building's result hangs on a handful of squares whose height is known only to within 5 cm, the map alone cannot tell two neighbouring buildings apart. A list of the squares that matter says where a site survey would change the answer.</li>
+  <li><b>Paying for prevention.</b> If lowering one patch of pavement takes several centimetres off the water at a wall, that is a cheap measure an insurer or council could fund. We showed one such fix working in the simulation, on one street.</li>
+</ul>
+<p class="note">None of this is tested against claims. We have one neighbourhood, no sewer data and no record of which doors flooded. An insurer would need the method run on streets where claims are known.</p>
+
+<h2 id="burst">The 2020 burst water main</h2>
+<p>On 21 January 2020 a 36-inch water main burst at the junction of Blackfriars Road and Union Street, beside Southwark station. London Fire Brigade sent three engines. The station closed, Blackfriars Road was shut between Southwark Street and Webber Street, and about 400 customers reported low pressure or no water. Thames Water called the repair one of the most complicated it had carried out, and the side roads stayed closed for months.</p>
+<h3>Photographs</h3>
+<p>We cannot reproduce the press photographs here, because they belong to the photographers and agencies. These pages carry them:</p>
+<ul>
+  <li><a href="https://london-fire.gov.uk/incidents/2020/january/flooding-southwark">London Fire Brigade incident report</a></li>
+  <li><a href="https://www.london-se1.co.uk/news/view/10083">London SE1 community website, January 2020</a></li>
+  <li><a href="https://www.lbc.co.uk/news/uk/dramatic-flooding-closes-southwark-station-leaving/">LBC report</a></li>
+  <li><a href="https://uk.news.yahoo.com/southwark-station-closed-due-flooding-060607071.html">Evening Standard report, via Yahoo</a></li>
+  <li><a href="https://southwark.gov.uk/news/2020/jan/thames-water-pipe-burst">Southwark Council statement</a></li>
+</ul>
+<h3>How it fits our model</h3>
+<ul>
+  <li><b>It is a different kind of flood.</b> The water came out of a pipe at one point, at a rate we do not know. Our model rains evenly on everything. So the burst is not a test of our results, and we have not simulated it.</li>
+  <li><b>It does confirm the lie of the land.</b> Water from the burst collected at the crossroads and the station entrance. In our 35 mm storm the lowest stretch of Blackfriars Road, a few metres from that junction, holds 17 cm of water at its highest. At 15 mm it is 10 cm and at 70 mm it is 25 cm.</li>
+  <li><b>What a proper comparison would need.</b> The flow from the pipe over time, and a record of how deep the water got and where. With those, the same simulation could be fed from a single point in place of rain.</li>
+</ul>
+<p>The animated presentation has a step that zooms to this junction with both points marked.</p>
+
+<h2 id="prior">Earlier work by others</h2>
+<p>We searched over one weekend, so this list is what we found, not everything that exists. Several papers could only be read as abstracts.</p>
+<div class="tw"><table>
+<tr><th>Work</th><th>What it does</th><th>Where it stops short of what we did</th></tr>
+<tr><td><a href="https://www.gov.uk/government/publications/national-assessment-of-flood-and-coastal-erosion-risk-in-england-2024/national-assessment-of-flood-and-coastal-erosion-risk-in-england-2024">Environment Agency national maps</a>, 2013 and 2025</td><td>Simulate rain floods for all of England on a 2 metre grid.</td><td>Show where water goes, not which ground is responsible.</td></tr>
+<tr><td>Per-cell simulation study, arXiv 2311.00420</td><td>Tests where green space reduces flooding by running a full simulation for each location.</td><td>One simulation per change. This is the cost we compared ourselves against.</td></tr>
+<tr><td><a href="https://www.cedr.eu/download/other_public_files/research_programme/eranet_road/call_2008_climate_change/swamp/04_Report-3-The-Blue-Spot-Model.pdf">Danish Blue Spot model</a>, 2010; <a href="https://scalgo.com/en-US/scalgo-live-documentation/analysis/flash-flood-map">SCALGO Live</a></td><td>Work out how much rain it takes to fill each dip in the ground, with no flow physics. Answers in seconds.</td><td>Per dip or per clicked point. In our test a model of this kind found 43 to 77% of the ground the full simulation says matters.</td></tr>
+<tr><td><a href="https://esurf.copernicus.org/articles/9/105/2021/">Barnes and colleagues</a>, 2021; <a href="https://dblp.org/rec/conf/gis/RavLA17">Rav, Lowe and Agarwal</a>, 2017</td><td>Fast methods for filling and spilling dips, and for asking when a point floods.</td><td>Speed and the rain-to-flood question are theirs. No test of which ground to change.</td></tr>
+<tr><td><a href="https://mdpi.com/2073-4441/12/6/1514">Safer_RAIN</a>, Samela and colleagues, 2020</td><td>A fast fill model checked against a full simulation: it found 71% of flooded area.</td><td>Similar miss rate to ours. No account of time or backing up.</td></tr>
+<tr><td><a href="https://research-information.bris.ac.uk/en/publications/modeling-urban-floods-at-submeter-resolution-challenges-or-opport/">de Almeida, Bates and Ozdemir</a>, 2018</td><td>Showed that changing street heights by tens of centimetres can change a simulated flood a lot.</td><td>Chosen streets, not every square. This is the closest earlier result to ours.</td></tr>
+<tr><td><a href="https://hess.copernicus.org/articles/17/4015/2013/hess-17-4015-2013.pdf">Ozdemir and colleagues</a>, 2013</td><td>Found flood depths rose about 37% when the grid went from 1 m to 10 cm, because kerbs appear.</td><td>About grid detail, not about which ground matters.</td></tr>
+<tr><td><a href="https://arxiv.org/pdf/1603.07279">Abily and colleagues</a>, 2016; Lindsay and Creed, 2006</td><td>Study how survey error changes simulated floods and whether dips exist at all.</td><td>Rank sources of error. Do not point to specific ground to re-survey.</td></tr>
+<tr><td>Adjoint sensitivity methods</td><td>Get the effect of every square from one extra calculation, valid for very small changes.</td><td>Our small-change test found only 55% of what a 5 cm change moves. We did not build an adjoint.</td></tr>
+<tr><td>Bettonvil and Kleijnen, 1997</td><td>Test many factors together and split the groups that respond.</td><td>Needs every effect to push the same way. Ours go both ways, and it failed here.</td></tr>
+<tr><td>Curtis, Powell and Reid, 1974; Gebremedhin, Manne and Pothen, 2005</td><td>Change things that cannot affect each other in the same calculation.</td><td>The idea we borrowed. We did not find it used for flood tests.</td></tr>
+<tr><td><a href="https://www.susdrain.org/delivering-suds/drainage-exceedance/background/background.html">UK exceedance design practice</a></td><td>Engineers already raise and drop kerbs to steer flood water.</td><td>Done by judgement on a design, not from a test of every square.</td></tr>
+<tr><td><a href="https://hess.copernicus.org/articles/30/3041/2026/">Dobkowitz and colleagues</a>, 2026, and other green-drainage studies</td><td>Test where to put rain gardens and trees across a whole catchment.</td><td>Zones far larger than a street tree. Results on best placement disagree with each other.</td></tr>
+</table></div>
+
+<h2 id="limits">What this does not show</h2>
+<ul>
+  <li>One neighbourhood and mainly one storm. The squares that matter change with the storm.</li>
+  <li>No real sewer data. The simulation shows where water collects, and it is not a forecast.</li>
+  <li>No recorded rain flood here to compare against. The fire brigade logged no flooding call-out inside the area on 12 July 2021 and one, just outside it, on 25 July 2021.</li>
+  <li>Two checks were cut off by our 11:00 deadline and have no verdict.</li>
+  <li>Buildings are solid walls. The national maps let water into buildings above 30 cm.</li>
+</ul>
+<p style="color:var(--muted);font-size:14px">Sources for outside figures: Environment Agency national assessment 2024 and LIDAR documentation; Met Office and Kendon and colleagues, Nature Communications 2023; PERILS via Insurance Post; Lockton surface water study; London Fire Brigade; London SE1; Southwark Council. Street map data in the linked presentation © OpenStreetMap contributors.</p>
+</main>
+</div>
