@@ -192,3 +192,14 @@ All runs were stopped by a timer at 11:00.
 - **What we say:** "Packed at 75 m, every known finding the runs covered was seen again (72 of 72) and nothing new appeared; the raised half was three quarters done at the stop." The 75 m candidates were not run alone. The reported speedup stays 8.1x.
 - **Packed map at 70 mm: no verdict.** 59 of 161 runs; not scored.
 - **Drainage at inlets: PASS**, 79 of 98. **Random dismissed: PASS**, 0 of 120. **Derivative: FAIL**, 54 of 98 named (line 90%); 0 of 120 falsely flagged.
+
+## Shortcut model as a filter: one after-the-fact test (committed Sunday 13:58, before scoring the split)
+
+The two committed rules failed as scored (rule 1: 42 of 98; rule 2: 75 of 98) and that result stands. We now know whole-tile totals for some variants (sign-free rule 2: 80 of 98; rule 1 or rule 2: 83 of 98), so anything below is a consistency check on the same tile, not a clean test. From `docs/mythos/16_improving_the_shortcut.md`.
+
+- **Candidates, fixed now:** A, rule 2 ignoring the sign of the change (a square is flagged for both raise and lower if either is flagged); B, rule 1 or rule 2; C, rule 1 or A.
+- **Split:** by the centre of the square: west half is column below 256, east half is 256 and above.
+- **Choice:** on the west half only, take the candidate with the fewest flags that flags at least 80% of the west movers. If none does, stop and report the fail.
+- **Score once on the east half.** Pass: at least 80% of east movers flagged, at most 10% of east what-ifs flagged, at most 1% of dismissed east what-ifs are movers. Fewer than 30 movers in the east half counts as inconclusive. Recall without the railway wall point (receptor 161) is reported beside it.
+- **Whatever happens we say:** the pre-committed rules failed; a rule chosen afterwards is a hypothesis for the next tile.
+- Not done for lack of time: re-running the fill model at 70 mm and scoring on the unfinished 70 mm map.
