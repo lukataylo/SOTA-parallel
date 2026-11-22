@@ -1,5 +1,7 @@
 # Which ground floods a building? An exhaustive terrain-sensitivity map of an urban street in a 2D flood solver, by packing spatially independent scenarios into one simulation
 
+![Which ground floods a building? Every 5 m square of a London street, raised and lowered by 5 cm in a flood simulation: 15,788 tests in 1,956 runs](docs/figures/cover.png)
+
 *Entry to the SoTA Scientific Parallelism Hackathon, London, 21 to 22 November 2026. Challenge: flood uncertainty.*
 
 [Open the interactive Blackfriars 3D experiment](docs/blackfriars-simulation.html) — download the HTML and open it in a browser to explore spatial packing, fast-fill screening and the five-square street design.
