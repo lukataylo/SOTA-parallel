@@ -205,3 +205,12 @@ The two committed rules failed as scored (rule 1: 42 of 98; rule 2: 75 of 98) an
 - Not done for lack of time: re-running the fill model at 70 mm and scoring on the unfinished 70 mm map.
 
 **Result of the split test (Sunday 14:00): FAIL.** On the west half, candidate A (rule 2 ignoring sign) was the smallest that reached 80%: 32 of 36 movers with 3.5% of what-ifs flagged. Scored once on the east half it finds 48 of 62 (77%; line 80%), flags 7.4% and wrongly dismisses 0.19%. Without the railway wall point it finds 40 of 47 (85%). Rule 2 as committed finds 44 of 62 (71%) on the same half. So a rule chosen afterwards does not pass either. What we say: "The shortcut concentrates about three quarters of the ground that matters into a few percent of the squares, so it ranks ground, but it cannot safely dismiss it. It models where water rests, not how high it gets on the way." `fill/screen_split.py`.
+
+## Shortcut model re-run at other rain depths (committed Sunday 14:04, before the run)
+
+Asked for by the human: re-run the shortcut with the parameters most likely to pass. The parameter with a physical reason behind it is the amount of water. The shortcut computes resting water for 35 mm; the solver's peak has more water in transit, so a fill at a larger depth may resemble the peak better. This is a third look at the same tile: the east half has already been scored once (candidate A, 48 of 62). It cannot turn the committed fail into a pass; it can only give a hypothesis for the next tile.
+
+- **Run:** `fill/map_fill_depths.py`: every square, both signs, the shortcut evaluated at 25, 35, 43, 50, 60 and 70 mm of water. A depth "fires" if the predicted change is 1 mm or more at a wall point more than 7.5 m away.
+- **Candidates, fixed now, all ignoring the sign of the change:** D1, fires at 43 mm (the rain before the drains' share); D2, fires at any of 35, 43, 50; D3, fires at any of the six depths.
+- **Choice on the west half only** (column below 256): the candidate with the fewest flags that flags at least 80% of west movers. **Scored once on the east half.** Pass: at least 80% of east movers, at most 10% of east what-ifs flagged, at most 1% wrongly dismissed. Recall without the railway wall point reported beside it.
+- If the run is not finished by 14:45 it is stopped and reported as unfinished.
