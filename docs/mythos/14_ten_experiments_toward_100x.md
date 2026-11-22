@@ -1,4 +1,4 @@
-# Mythos: ten experiments toward 100x, and which to build (Sunday 08:30)
+# Mythos: ten experiments toward 100x, and which to build (Sunday 08:20)
 
 ## Short answer
 

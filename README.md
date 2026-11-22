@@ -88,10 +88,16 @@ Running several simulations in one batch did not raise throughput per cell on ei
 | Moves with no changed block within 75 m | at most 2% | 18 of 379 (4.75%) | **Fail** |
 | A design chosen only from the map (five squares, one run): targets fall 1 cm, no receptor rises 1 cm, additive to 5 mm | all three | fell 1.8 to 6.5 cm; largest rise 0.24 cm; additive to 0.18 mm | Pass |
 | Movers persist at the 70 mm storm | at least 66 of 98 | 53 | **Fail** |
+| Movers persist with Manning n doubled (0.03) | at least 66 of 98 | 81 | Pass |
+| Movers persist with synthetic road inlets in place of the uniform loss | at least 66 of 98 | 79 | Pass |
+| 120 dismissed scenarios, each run alone, move a receptor 1 cm | 0 | 0 (largest change 0.80 cm) | Pass |
+| Re-map with squares 75 m apart, lowered half (225 simulations, 35.1 scenarios each): known lowered movers seen; unexplained moves after tracing | at least 95%; zero | 34 of 34; zero (one traced: 0.996 cm alone) | Pass |
+| Ten times a 5 mm change names the movers (a small-perturbation slope, the quantity an adjoint computes; not an adjoint run) | at least 90% | 54 of 98 (55%) | **Fail** |
+| The same slope falsely flags dismissed scenarios | at most 1% | 0 of 120 | Pass |
 | Fast fill model flags the movers | at least 80% | 75 of 98 (77%) | **Fail** |
 | Fast fill model wrongly dismisses | at most 1% | 0.15% | Pass |
 
-Checks still running at the time of writing (lines in `docs/G_CRITERIA.md`): persistence with Manning n doubled; a re-map with squares 75 m apart (35 scenarios per simulation); a packed map at the 70 mm storm; 120 dismissed scenarios run alone.
+Checks still running at the time of writing (lines in `docs/G_CRITERIA.md`): the raised half of the 75 m re-map; a packed map at the 70 mm storm. The synthetic inlets (303, the lowest road cell in each 25 m square, together able to take what the uniform loss could) are not real drainage. No recorded flood could be compared: the London Fire Brigade logged no flooding call-out inside the tile on 12 July 2021 and one, 14 m outside it, on 25 July 2021.
 
 ### 3.4 Why the 75 m line failed
 
@@ -106,6 +112,7 @@ Five squares were chosen from the map alone, each lowering one building and rais
 - **Batching simulations.** No gain per simulation on this hardware.
 - **A fast fill model as a filter.** An exact depression-tree model (fill, spill, merge; `fill/`) evaluates all 342,316 single-cell scenarios in ten minutes. As a screen for the solver map it finds 77% of movers (an older rule: 43%), under the 80% line. It also failed three times to predict the size of a change. It is a prior for where to look first, not a substitute.
 - **Pooled screening.** Testing a hundred squares per run and splitting the pools that respond (group screening, Bettonvil and Kleijnen 1997) failed: the method needs effects of known sign, and ours go both ways.
+- **A derivative in place of the experiment.** Ten times the effect of a 5 mm change names 55% of the movers found with 5 cm, and predicts a median 0.71 of the true effect (quartiles 0.24 to 1.26). Kerb-sized changes are not small for this flow, so a first-order sensitivity would not have produced this map. We did not build an adjoint solver.
 - **Transfer between storms.** 53 of 98 movers persist at 70 mm. Each rainfall scenario needs its own map.
 
 ## 5. Assumptions and limitations
