@@ -58,6 +58,15 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .card:last-child .v { color: var(--ok) }
 .card .v { margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line); font-weight: 600; color: var(--hot) }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; gap: 6px } .card h3 { font-size: 14px } .card p:not(.v) { display: none } .story.wide { width: auto } }
+.facts { position: absolute; z-index: 2; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 100px; width: min(460px, 42vw); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px }
+.facts h2 { margin: 0 0 10px; font: 600 17px var(--sans) }
+.facts .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px }
+.facts .f { border-top: 3px solid var(--cool); padding-top: 6px }
+.facts .f b { display: block; font: 900 34px/1 var(--display); font-variant-numeric: tabular-nums }
+.facts .f span { font-size: 13px; line-height: 1.3; color: var(--muted); display: block }
+.facts p { margin: 10px 0 0; font-size: 13px; color: var(--muted) }
+.facts a { color: var(--cool) }
+@media (max-width: 760px) { .facts { display: none } }
 .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; display: flex; align-items: center; gap: 16px; padding-block: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: linear-gradient(to top, var(--bg) 55%, transparent) }
 .bar button { font: 600 15px var(--sans); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; cursor: pointer }
 .bar button.next { background: var(--fg); color: var(--bg); border-color: var(--fg) }
@@ -102,6 +111,16 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
     </svg>
     <p>Illustration · vertical scale exaggerated</p>
     <p class="wall" id="sk-depth"></p>
+  </div>
+  <div class="facts" id="facts" hidden>
+    <h2>Blackfriars Road, 21 January 2020</h2>
+    <div class="grid">
+      <div class="f"><b>36 in</b><span>water main that burst, about 90 cm across</span></div>
+      <div class="f"><b>3</b><span>fire engines sent, with about 15 firefighters</span></div>
+      <div class="f"><b>400</b><span>customers with low pressure or no water</span></div>
+      <div class="f"><b>1 month</b><span>before the main road reopened; side roads took until July</span></div>
+    </div>
+    <p>Photos of the flood: <a href="https://london-fire.gov.uk/incidents/2020/january/flooding-southwark">London Fire Brigade</a> · <a href="https://www.london-se1.co.uk/news/view/10083">London SE1</a> · <a href="https://www.lbc.co.uk/news/uk/dramatic-flooding-closes-southwark-station-leaving/">LBC</a></p>
   </div>
   <div class="bar"><button id="prev" aria-label="Previous step">←</button><div class="dots" id="dots"></div><span class="count" id="count"></span><button class="next" id="next">Next →</button></div>
 </div>
@@ -205,9 +224,9 @@ const SCENES = [
   { kick: 'Southwark, London', head: 'Which bit of pavement floods a building?', body: 'This is half a kilometre of London around Southwark Underground station, built from the Environment Agency’s height survey. Over a weekend we tested every 5 metre square of open ground in a flood simulation. That came to 15,788 tests.', cam: { x: 200, y: 130, zoom: .82 }, on: { water: 1, places: 1 }, storm: [8, 34, 9] },
   { kick: 'The problem', head: 'More homes are at risk from rain than from rivers', big: ['4.6M', 'properties in England at risk of flooding from heavy rain'], body: 'Flood maps show where the water ends up. They don’t show which part of the street sent it there, so nobody knows which kerb to change.', cam: { x: 185, y: 10, zoom: 1.05 }, on: { water: 1, places: 1 }, storm: [20, 45, 7] },
   { kick: 'Why now', head: 'Heavy rain is getting more common', big: ['7%', 'more water in the air for each degree of warming'], body: 'The climate has warmed by more than a degree. A Met Office study expects downpours of 20 mm an hour, enough for flash floods, <b>four times as often</b> in the UK by 2080 as in the 1980s if emissions stay high. This is our street under 70 mm in an hour, twice the storm we tested.', cam: { x: 300, y: 210, zoom: 1.7 }, on: { water: 1 }, storm: [0, 60, 10], heavy: 1, clock: 1, source: ['Source: Met Office', 'Kendon et al., Nature Communications, 2023'] },
-  { kick: 'A real flood here', head: 'In 2020 a burst water main flooded this junction', body: 'A 36-inch main burst on 21 January 2020 and closed the station and the road. That water came from a pipe, so it is not a test of our rain model, and we have not simulated it. It does show that this crossroads is a low point. Our 35 mm storm, playing here, puts 17 cm of water on the same stretch of road.', cam: { x: 285, y: 262, zoom: 3.0 }, on: { water: 1, burst: 1 }, storm: [0, 60, 12], clock: 1, pitch: .8 },
+  { kick: 'A real flood here', head: 'In 2020 a burst water main flooded this junction', body: 'A 36-inch water main burst here on 21 January 2020 and closed the station and the road. The water collected at this crossroads, the low point of the road. This is the kind of flooding we simulate. Our 35 mm storm, playing here, puts 17 cm of water on the same stretch.', facts: 1, cam: { x: 285, y: 262, zoom: 3.0 }, on: { water: 1, burst: 1 }, storm: [0, 60, 12], clock: 1, pitch: .8 },
   { kick: 'One simulation', head: 'One storm takes 13 seconds to simulate', body: 'We drop 35 mm of rain on the street in an hour. The simulation follows the water across every square metre as it runs downhill, fills the low spots and spills over. Each run takes about 13 seconds on a laptop’s graphics chip.', cam: { x: STORM.spots[0][0], y: STORM.spots[0][1], zoom: 2.4 }, on: { water: 1 }, storm: [0, 60, 12], clock: 1 },
-  { kick: 'The experiment', head: 'Lower this kerb and watch the wall', body: 'We lower the pink patch by 5 cm, about the height of a low kerb, and run the storm again. Then we check the water against the building 9 metres away. If the highest water there moves by a centimetre or more, the patch counts.', cam: { x: 160, y: 300, zoom: 4.4 }, on: { patch: 1 }, inset: 1, pitch: .85 },
+  { kick: 'The experiment', head: 'Lower this kerb and watch the wall', body: 'We lower the pink patch by 5 cm, about the height of a low kerb, and run the storm again. Then we check the water against the building 9 metres away. If the highest water there moves by a centimetre or more, the patch counts.', cam: { x: 160, y: 300, zoom: 4.4 }, on: { patch: 1, water: .85 }, minute: 38, inset: 1, pitch: .85 },
   { kick: 'The cost', head: 'That is 15,788 runs', big: ['55', 'hours of graphics-chip time if every change gets its own run, as in a published study'], body: 'The street has 7,894 squares of open ground. We want each one raised and each one lowered. One at a time, that’s more than two days on a laptop.', cam: { x: 256, y: 256, zoom: 1.0 }, on: { pack: 1 }, pulse: 1 },
   { kick: 'Reshaping the problem', head: 'Squares 150 m apart can share a run', body: 'A 5 cm change mostly affects water within about 20 metres. Two squares 150 metres apart almost never reach the same building, so we change them in the same run and credit each building’s change to the nearest square. The rings show one run with eleven squares.', big: ['8.8', 'tests per run on average'], cam: { x: 277, y: 200, zoom: 1.25 }, on: { pack: 1, packAll: 1 } },
   { kick: 'The speedup', head: 'The same map in an eighth of the time', body: 'We kept the solver, the laptops, the storm and all 15,788 tests. Only the number of tests per run changed. The total includes 156 extra runs to check the findings.', race: 1, cam: { x: 256, y: 256, zoom: .9 }, on: { pack: 1, packAll: 1 } },
@@ -245,14 +264,14 @@ function go(n) {
   const D0 = reduced ? 0 : 1, on = Object.assign({ burst: 0, trees: 0, drains: 0, patch: 0, places: 0, water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
   tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
   // text out, camera pulls back, then pushes in on the new subject
-  if (!first) tl.to('#story > *', { opacity: 0, x: -24, duration: .3 * D0, stagger: .03 * D0, ease: 'power2.in' }, 0).to('#inset', { opacity: 0, y: 12, duration: .25 * D0 }, 0);
+  if (!first) tl.to('#story > *', { opacity: 0, x: -24, duration: .3 * D0, stagger: .03 * D0, ease: 'power2.in' }, 0).to('#inset, #facts', { opacity: 0, y: 12, duration: .25 * D0 }, 0);
   tl.to(cam, { zoom: Math.min(cam.zoom, .82), duration: (first ? 0 : .7) * D0, ease: 'power2.inOut' }, 0);
   tl.to(S, { kerb: 0, duration: .3 * D0 }, 0);
   tl.add(() => {
     $('kick').textContent = sc.kick; words($('head'), sc.head); $('head').style.fontSize = (sc.rows && sc.rows.length >= 4) || sc.head.length > 40 ? 'clamp(28px, 3.5vw, 56px)' : sc.head.length > 26 ? 'clamp(32px, 4.3vw, 70px)' : ''; $('body').innerHTML = sc.body || ''; $('body').hidden = !sc.body;
     $('big').hidden = !sc.big; if (sc.big) $('big').innerHTML = (Array.isArray(sc.big[0]) ? sc.big : [sc.big]).map(([n, u]) => '<div class="stat"><span class="n">' + n + '</span><span class="u">' + u + '</span></div>').join('');
     $('race').hidden = !sc.race; $('rows').hidden = !sc.rows; if (sc.rows) $('rows').innerHTML = sc.rows.map(([k, t]) => '<div class="row ' + (k === 'fail' ? 'fail' : '') + '"><i></i><span>' + t + '</span></div>').join('');
-    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; S.lower = 0; sketch(0); $('kerbBtn').hidden = !sc.inset; $('kerbBtn').textContent = 'Lower kerb'; $('src').hidden = !sc.source; if (sc.source) { $('src-name').textContent = sc.source[0]; $('src-note').textContent = sc.source[1]; } $('story').classList.toggle('wide', !!sc.cards); $('cards').hidden = !sc.cards; if (sc.cards) $('cards').innerHTML = sc.cards.map(([c, h, t, v]) => '<div class="card"><div class="cite">' + c + '</div><h3>' + h + '</h3><p>' + t + '</p><p class="v">' + v + '</p></div>').join('');
+    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; S.lower = 0; sketch(0); $('kerbBtn').hidden = !sc.inset; $('kerbBtn').textContent = 'Lower kerb'; $('facts').hidden = !sc.facts; $('src').hidden = !sc.source; if (sc.source) { $('src-name').textContent = sc.source[0]; $('src-note').textContent = sc.source[1]; } $('story').classList.toggle('wide', !!sc.cards); $('cards').hidden = !sc.cards; if (sc.cards) $('cards').innerHTML = sc.cards.map(([c, h, t, v]) => '<div class="card"><div class="cite">' + c + '</div><h3>' + h + '</h3><p>' + t + '</p><p class="v">' + v + '</p></div>').join('');
     S.storm = sc.heavy ? 1 : 0; if (sc.minute != null) S.minute = sc.minute; if (sc.storm) S.minute = sc.storm[0]; if (sc.kerb != null) S.kerbAt = sc.kerb; S.kerbAll = sc.all ? 1 : 0; S.sel = sc.tour ? 1 : 4; S.spin = 0; race.t = 0; setRace(0); S.moves = on.moves && !sc.sweep ? Math.max(S.moves, 0) : S.moves;
     gsap.set('#story > *', { opacity: 0, x: 0, y: 0 }); gsap.set('#inset', { opacity: 0, y: 12 });
   });
@@ -268,6 +287,7 @@ function go(n) {
   if (sc.race) { tl.to('#race', { opacity: 1, duration: .4 * D0 }, t0 + .9 * D0); tl.to(race, { t: 55, duration: 7 * D0, ease: 'none', onUpdate: () => setRace(race.t) }, t0 + 1.2 * D0); }
   if (sc.inset) { tl.to('#inset', { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.2 * D0).to('#kerbBtn', { opacity: 1, duration: .4 * D0 }, t0 + 1.3 * D0); tl.add(() => lowerKerb(1), t0 + 3.2 * D0); }
   tl.to(S, { trees: on.trees, duration: (on.trees ? 2.2 : .4) * D0, ease: on.trees ? 'elastic.out(1,.55)' : 'power2.in' }, t0 + (on.trees ? 1.2 : 0) * D0);
+  if (sc.facts) tl.fromTo('#facts', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.4 * D0);
   if (sc.source) tl.fromTo('#src', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.5 * D0);
   if (sc.cards) tl.set('#cards', { opacity: 1 }, t0).fromTo('#cards .card', { opacity: 0, y: 46, rotate: i => (i % 2 ? 5 : -5) }, { opacity: 1, y: 0, rotate: i => [-1.2, .8, .6, -.9, 1.1, -.5][i % 6], duration: .6 * D0, stagger: .16 * D0, ease: 'back.out(1.4)' }, t0 + .9 * D0);
   if (sc.all) tl.to(S, { kerb: 1, duration: 1.8 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0);
