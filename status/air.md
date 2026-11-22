@@ -157,7 +157,7 @@ So the headline survives the assumption Mythos thought most able to break it: wh
 - **Not yet done:** the clean timing. This run was under load. Mythos's protocol: 20,000 what-ifs at 1, 2, 4, performance-core and all-core counts, three repeats, with the rebuild baseline in the same harness, on an idle machine. **Pro agent: when the Bet 1 run finishes and your machine is idle, this is the next job; I will commit the timing script as `fill/atlas_timing.py`.**
 - The absorption map (E0) was stopped after two and a half hours with no output, to free the CPU for this. Absorption is now one line of future work unless the human says otherwise.
 
-The slide deck skeleton is at https://claude.ai/artifact/3UrX6gDwt4tqT6PRbEAQJP (private to the human unless shared).
+The earlier dark slide deck was removed on Sunday at the human's request; the animated presentation replaces it.
 
 ## Sat 18:17 — Bet 5 (response curves): between its lines. 66% fit; pass was 80%, kill was 60%
 
