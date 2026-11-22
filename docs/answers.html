@@ -13,6 +13,9 @@ body { background: var(--bg); background-image: radial-gradient(var(--dot) 1px, 
 .top .led { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px }
 .top.on .led { background: var(--hot); box-shadow: 0 0 10px var(--hot); animation: blink 1.1s steps(2) infinite }
 #status { color: var(--muted); text-align: right; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.chip { min-height: 0; padding: 6px 12px; font-size: 12px; flex: none }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+#status { flex: 1 }
 .card { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(12px, 2.4vh, 26px); background: var(--panel); border: 1px solid var(--line); border-radius: 26px; padding: clamp(18px, 4vw, 44px); max-width: 1100px; width: 100%; margin: 0 auto }
 .card.pop { animation: pop .45s cubic-bezier(.2, 1.4, .4, 1) }
 .tag { font: 600 13px var(--matrix); letter-spacing: .1em; text-transform: uppercase; color: var(--hot); margin: 0 }
@@ -39,7 +42,7 @@ input::placeholder { color: var(--muted) }
 @keyframes blink { 50% { opacity: .35 } }
 @media (prefers-reduced-motion: reduce) { .card.pop, .a li, .top.on .led { animation: none } }
 </style>
-<div class="top" id="top"><span><i class="led"></i>Flood tests</span><span id="status">Ready</span></div>
+<div class="top" id="top"><span><i class="led"></i>Flood tests</span><span id="status">Ready</span><button id="slides" class="chip" aria-pressed="false">Slides</button></div>
 <main class="card" id="card" aria-live="polite">
   <p class="tag" id="tag"></p>
   <p class="q" id="q"></p>
@@ -105,9 +108,12 @@ const SLIDES = [
   ["Backup: what we read", "Flood maps show where water goes, not which ground is to blame.\nA published study tests one change per run.\nWe borrowed the grouping idea from 1974."],
   ["Backup: the other checks", "Re-run alone: 68 of 73 gave the same answer.\nNone of 120 dismissed changes crossed 1 cm.\nRougher ground: 81 of 98 held."]
 ];
-let cards = SLIDES.map(([q, a], n) => ({ q, a, prepared: true, slide: n + 1 })).concat(PREPARED.map(([q, a]) => ({ q, a, prepared: true }))), at = 0;
-try { const s = JSON.parse(localStorage.getItem('flood-answer-cards') || '[]'); if (Array.isArray(s)) cards = cards.concat(s.filter(c => c && c.q && c.a)); } catch (e) {}
-function save() { try { localStorage.setItem('flood-answer-cards', JSON.stringify(cards.filter(c => !c.prepared && c.a && !c.pending).slice(-40))); } catch (e) {} }
+let showSlides = false; try { showSlides = localStorage.getItem('flood-show-slides') === '1'; } catch (e) {}
+const SLIDECARDS = SLIDES.map(([q, a], n) => ({ q, a, prepared: true, slide: n + 1 })), QA = PREPARED.map(([q, a]) => ({ q, a, prepared: true })); let live = [], cards = [], at = 0;
+function build() { cards = (showSlides ? SLIDECARDS : []).concat(QA, live); }
+try { const s = JSON.parse(localStorage.getItem('flood-answer-cards') || '[]'); if (Array.isArray(s)) live = s.filter(c => c && c.q && c.a); } catch (e) {}
+build();
+function save() { try { localStorage.setItem('flood-answer-cards', JSON.stringify(live.filter(c => c.a && !c.pending && !c.error).slice(-40))); } catch (e) {} }
 function lines(t) { return t.replace(/\r/g, '').split(/\n+|(?<=[.?!])\s+(?=[A-Z0-9"“])/).map(x => x.trim()).filter(Boolean); }
 function show() {
   const c = cards[at]; $('q').textContent = c.q; $('tag').textContent = c.slide ? 'Slide ' + c.slide + ' of ' + SLIDES.length + ' · what to say' : c.prepared ? 'Prepared answer' : c.pending ? 'Answering…' : c.error ? 'Could not answer' : 'Answered from the project facts';
@@ -117,10 +123,10 @@ function show() {
 function go(n) { const was = at; at = Math.max(0, Math.min(cards.length - 1, n)); show(); if (at !== was) { const c = $('card'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
 $('prev').onclick = () => go(at - 1); $('next').onclick = () => go(at + 1);
 window.addEventListener('keydown', e => { if (e.target === $('ask')) return; if (e.key === 'ArrowLeft') go(at - 1); if (e.key === 'ArrowRight') go(at + 1); });
-let sample = null, dict = null, perms = null, busy = false;
+let sample = null, dict = null, perms = null, busy = false, alwaysOn = true; const queue = [];
 async function ask(q) {
-  q = q.trim(); if (q.split(/\s+/).length < 2 || busy) return;
-  const c = { q, a: '', pending: true }; cards.push(c); go(cards.length - 1);
+  q = q.trim(); if (q.split(/\s+/).length < 2) return; if (busy) { queue.push(q); return; }
+  const c = { q, a: '', pending: true }; live.push(c); build(); go(cards.length - 1);
   if (!sample) { c.pending = false; c.error = true; c.a = 'This page cannot reach Claude here. Open it in claude.ai while signed in. The prepared cards still work.'; show(); return; }
   busy = true; $('status').textContent = 'Answering…';
   const prompt = 'You are helping a presenter answer a judge\'s question about their hackathon project, live, on a big screen.\n\nRules:\n- Use only the facts below. Never invent a number, a result or a source.\n- Answer in 2 to 4 short sentences. Put each sentence on its own line. No bullets, no bold, no headings.\n- Plain words a non-specialist understands. Say "we". Lead with the direct answer (Yes, No, We don\'t know).\n- If the facts do not cover the question, say "We did not test that." and then give the nearest fact that helps.\n- Be honest about limits and failed checks. Do not oversell.\n- The question came from speech recognition and may contain mishearings; answer the most likely intended question.\n\n<facts>\n' + FACTS + '\n</facts>\n\n<question>\n' + q + '\n</question>';
@@ -131,7 +137,7 @@ async function ask(q) {
     c.pending = false; c.error = true; const code = e && e.code;
     c.a = code === 'not_granted' ? 'Asking Claude is switched off for this page. The prepared cards still work.' : code === 'rate_limited' ? 'Too many questions at once. Wait a moment and ask again.' : (e && e.text) ? e.text : 'The answer did not come through. Ask again.';
   }
-  busy = false; $('status').textContent = dict && dict.active() ? 'Listening' : 'Ready'; if (cards[at] === c) show();
+  busy = false; $('status').textContent = dict && dict.active() ? 'Listening' : 'Ready'; if (cards[at] === c) show(); if (queue.length) ask(queue.shift());
 }
 $('form').addEventListener('submit', e => { e.preventDefault(); const v = $('ask').value; $('ask').value = ''; ask(v); });
 // ---- listening: each pause of about two seconds sends what was heard as one question ----
@@ -159,19 +165,23 @@ function wire() {
     const on = state === 'listening' || state === 'starting'; $('mic').classList.toggle('on', on); $('top').classList.toggle('on', on); $('mic').textContent = on ? 'Stop' : 'Listen'; listening = on;
     $('status').textContent = on ? 'Listening' : reason === 'not_granted' ? 'Microphone not allowed. Type the question instead.' : reason === 'time_limit' ? 'Listening timed out. Press Listen again.' : 'Ready';
     if (!on && heard.trim() && !timer) flush();
+    if (state === 'idle' && alwaysOn && reason !== 'viewer_stopped' && reason !== 'not_granted' && reason !== 'stopped') setTimeout(startListening, 400);
   });
 }
-$('mic').onclick = () => {
-  if (!dict) return;
-  if (dict.active()) { dict.stop().catch(() => {}); return; }
-  dict.start({ language: 'en-GB' }).catch(e => { $('status').textContent = e && e.code === 'not_granted' ? 'Microphone not allowed. Type the question instead.' : 'Could not start listening. Type the question instead.'; });
+function startListening() {
+  if (!dict || dict.active() || !alwaysOn) return;
+  dict.start({ language: 'en-GB' }).catch(e => { const code = e && e.code; if (code === 'not_granted') { alwaysOn = false; $('status').textContent = 'Microphone not allowed. Type instead.'; } else { $('status').textContent = 'Tap anywhere to keep listening'; armTap(); } });
   if (perms) perms.request(['sample']).catch(() => {});
-};
+}
+function armTap() { document.addEventListener('pointerdown', function once(e) { document.removeEventListener('pointerdown', once, true); if (e.target && e.target.id === 'mic') return; startListening(); }, true); }
+$('mic').onclick = () => { if (!dict) return; if (dict.active()) { alwaysOn = false; dict.stop().catch(() => {}); } else { alwaysOn = true; startListening(); } };
+$('slides').onclick = () => { showSlides = !showSlides; try { localStorage.setItem('flood-show-slides', showSlides ? '1' : '0'); } catch (e) {} $('slides').setAttribute('aria-pressed', String(showSlides)); const cur = cards[at]; build(); at = Math.max(0, cards.indexOf(cur)); if (showSlides && cur && !cur.slide) at = 0; show(); };
+$('slides').setAttribute('aria-pressed', String(showSlides));
 show();
 (async () => {
   const use = window.claude && window.claude.use; if (!use) { $('status').textContent = 'Prepared cards only'; return; }
   [sample, dict, perms] = await Promise.all([window.claude.use('sample'), window.claude.use('dictation'), window.claude.use('permissions')]);
-  if (dict) { wire(); $('mic').hidden = false; }
+  if (dict) { wire(); $('mic').hidden = false; $('status').textContent = 'Tap anywhere to start listening'; armTap(); }
   if (!sample) $('status').textContent = 'Prepared cards only';
 })();
 </script>
