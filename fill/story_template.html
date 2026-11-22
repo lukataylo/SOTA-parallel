@@ -21,9 +21,10 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .head .w { display: inline-block; white-space: pre }
 .body { font-size: clamp(16px, 1.45vw, 21px); line-height: 1.42; color: var(--fg); max-width: 46ch; margin: 0 }
 .body b { font-weight: 600 }
-.big { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap }
-.big .n { font: 900 clamp(64px, 9vw, 150px)/.86 var(--display); color: var(--hot); font-variant-numeric: tabular-nums }
-.big .u { font: 500 clamp(14px, 1.2vw, 18px) var(--sans); color: var(--muted); max-width: 22ch }
+.big { display: flex; align-items: flex-start; gap: 12px 40px; flex-wrap: wrap }
+.big .stat { display: flex; flex-direction: column; gap: 8px; min-width: 0 }
+.big .n { font: 900 clamp(64px, 8.5vw, 140px)/1 var(--display); color: var(--hot); font-variant-numeric: tabular-nums }
+.big .u { font: 500 clamp(14px, 1.2vw, 18px)/1.3 var(--sans); color: var(--muted); max-width: 24ch }
 .rows { display: grid; gap: 8px; max-width: 48ch }
 .row { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: baseline; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.3; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px }
 .row i { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); transform: translateY(1px) }
@@ -66,7 +67,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .clock { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 40px; font: 500 13px var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px }
 @media (max-width: 760px) {
   .story { left: 0; right: 0; width: auto; top: auto; bottom: 84px; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); justify-content: flex-end; gap: 8px; background: linear-gradient(to top, var(--bg) 70%, transparent) }
-  .head { font-size: 36px } .big .n { font-size: 60px } .inset { display: none } .hint { display: none } .body { font-size: 15px } .row { font-size: 14px; padding: 6px 10px }
+  .head { font-size: 36px } .big .n { font-size: 56px } .inset { display: none } .hint { display: none } .body { font-size: 15px } .row { font-size: 14px; padding: 6px 10px }
 }
 </style>
 <div id="stage">
@@ -76,7 +77,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
   <div class="story" id="story" aria-live="polite">
     <div class="kick" id="kick" hidden></div>
     <h1 class="head" id="head"></h1>
-    <div class="big" id="big" hidden><span class="n" id="bign"></span><span class="u" id="bigu"></span></div>
+    <div class="big" id="big" hidden></div>
     <p class="body" id="body"></p>
     <div class="race" id="race" hidden>
       <div class="lane"><div class="top"><span>One change per run</span><span id="h0"></span></div><div class="track"><i id="p0"></i></div><span id="c0"></span></div>
@@ -202,7 +203,7 @@ const SCENES = [
   { kick: 'The speedup', head: 'The same map in an eighth of the time', body: 'We kept the solver, the laptops, the storm and all 15,788 tests. Only the number of tests per run changed. The total includes 156 extra runs to check the findings.', race: 1, cam: { x: 256, y: 256, zoom: .9 }, on: { pack: 1, packAll: 1 } },
   { kick: 'Is it right?', head: 'Pass marks were set before each check', rows: [['ok', '<b>93%</b> of findings held when we re-ran them away from the others. We traced the rest to the square that caused them'], ['ok', '<b>0 of 120</b> squares the map ruled out moved a building when run alone'], ['ok', '<b>81 of 98</b> findings held on rougher ground, and <b>79 of 98</b> with water leaving through road drains'], ['ok', 'At 75 m apart, 35 tests per run, <b>34 of 34</b> lowered findings showed up again' + RAISED_75]], cam: { x: 256, y: 256, zoom: 1.05 }, on: { moves: 1 } },
   { kick: 'The result', head: 'About one square in a hundred matters', big: ['84', 'of 7,894 squares change the highest water at a building'], body: 'Pink squares made a building wetter when we moved them. Blue ones made it drier. Each line joins a square to its building, typically 20 metres away, and most are more than 10 metres from it.', cam: { x: 440, y: 185, zoom: 2.3 }, on: { moves: 1 }, sweep: 1 },
-  { kick: 'Using it', head: 'We tried a fix on five buildings', big: ['5 / 0', 'buildings with less water / with more'], body: 'We picked five squares from the map, raised two, lowered three, and ran them together. Water at the five buildings fell by 1.8 to 6.5 cm. No other building rose by a centimetre, and the result matched the five single tests added up, to 0.2 mm.', cam: { x: (d1[0] + d1[2]) / 2, y: (d1[1] + d1[3]) / 2, zoom: 2.9 }, on: { design: 1, five: 1, water: .4 }, minute: 40, tour: 1, all: 1 },
+  { kick: 'Using it', head: 'We tried a fix on five buildings', big: [['5', 'buildings with less water'], ['0', 'buildings with more water']], body: 'We picked five squares from the map, raised two, lowered three, and ran them together. Water at the five buildings fell by 1.8 to 6.5 cm. No other building rose by a centimetre, and the result matched the five single tests added up, to 0.2 mm.', cam: { x: (d1[0] + d1[2]) / 2, y: (d1[1] + d1[3]) / 2, zoom: 2.9 }, on: { design: 1, five: 1, water: .4 }, minute: 40, tour: 1, all: 1 },
   { kick: 'Trees and drains', head: 'Trees and drains are not fully tested yet', rows: [
     ['ok', '<b>20 street trees</b> with soil pits, put where kerb water is deepest, lowered the water at <b>8 buildings</b> by 1 to 1.7 cm in the 35 mm storm. None rose'],
     ['fail', 'No building dropped below the 10 cm flood line. The pits took 79 of 5,989 cubic metres of rain. Placed at random, the same trees helped 1 building, and at 70 mm none'],
@@ -235,7 +236,7 @@ function go(n) {
   tl.to(S, { kerb: 0, duration: .3 * D0 }, 0);
   tl.add(() => {
     $('kick').textContent = sc.kick; words($('head'), sc.head); $('head').style.fontSize = sc.head.length > 40 ? 'clamp(28px, 3.5vw, 56px)' : sc.head.length > 26 ? 'clamp(32px, 4.3vw, 70px)' : ''; $('body').innerHTML = sc.body || ''; $('body').hidden = !sc.body;
-    $('big').hidden = !sc.big; if (sc.big) { $('bign').textContent = sc.big[0]; $('bigu').textContent = sc.big[1]; }
+    $('big').hidden = !sc.big; if (sc.big) $('big').innerHTML = (Array.isArray(sc.big[0]) ? sc.big : [sc.big]).map(([n, u]) => '<div class="stat"><span class="n">' + n + '</span><span class="u">' + u + '</span></div>').join('');
     $('race').hidden = !sc.race; $('rows').hidden = !sc.rows; if (sc.rows) $('rows').innerHTML = sc.rows.map(([k, t]) => '<div class="row ' + (k === 'fail' ? 'fail' : '') + '"><i></i><span>' + t + '</span></div>').join('');
     $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; S.lower = 0; sketch(0); $('kerbBtn').hidden = !sc.inset; $('kerbBtn').textContent = 'Lower kerb'; $('story').classList.toggle('wide', !!sc.cards); $('cards').hidden = !sc.cards; if (sc.cards) $('cards').innerHTML = sc.cards.map(([c, h, t, v]) => '<div class="card"><div class="cite">' + c + '</div><h3>' + h + '</h3><p>' + t + '</p><p class="v">' + v + '</p></div>').join('');
     S.storm = sc.heavy ? 1 : 0; if (sc.minute != null) S.minute = sc.minute; if (sc.storm) S.minute = sc.storm[0]; if (sc.kerb != null) S.kerbAt = sc.kerb; S.kerbAll = sc.all ? 1 : 0; S.sel = sc.tour ? 1 : 4; S.spin = 0; race.t = 0; setRace(0); S.moves = on.moves && !sc.sweep ? Math.max(S.moves, 0) : S.moves;
