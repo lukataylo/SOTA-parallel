@@ -117,3 +117,14 @@ From `docs/mythos/12_premortem_two_hours.md`. Runner `fill/final_runs.py`, score
 | **Design from the map.** Up to five mover what-ifs whose single run lowers a building 1 cm and raises no receptor more than 0.3 cm, distinct target buildings, largest benefit first; combined into one terrain | 1 | Every target falls 1 cm; no receptor rises 1 cm; every receptor's change within 5 mm of the sum of the single effects | "Single effects do not add up; every design needs its own run" |
 
 "Persist" tests whether known movers remain movers. It does not look for new movers at other storms.
+
+## Cloud GPU scaling (committed Sunday 05:20, before any cloud run)
+
+The solver is ported from MLX to PyTorch (`cloud/flood_torch.py`, same scheme, float32) and run on rented NVIDIA GPUs through Modal (`cloud/modal_map.py`).
+
+| Check | Pass line | If it fails |
+|---|---|---|
+| **The port is the same solver.** The unchanged run and the first 240 raised colours of the map (seed-2026 order), 2,100 or so what-ifs | Peak depth at all 207 receptors within 0.1 mm of the laptop result in every run; mass imbalance at most 5e-5 | No cloud number is used |
+| **Scaling.** The same 240 packed runs split over 1, 2, 4 and 8 GPUs (more if the account allows), 30 runs per batch | With 8 GPUs, solve time at least 5.6x shorter than with 1 (70% efficiency), measured on warm containers. Wall-clock including container start is reported beside it | We report the curve as measured and say where it bends |
+
+The hardware gain (one cloud GPU against one laptop) is reported as a separate number and never multiplied into the 8.8 as one claim without saying which part is which.
