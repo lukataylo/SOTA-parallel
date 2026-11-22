@@ -1,0 +1,231 @@
+<title>The Few Square Metres</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one full-screen stage. The street model fills it; the story sits in a column on the left; a transport bar sits at the bottom. */
+:root { --bg:#ffffff; --fg:#15161a; --muted:#5b5f69; --line:#dcdde2; --panel:rgba(255,255,255,.86); --hot:#ff1485; --cool:#087f94; --ok:#0f8a5f; --bad:#c2410c;
+  --display:'Big Shoulders Display', Impact, 'Arial Narrow', sans-serif; --sans:'Instrument Sans', Arial, sans-serif; --mono:'DM Mono', ui-monospace, Menlo, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#202026; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --panel:rgba(32,32,38,.86); --hot:#ff4fa3; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark } }
+:root[data-theme="dark"] { --bg:#202026; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --panel:rgba(32,32,38,.86); --hot:#ff4fa3; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark }
+* { box-sizing: border-box }
+html, body { height: 100% }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); overflow: hidden }
+[hidden] { display: none !important }
+#stage { position: relative; height: 100%; overflow: hidden }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none }
+.story { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: 0; bottom: 84px; width: min(540px, 46vw); padding-left: clamp(8px, 3vw, 56px); display: flex; flex-direction: column; justify-content: center; gap: 14px; pointer-events: none }
+#stage::before { content: ""; position: absolute; inset: 0 auto 0 0; width: min(760px, 62vw); background: linear-gradient(to right, var(--bg) 0%, var(--bg) 38%, transparent 100%); opacity: .9; z-index: 1; pointer-events: none }
+.story, .inset, .bar, .hint, .clock { z-index: 2 }
+.kick { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--hot) }
+.head { font: 900 clamp(40px, 5.6vw, 92px)/.92 var(--display); letter-spacing: -.01em; text-transform: uppercase; text-wrap: balance; margin: 0 }
+.head .w { display: inline-block; white-space: pre }
+.body { font-size: clamp(16px, 1.45vw, 21px); line-height: 1.42; color: var(--fg); max-width: 46ch; margin: 0 }
+.body b { font-weight: 600 }
+.big { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap }
+.big .n { font: 900 clamp(64px, 9vw, 150px)/.86 var(--display); color: var(--hot); font-variant-numeric: tabular-nums }
+.big .u { font: 500 clamp(14px, 1.2vw, 18px) var(--sans); color: var(--muted); max-width: 22ch }
+.rows { display: grid; gap: 8px; max-width: 48ch }
+.row { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: baseline; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.3; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px }
+.row i { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); transform: translateY(1px) }
+.row.fail i { background: var(--bad) }
+.row b { font-weight: 600 }
+.race { display: grid; gap: 10px; max-width: 46ch; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px }
+.lane { display: grid; gap: 4px; font-size: 14px }
+.lane .top { display: flex; justify-content: space-between; gap: 10px; font-weight: 600 }
+.lane .track { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden }
+.lane .track i { display: block; height: 100%; width: 0; background: var(--muted) }
+.lane.hot .track i { background: var(--hot) }
+.lane span { font: 400 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums }
+.inset { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 100px; width: min(430px, 40vw); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 10px; pointer-events: none }
+.inset svg { display: block; width: 100%; height: auto }
+.inset p { margin: 6px 0 0; font: 400 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.bar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; display: flex; align-items: center; gap: 16px; padding-block: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: linear-gradient(to top, var(--bg) 55%, transparent) }
+.bar button { font: 600 15px var(--sans); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; cursor: pointer }
+.bar button.next { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+.bar button:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px }
+.dots { flex: 1; display: flex; gap: 6px; align-items: center; min-width: 0 }
+.dots button { flex: 1; height: 6px; padding: 0; border-radius: 3px; border: 0; background: var(--line); max-width: 80px; cursor: pointer }
+.dots button[aria-current="true"] { background: var(--hot) }
+.dots button.done { background: var(--fg) }
+.count { font: 400 12px var(--mono); color: var(--muted); letter-spacing: .08em; min-width: 6ch; text-align: right }
+.hint { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 16px; font: 400 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+.clock { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 40px; font: 500 13px var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px }
+@media (max-width: 760px) {
+  .story { left: 0; right: 0; width: auto; top: auto; bottom: 84px; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); justify-content: flex-end; gap: 8px; background: linear-gradient(to top, var(--bg) 70%, transparent) }
+  .head { font-size: 36px } .big .n { font-size: 60px } .inset { display: none } .hint { display: none } .body { font-size: 15px } .row { font-size: 14px; padding: 6px 10px }
+}
+</style>
+<div id="stage">
+  <canvas id="cv" tabindex="0" aria-label="A model of the streets around Blackfriars Road and Southwark station, London. Drag to turn it."></canvas>
+  <div class="hint">Southwark · London SE1 · drag to turn</div>
+  <div class="clock" id="clock" hidden></div>
+  <div class="story" id="story" aria-live="polite">
+    <div class="kick" id="kick"></div>
+    <h1 class="head" id="head"></h1>
+    <div class="big" id="big" hidden><span class="n" id="bign"></span><span class="u" id="bigu"></span></div>
+    <p class="body" id="body"></p>
+    <div class="race" id="race" hidden>
+      <div class="lane"><div class="top"><span>One change per simulation</span><span id="h0"></span></div><div class="track"><i id="p0"></i></div><span id="c0"></span></div>
+      <div class="lane hot"><div class="top"><span>Packed, checks included</span><span id="h1"></span></div><div class="track"><i id="p1"></i></div><span id="c1"></span></div>
+    </div>
+    <div class="rows" id="rows" hidden></div>
+  </div>
+  <div class="inset" id="inset" hidden>
+    <svg viewBox="0 0 420 170" role="img" aria-label="Sketch of a street in cross-section: a dip in the road, a kerb, and a doorstep. The kerb rises 5 centimetres and the water at the door falls.">
+      <path id="sk-ground" fill="none" stroke="currentColor" stroke-width="2" d=""/>
+      <path id="sk-water" fill="var(--cool)" opacity=".55" d=""/>
+      <rect id="sk-kerb" x="196" y="108" width="26" height="0" fill="var(--hot)"/>
+      <path d="M330 112 V40 H405 V112" fill="none" stroke="currentColor" stroke-width="2"/><rect x="345" y="72" width="22" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
+      <text x="209" y="150" text-anchor="middle" font-family="DM Mono, monospace" font-size="11" fill="currentColor" id="sk-lab">kerb</text>
+      <text x="408" y="30" text-anchor="end" font-family="DM Mono, monospace" font-size="12" fill="currentColor" id="sk-depth"></text>
+    </svg>
+    <p>Sketch, not to scale</p>
+  </div>
+  <div class="bar"><button id="prev" aria-label="Previous step">←</button><div class="dots" id="dots"></div><span class="count" id="count"></span><button class="next" id="next">Next →</button></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+'use strict';
+__DATA_JS__
+const RAISED_75 = __RAISED__;
+const $ = id => document.getElementById(id), canvas = $('cv'), ctx = canvas.getContext('2d'), fmt = new Intl.NumberFormat('en-GB');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function isDark() { const t = document.documentElement.dataset.theme; return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches; }
+const imgs = D.textures.map(u => { const im = new Image(); im.src = u; return im; });
+const depths = STORM.frames.map(list => list.map(src => { const im = new Image(); im.src = src; return im; }));
+const landMask = new Image(); landMask.src = STORM.mask;
+const waterLayer = document.createElement('canvas'); waterLayer.width = waterLayer.height = 512; const wc = waterLayer.getContext('2d');
+// ---- the state every scene animates ----
+const cam = { x: 256, y: 256, zoom: 1, angle: -.46, pitch: .64 };
+const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0 };
+const race = { t: 0 };
+let W, H, s, cs, sn, cp, sp, dark = isDark();
+function project(x, y, h = 0) { x -= cam.x; y -= cam.y; return [W * (W > 760 ? .62 : .5) + s * (x * cs - y * sn), H * (W > 760 ? .5 : .36) + s * ((x * sn + y * cs) * sp - h * cp)]; }
+function shape(pts, fill, line, width = 1) { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (line) { ctx.strokeStyle = line; ctx.lineWidth = width; ctx.stroke(); } }
+function line(a, b, col, width) { ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.lineWidth = width; ctx.strokeStyle = col; ctx.stroke(); }
+function dot(p, r, col) { ctx.beginPath(); ctx.arc(...p, r, 0, 2 * Math.PI); ctx.fillStyle = col; ctx.fill(); }
+const models = D.build.map(([h, p]) => [0, h, p]).concat(D.tops).map(([base, height, loops]) => { const pts = loops[0]; return { base, height, loops, x: pts.reduce((a, p) => a + p[0], 0) / pts.length, y: pts.reduce((a, p) => a + p[1], 0) / pts.length }; });
+function buildings() {
+  for (const m of models) m.depth = m.x * sn + m.y * cs + m.base * .8;
+  models.sort((a, b) => a.depth - b.depth);
+  for (const m of models) {
+    const { base, height, loops } = m; if (height <= base) continue;
+    for (const ring of loops) for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy), face = (dx * cs - dy * sn) / len; if (face <= 0) continue;
+      const lo = project(...a, base), hi = project(...a, height), lo2 = project(...b, base), hi2 = project(...b, height);
+      const light = (dy * .8 - dx * .5) / len, gray = dark ? 58 + 21 * light : 203 + 38 * light, gc = v => 'rgb(' + v + ',' + v + ',' + Math.min(255, v + (dark ? 6 : 3)) + ')';
+      const wall = ctx.createLinearGradient(0, hi[1], 0, lo[1]); wall.addColorStop(0, gc(Math.round(gray - Math.min(height * .3, 16)))); wall.addColorStop(1, gc(Math.round(dark ? gray * .75 : gray * .57 + 249 * .43))); shape([lo, lo2, hi2, hi], wall);
+    }
+    ctx.beginPath(); for (const r of loops) { r.forEach((p, i) => i ? ctx.lineTo(...project(...p, height)) : ctx.moveTo(...project(...p, height))); ctx.closePath(); }
+    const g = Math.round(dark ? Math.min(140, 85 + height * .45) : Math.min(255, 248 + height * .09)); ctx.fillStyle = 'rgb(' + g + ',' + g + ',' + Math.min(255, g + 2) + ')'; ctx.fill('evenodd'); ctx.strokeStyle = dark ? '#777783' : '#ffffffbb'; ctx.lineWidth = .55; ctx.stroke();
+  }
+}
+function paintWater() {
+  const k = Math.floor(S.minute), frac = S.minute - k, im = depths[S.storm][k], next = depths[S.storm][Math.min(60, k + 1)];
+  if (!im || !im.complete || !im.naturalWidth || !landMask.naturalWidth) return;
+  wc.globalCompositeOperation = 'source-over'; wc.clearRect(0, 0, 512, 512); wc.globalAlpha = 1; wc.drawImage(im, 0, 0, 512, 512);
+  if (frac > 0 && next.naturalWidth) { wc.globalCompositeOperation = 'destination-out'; wc.fillStyle = 'rgba(0,0,0,' + frac + ')'; wc.fillRect(0, 0, 512, 512); wc.globalCompositeOperation = 'lighter'; wc.globalAlpha = frac; wc.drawImage(next, 0, 0, 512, 512); wc.globalAlpha = 1; }
+  wc.globalCompositeOperation = 'destination-in'; wc.drawImage(landMask, 0, 0); wc.globalCompositeOperation = 'source-over';
+  const p = project(0, 0); ctx.save(); ctx.globalAlpha = S.water; ctx.transform(s * cs, s * sn * sp, -s * sn, s * cs * sp, ...p); ctx.drawImage(waterLayer, 0, 0); ctx.restore();
+}
+function kerbBlock(x, y, k, lower) {                                         // a 5 m square rising; 5 cm is drawn 100 times taller so it can be seen
+  if (k <= 0) return; const h = lower ? 0 : 5 * k, c = [[x - 2.5, y - 2.5], [x + 2.5, y - 2.5], [x + 2.5, y + 2.5], [x - 2.5, y + 2.5]];
+  for (let i = 0; i < 4; i++) { const a = c[i], b = c[(i + 1) % 4]; shape([project(...a), project(...b), project(...b, h), project(...a, h)], 'rgba(255,20,133,.55)'); }
+  shape(c.map(p => project(...p, h)), '#ff1485', '#fff', 1);
+  const p = project(x, y, h + 6); ctx.font = '500 ' + Math.max(11, Math.min(15, s * 4)) + 'px DM Mono, monospace'; ctx.fillStyle = dark ? '#fff' : '#15161a'; ctx.textAlign = 'center'; ctx.fillText(lower ? '−5 cm' : '+5 cm', p[0], p[1]); ctx.textAlign = 'start';
+}
+function draw() {
+  if (!W) return; dark = isDark(); ctx.fillStyle = dark ? '#202026' : '#ffffff'; ctx.fillRect(0, 0, W, H);
+  cs = Math.cos(cam.angle + S.spin); sn = Math.sin(cam.angle + S.spin); cp = Math.cos(cam.pitch); sp = Math.sin(cam.pitch); s = Math.min(W / 662, H / 504) * cam.zoom;
+  const corners = [[0, 0], [512, 0], [512, 512], [0, 512]], corn = corners.map(p => project(...p)); ctx.save(); ctx.shadowColor = dark ? '#0007' : '#44445518'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 5; shape(corn, dark ? '#26262d' : '#f7f7f9'); ctx.restore();
+  corners.forEach((p, i) => { const q = corners[(i + 1) % 4]; shape([project(...p, -1), project(...q, -1), project(...q), project(...p)], dark ? '#38383e' : '#eeeeef'); });
+  const img = imgs[(dark ? 3 : 0) + (S.design > .5 ? 1 + (S.five > .5 ? 1 : 0) : 0)]; if (img.complete && img.naturalWidth) { ctx.save(); ctx.transform(s * cs, s * sn * sp, -s * sn, s * cs * sp, ...corn[0]); ctx.drawImage(img, 0, 0, 512, 512); ctx.restore(); }
+  if (S.water > 0.01) paintWater();
+  const cyc = Math.floor(S.packPulse) % D.pack.length, on = i => S.packAll > .5 || i === cyc;
+  if (S.pack > .01) { ctx.save(); ctx.globalAlpha = S.pack; ctx.beginPath(); corn.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath(); ctx.clip();
+    D.pack.forEach(([x, y], i) => { if (!on(i)) return; const r = 75 * (S.packAll > .5 ? S.packAll : 1), pts = Array.from({ length: 61 }, (_, j) => project(x + r * Math.cos(j * Math.PI / 30), y + r * Math.sin(j * Math.PI / 30))); shape(pts, dark ? '#ff19851a' : '#ff198512', dark ? '#ff70af' : '#e52f84', 1.2); }); ctx.restore(); }
+  buildings();
+  const mist = ctx.createRadialGradient(W * .56, H * .46, Math.min(W, H) * .22, W * .56, H * .46, Math.max(W, H) * .7), fog = dark ? '32,32,38' : '255,255,255';
+  mist.addColorStop(0, 'rgba(' + fog + ',0)'); mist.addColorStop(.7, 'rgba(' + fog + ',.1)'); mist.addColorStop(1, 'rgba(' + fog + ',.85)'); ctx.fillStyle = mist; ctx.fillRect(0, 0, W, H);
+  function pin(x, y, color, lit) { const a = project(x, y), p = project(x, y, lit ? 23 : 14); line(a, p, color, 1.2); ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = lit ? 9 : 0; dot(p, lit ? 4.2 : 2.8, color); ctx.restore(); dot(p, 1.4, '#fff'); }
+  if (S.pack > .01) { ctx.save(); ctx.globalAlpha = S.pack; D.pack.forEach(([x, y], i) => pin(x, y, on(i) ? '#ff1485' : '#a8a8b0', on(i))); ctx.restore(); }
+  if (S.moves > .01) { const n = Math.ceil(D.moves.length * S.moves); D.moves.forEach(([x, y, rx, ry, e, keep], i) => { if (i >= n || (S.keepOnly > .5 && !keep)) return; const c = e > 0 ? '#f50e80' : (dark ? '#71d6e2' : '#087f94'), a = project(x, y, 2), b = project(rx, ry, 2); line(a, b, c, 1.5); shape([[a[0] - 3, a[1]], [a[0], a[1] - 3], [a[0] + 3, a[1]], [a[0], a[1] + 3]], c); dot(b, 2, dark ? '#fff' : '#292937'); });
+    if (S.keepOnly > .5) D.moves.forEach(([x, y, rx, ry, e, keep]) => { if (keep) return; const a = project(x, y, 2); ctx.strokeStyle = dark ? '#ff9a62' : '#c2410c'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(...a, 5, 0, 7); ctx.stroke(); }); }
+  if (S.design > .01) { ctx.save(); ctx.globalAlpha = S.design; D.design.forEach(([x, y, rx, ry], i) => { const o = i === S.sel, c = o ? '#ff1485' : '#868691'; line(project(x, y, 1), project(rx, ry, 2), c, o ? 2 : 1); pin(x, y, c, o); dot(project(rx, ry, 2), o ? 4 : 2, c); }); ctx.restore(); }
+  if (S.kerb > 0) { if (S.kerbAll > .5) D.design.forEach(d => kerbBlock(d[0], d[1], S.kerb, d[6] === 1)); else { const d = D.design[S.kerbAt]; kerbBlock(d[0], d[1], S.kerb, false); } }
+  if (S.design > .5 && S.kerbAll > .5) { const d = D.design[S.sel], p = project(d[2], d[3], 16), k = Math.min(1, S.kerb), v = d[4] + (d[5] - d[4]) * k; ctx.font = '600 ' + Math.max(13, Math.min(18, s * 5)) + 'px Instrument Sans, Arial'; const t = d[4].toFixed(1) + ' → ' + v.toFixed(1) + ' cm'; const w = ctx.measureText(t).width; ctx.fillStyle = dark ? '#202026ee' : '#ffffffee'; ctx.fillRect(p[0] - w / 2 - 8, p[1] - 20, w + 16, 28); ctx.fillStyle = '#ff1485'; ctx.textAlign = 'center'; ctx.fillText(t, p[0], p[1]); ctx.textAlign = 'start'; }
+}
+// ---- sketch of the kerb ----
+function sketch(k, depth) {
+  const lip = 108 - 14 * k, lvl = 112 - 26 - 14 * k * .0, door = 112 - depth;
+  $('sk-ground').setAttribute('d', 'M10 96 C60 96 70 132 120 132 C165 132 175 112 196 108 L222 108 C250 110 262 124 290 124 C315 124 320 112 330 112 L410 112');
+  $('sk-kerb').setAttribute('y', lip); $('sk-kerb').setAttribute('height', 108 - lip + 2);
+  $('sk-water').setAttribute('d', 'M38 ' + (lip + 2) + ' C62 ' + (lip + 2) + ' 70 132 120 132 C165 132 178 ' + (lip + 2) + ' 196 ' + (lip + 2) + ' Z M222 ' + door + ' L330 ' + door + ' L330 112 C320 112 315 124 290 124 C262 124 250 112 222 ' + (door + 4) + ' Z');
+  $('sk-depth').textContent = (depth / 1.2).toFixed(1) + ' cm at the door';
+}
+// ---- the storyboard: one camera move per scene, plus what is on screen ----
+const d0 = D.design[4], d1 = D.design[1];
+const SCENES = [
+  { kick: 'Southwark, London', head: 'What makes a building flood?', body: 'This is half a kilometre of real London around Southwark station, built from the Environment Agency’s height survey. We asked a simple question of it, and answered it 15,788 times.', cam: { x: 256, y: 256, zoom: .95 }, on: { water: 1 }, storm: [8, 34, 9], spin: 1 },
+  { kick: 'The problem', head: 'Rain floods more homes than rivers do', big: ['4.6M', 'properties in England at risk from rain that the drains cannot take'], body: 'Flood maps show <b>where</b> the water ends up. They do not show which bit of street is <b>to blame</b>. That is the part you could fix.', cam: { x: 300, y: 200, zoom: 1.5 }, on: { water: 1 }, storm: [20, 45, 7] },
+  { kick: 'One simulation', head: 'An hour of rain, in thirteen seconds', body: '35 mm of rain in an hour. Water runs downhill, fills the dips, and spills on to the next. A physics simulation works this out for every square metre. One run takes about 13 seconds on a laptop’s graphics chip.', cam: { x: STORM.spots[0][0], y: STORM.spots[0][1], zoom: 2.4 }, on: { water: 1 }, storm: [0, 60, 12], clock: 1 },
+  { kick: 'The experiment', head: 'Move one square. Run it again.', body: 'Take one 5 metre square of pavement. Raise it 5 cm, the height of a low kerb. Simulate the storm again. Did the peak water at any building change by a centimetre? If so, that square matters.', cam: { x: d0[0] + 6, y: d0[1] + 4, zoom: 3.3 }, on: { water: .55 }, minute: 40, kerb: 4, inset: [21.9, 20.2] },
+  { kick: 'The cost', head: '15,788 floods to simulate', big: ['55', 'GPU-hours, one change per simulation. That is how a published study of this kind does it.'], body: 'There are 7,894 squares of open ground here. Each one raised, each one lowered. Run one at a time, the laptop is busy for more than two days.', cam: { x: 256, y: 256, zoom: 1.0 }, on: { pack: 1 }, pulse: 1 },
+  { kick: 'Reshaping the problem', head: 'Far apart, they cannot hear each other', body: 'A 5 cm change only reaches so far: typically 20 metres. So squares 150 metres apart can be changed in the <b>same</b> simulation, and each building still answers to only one of them. One run now carries many experiments.', big: ['8.8', 'experiments in every simulation, not one'], cam: { x: 277, y: 200, zoom: 1.25 }, on: { pack: 1, packAll: 1 } },
+  { kick: 'The speedup', head: 'Eight times less compute', body: 'Same solver. Same laptops. Same storm. Same 15,788 answers. The only thing that changed is how the experiments are arranged inside the grid.', race: 1, cam: { x: 256, y: 256, zoom: .9 }, on: { pack: 1, packAll: 1 } },
+  { kick: 'Is it right?', head: 'Every pass line was written before its run', rows: [['ok', '<b>93%</b> of findings held when re-run apart from the others; the rest were traced to the square truly responsible'], ['ok', '<b>0 of 120</b> dismissed squares moved a building when run alone'], ['ok', '<b>81 of 98</b> findings hold on rougher ground, <b>79 of 98</b> with road drains in place of a uniform loss'], ['ok', 'Packed twice as tight, 35 experiments per simulation: <b>34 of 34</b> lowered findings seen again' + RAISED_75]], cam: { x: 256, y: 256, zoom: 1.05 }, on: { moves: 1 } },
+  { kick: 'The result', head: 'One square in a hundred', big: ['84', 'of 7,894 squares change the peak water at a building'], body: 'Pink ground makes a building wetter when raised. Blue makes it drier. Each line joins a square to the building it affects, typically 20 metres away. Nobody could have guessed these by looking.', cam: { x: 440, y: 185, zoom: 2.3 }, on: { moves: 1 }, sweep: 1 },
+  { kick: 'Using it', head: 'Five small changes. Five drier doors.', big: ['5 / 0', 'buildings with less water / buildings made worse'], body: 'We picked five squares from the map alone, raised two and lowered three by 5 cm, and ran all five in one simulation. The five buildings fell by 1.8 to 6.5 cm. Nothing else rose by a centimetre. The result matched the map to 0.2 mm.', cam: { x: (d1[0] + d1[2]) / 2, y: (d1[1] + d1[3]) / 2, zoom: 2.9 }, on: { design: 1, five: 1, water: .4 }, minute: 40, tour: 1, all: 1 },
+  { kick: 'What did not work', head: 'Four things we tried and lost', rows: [['fail', 'Running more simulations at once: <b>no gain</b>. One already fills the chip'], ['fail', 'A ten-minute shortcut model as a filter: found <b>77%</b>, we needed 80%. The circled squares are the ones it missed'], ['fail', 'A textbook derivative from a tiny change: found only <b>55%</b>. Kerb-sized changes are not small'], ['fail', 'Double the rain: <b>53 of 98</b> findings hold. Each storm needs its own map']], cam: { x: 256, y: 256, zoom: 1.1 }, on: { moves: 1, keepOnly: 1 } },
+  { kick: 'What we claim', head: 'The few square metres that matter', rows: [['ok', '<b>15,788</b> experiments in <b>1,956</b> simulations: 8 times less compute on the same laptops'], ['ok', '<b>84</b> squares out of 7,894 change a building’s flood, typically 20 m from the door'], ['ok', 'A fix taken from the map helped <b>5</b> buildings and harmed <b>0</b>']], body: 'One neighbourhood, one storm, no sewer data: this shows which ground the simulation is sensitive to, not a forecast. London is about 6,000 neighbourhoods like this one, and each can run on its own.', cam: { x: 256, y: 256, zoom: .92 }, on: { moves: 1, design: 1, water: .5 }, minute: 45, spin: 1 }
+];
+// ---- playing a scene ----
+let idx = -1, tl = null, loops = [];
+function words(el, text) { el.innerHTML = text.split(' ').map(w => '<span class="w">' + w + ' </span>').join(''); }
+function setRace(t) { [[55, 15788, 0], [6.9, 1956, 1]].forEach(([h, n, i]) => { const p = Math.min(1, t / h); $('p' + i).style.width = (p * 100) + '%'; $('c' + i).textContent = fmt.format(Math.floor(n * p)) + ' of ' + fmt.format(n) + ' simulations'; $('h' + i).textContent = (Math.min(t, h)).toFixed(1) + ' GPU-hours'; }); }
+function go(n) {
+  n = Math.max(0, Math.min(SCENES.length - 1, n)); if (n === idx) return; const first = idx < 0; idx = n; const sc = SCENES[n];
+  if (tl) tl.kill(); loops.forEach(l => l.kill()); loops = []; gsap.killTweensOf([cam, S, race]);
+  [...$('dots').children].forEach((b, i) => { b.setAttribute('aria-current', String(i === n)); b.classList.toggle('done', i < n); }); $('count').textContent = (n + 1) + ' / ' + SCENES.length; $('next').textContent = n === SCENES.length - 1 ? 'Start again ↺' : 'Next →';
+  const D0 = reduced ? 0 : 1, on = Object.assign({ water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
+  tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
+  // text out, camera pulls back, then pushes in on the new subject
+  if (!first) tl.to('#story > *', { opacity: 0, x: -24, duration: .3 * D0, stagger: .03 * D0, ease: 'power2.in' }, 0).to('#inset', { opacity: 0, y: 12, duration: .25 * D0 }, 0);
+  tl.to(cam, { zoom: Math.min(cam.zoom, .82), duration: (first ? 0 : .7) * D0, ease: 'power2.inOut' }, 0);
+  tl.to(S, { kerb: 0, duration: .3 * D0 }, 0);
+  tl.add(() => {
+    $('kick').textContent = sc.kick; words($('head'), sc.head); $('body').innerHTML = sc.body || ''; $('body').hidden = !sc.body;
+    $('big').hidden = !sc.big; if (sc.big) { $('bign').textContent = sc.big[0]; $('bigu').textContent = sc.big[1]; }
+    $('race').hidden = !sc.race; $('rows').hidden = !sc.rows; if (sc.rows) $('rows').innerHTML = sc.rows.map(([k, t]) => '<div class="row ' + (k === 'fail' ? 'fail' : '') + '"><i></i><span>' + t + '</span></div>').join('');
+    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; if (sc.inset) sketch(0, sc.inset[0] * 1.2);
+    if (sc.minute != null) S.minute = sc.minute; if (sc.storm) S.minute = sc.storm[0]; if (sc.kerb != null) S.kerbAt = sc.kerb; S.kerbAll = sc.all ? 1 : 0; S.sel = sc.tour ? 1 : 4; S.spin = 0; race.t = 0; setRace(0); S.moves = on.moves && !sc.sweep ? Math.max(S.moves, 0) : S.moves;
+    gsap.set('#story > *', { opacity: 0, x: 0, y: 0 }); gsap.set('#inset', { opacity: 0, y: 12 });
+  });
+  const t0 = tl.duration();
+  tl.to(S, { water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
+  tl.to(S, { moves: on.moves, duration: (sc.sweep ? 2.6 : .9) * D0, ease: 'power1.out' }, t0 + (sc.sweep ? .9 : 0));
+  tl.to(cam, { x: sc.cam.x, y: sc.cam.y, duration: 1.1 * D0 }, t0).to(cam, { zoom: sc.cam.zoom, duration: 1.4 * D0, ease: 'power2.inOut' }, t0 + .25 * D0);
+  tl.to('#kick', { opacity: 1, duration: .4 * D0 }, t0 + .3 * D0);
+  tl.fromTo('#head .w', { opacity: 0, y: 34, rotate: 3 }, { opacity: 1, y: 0, rotate: 0, duration: .6 * D0, stagger: .055 * D0, ease: 'back.out(1.6)' }, t0 + .4 * D0).set('#head', { opacity: 1 }, t0);
+  if (sc.big) tl.fromTo('#big', { opacity: 0, scale: .7, transformOrigin: 'left bottom' }, { opacity: 1, scale: 1, duration: .7 * D0, ease: 'expo.out' }, t0 + .9 * D0);
+  if (sc.body) tl.fromTo('#body', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .6 * D0, ease: 'power2.out' }, t0 + 1.1 * D0);
+  if (sc.rows) tl.set('#rows', { opacity: 1 }, t0).fromTo('#rows .row', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: .5 * D0, stagger: .28 * D0, ease: 'power3.out' }, t0 + 1.0 * D0);
+  if (sc.race) { tl.to('#race', { opacity: 1, duration: .4 * D0 }, t0 + .9 * D0); tl.to(race, { t: 55, duration: 7 * D0, ease: 'none', onUpdate: () => setRace(race.t) }, t0 + 1.2 * D0); }
+  if (sc.inset) { tl.to('#inset', { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.2 * D0); const o = { k: 0, d: sc.inset[0] };
+    tl.to(S, { kerb: 1, duration: 1.6 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0).to(o, { k: 1, d: sc.inset[1], duration: 1.8 * D0, ease: 'power2.inOut', onUpdate: () => sketch(o.k, o.d * 1.2) }, t0 + 1.9 * D0); }
+  if (sc.all) tl.to(S, { kerb: 1, duration: 1.8 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0);
+  if (sc.storm) { const [a, b, dur] = sc.storm; S.minute = a; const l = gsap.to(S, { minute: b, duration: reduced ? 0 : dur, ease: 'none', delay: reduced ? 0 : 1, repeat: reduced ? 0 : -1, repeatDelay: 1.5, onUpdate: () => { $('clock').textContent = 'minute ' + Math.floor(S.minute) + ' of 60'; } }); loops.push(l); }
+  if (sc.pulse && !reduced) loops.push(gsap.to(S, { packPulse: 110, duration: 30, ease: 'none', repeat: -1 }));
+  if (sc.spin && !reduced) loops.push(gsap.to(S, { spin: .5, duration: 26, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+  if (sc.tour && !reduced) { const order = [1, 2, 3, 0, 4]; const t = gsap.timeline({ repeat: -1, delay: 6 }); order.forEach((i, k) => { const d = D.design[order[(k + 1) % 5]]; t.to(cam, { zoom: 1.5, duration: .8, ease: 'power2.inOut' }, k * 5).add(() => { S.sel = order[(k + 1) % 5]; }, k * 5 + .7).to(cam, { x: (d[0] + d[2]) / 2, y: (d[1] + d[3]) / 2, duration: 1.2, ease: 'power3.inOut' }, k * 5 + .4).to(cam, { zoom: 2.9, duration: 1.1, ease: 'power2.inOut' }, k * 5 + 1.3); }); loops.push(t); }
+}
+SCENES.forEach((sc, i) => { const b = document.createElement('button'); b.setAttribute('aria-label', 'Step ' + (i + 1) + ': ' + sc.kick); b.onclick = () => go(i); $('dots').append(b); });
+$('next').onclick = () => go(idx === SCENES.length - 1 ? 0 : idx + 1); $('prev').onclick = () => go(idx - 1);
+window.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); $('next').click(); } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); } });
+let drag = null; canvas.onpointerdown = e => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); };
+canvas.onpointermove = e => { if (!drag) return; cam.angle += (e.clientX - drag.x) * .007; cam.pitch = Math.max(.27, Math.min(1.42, cam.pitch + (e.clientY - drag.y) * .005)); drag.x = e.clientX; drag.y = e.clientY; };
+canvas.onpointerup = canvas.onpointercancel = () => { drag = null; };
+canvas.onwheel = e => { e.preventDefault(); cam.zoom = Math.max(.6, Math.min(4, cam.zoom * Math.exp(-e.deltaY * .001))); };
+new ResizeObserver(() => { W = canvas.clientWidth; H = canvas.clientHeight; const d = Math.min(devicePixelRatio || 1, 2); canvas.width = W * d; canvas.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); draw(); }).observe(canvas);
+gsap.ticker.add(draw); go(0);
+</script>
