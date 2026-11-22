@@ -49,3 +49,17 @@ One mechanism for every type: a sink on a cell that takes water standing on it, 
 ## The number this adds, if it works
 
 The placement multiplier: how many square metres of randomly placed rain garden match 500 m2 placed by the map, confirmed in the solver.
+
+## Result: grass and street trees in the solver (Sunday, after the 11:00 stop)
+
+E0 was stopped without output and E1 to E4 were not run. In their place, the smallest solver test: two simulations (35 and 70 mm), eight arms each as batch members, about 9 minutes per simulation on the Air. Code: `solver/green.py` (the interventions), `fill/green_run.py` (placement, run, table). Results: `results/air/green/`. The table and verdicts are in section 3.6 of the README.
+
+Values used, which differ from the table above where the research note gave a sourced figure: tree pit 3.9 m3 on 4 cells (15 m3 of structural soil at 26% voids, an upper bound) and 1 mm of canopy storage on the 5 x 5 m around it; grass as in the table above (unsourced) with Manning n of 0.03.
+
+Against the predictions above:
+
+- Prediction 2 (grass does nothing measurable at 1,000 m2 or less): held. Largest fall 0.4 cm.
+- Prediction 3 (sinks work only where they fill): supported at 35 mm. Targeted pits fill 100% and lower 8 receptors by 1 cm; random pits fill 49% and lower 1. No difference at 70 mm, where neither moves a receptor by 1 cm.
+- "Never negative" in prediction 1 does not hold for grass once its roughness is included: grass on all non-road ground raises 4 receptors by 1 cm at 35 mm and 12 at 70 mm. A tree every 10 m raises one receptor by 4.8 cm at 70 mm, which has no roughness change and is unexplained.
+
+Not done: more than one random draw, the placement multiplier, rain gardens and permeable paving, and tracing the rises.

@@ -110,6 +110,31 @@ The 18 unattributed moves and the 7 movers that did nothing when re-run alone ha
 
 Five squares were chosen from the map alone, each lowering one building and raising no receptor by more than 3 mm in its single run. Changed together in one simulation, the five buildings fell by 1.8 to 6.5 cm, no receptor rose by 1 cm, and every receptor's change matched the sum of the single effects to 0.18 mm. An earlier design chosen for benefit alone from the fill model raised the water by 1 cm or more at seven receptors. These are two designs, not a general result.
 
+### 3.6 Extension: grass and street trees
+
+Added after the 11:00 stop, as the smallest test that puts green drainage into the solver: two simulations, one per storm, each carrying eight arms as batch members (`solver/green.py`, `fill/green_run.py`). Grass is 3 mm of surface storage, 15 mm of topsoil filling at 10 mm/h, and Manning n of 0.03, on ground that is neither road nor building. A tree is a 2 x 2 m pit at the kerb holding 3.9 m3, with 1 mm of canopy storage over 5 x 5 m. Ground heights are unchanged. Targeted grass goes on the blocks that drain to the most at-risk buildings in the fill model; targeted trees go on the kerb sites with the deepest unchanged peak water. Placements were made once, from the 35 mm run, and reused at 70 mm.
+
+| Arm | Size | Water taken, m3 (35 / 70 mm) | Receptors flooded (35 / 70 mm) | Fell 1 cm | Rose 1 cm | Largest fall, cm | Largest rise, cm |
+|---|---|---|---|---|---|---|---|
+| Unchanged | | | 30 / 45 | | | | |
+| Grass, targeted | 1,000 m2 | 11 / 12 | 30 / 45 | 0 / 0 | 0 / 0 | 0.4 / 0.3 | 0.8 / 0.9 |
+| Grass, random | 939 m2 | 9 / 10 | 30 / 45 | 0 / 0 | 0 / 0 | 0.2 / 0.1 | 0.0 / 0.3 |
+| Grass on all non-road ground | 162,453 m2 | 1,486 / 1,625 | 27 / 44 | 26 / 35 | 4 / 12 | 11.3 / 11.6 | 1.3 / 2.5 |
+| Trees, targeted | 20 | 79 / 79 | 30 / 45 | 8 / 0 | 0 / 0 | 1.7 / 0.8 | 0.0 / 0.0 |
+| Trees, random | 20 | 38 / 48 | 29 / 45 | 1 / 0 | 0 / 0 | 2.2 / 0.3 | 0.0 / 0.0 |
+| A tree every 10 m of kerb | 640 | 1,338 / 1,746 | 26 / 42 | 33 / 38 | 0 / 1 | 11.7 / 9.9 | 0.0 / 4.8 |
+| Targeted grass and trees | 1,000 m2, 20 | 90 / 90 | 30 / 45 | 8 / 0 | 0 / 0 | 2.1 / 0.8 | 0.8 / 0.9 |
+
+Net rain on the tile is 5,989 m3 at 35 mm and 11,979 m3 at 70 mm. Largest mass imbalance, absorbed water included, is 3.5e-5.
+
+Three statements were written in the run script before it ran:
+
+- **1,000 m2 of grass moves no receptor by 1 cm, placed well or not: held** at both storms. It takes about 11 m3.
+- **Trees help only where water reaches the pit, so targeted beats random: held at 35 mm, no difference at 70 mm.** At 35 mm the targeted pits fill completely and lower eight receptors by 1 cm; the random pits half fill and lower one. That one fall is the largest of either arm (2.2 cm) and is the only case where 20 trees take a receptor below the flood line. At 70 mm neither arm moves any receptor by 1 cm: 79 m3 is too little against 11,979.
+- **No arm raises a receptor by 1 cm: failed.** Grass on all non-road ground raises 4 receptors at 35 mm and 12 at 70 mm (up to 2.5 cm) and takes two receptors over the flood line at each storm, while lowering 26 and 35. A tree every 10 m raises one receptor by 4.8 cm at 70 mm. We have not traced either. Rougher ground holding water back is the likely cause for grass; the tree case is unexplained.
+
+Even the two ceilings, which take 14 to 25% of the net rain, leave at least 26 of the 30 receptors flooded at 35 mm and 42 of the 45 at 70 mm. These are one placement per arm, with one random draw each, so the targeted-against-random comparison is an indication and not a measured multiplier. The grass storage figures are unsourced, the pit volume is an upper bound (15 m3 of structural soil at 26% voids, empty, with an inlet that delivers), and the 12 mm/h loss still applies on grass, so every benefit here is an upper bound.
+
 ## 4. What did not work
 
 - **Batching simulations.** No gain per simulation on this hardware.
@@ -143,6 +168,7 @@ uv run --with numpy python fill/map_score.py                         # every lin
 uv run --with mlx --with numpy python fill/map_trace.py              # trace unplaced moves
 uv run --with numpy python fill/map_trace_score.py                   # final list
 uv run --with numpy --with matplotlib python fill/map_figure.py      # Figure 1
+uv run --with mlx --with numpy python fill/green_run.py             # section 3.6: grass and trees, two simulations
 ```
 
 Per-simulation results are in `results/air/map` and `results/pro/map`. The one-page status of every finding is `docs/FINDINGS.md`; the lines and verdicts are `docs/G_CRITERIA.md`; working logs are in `status/`.

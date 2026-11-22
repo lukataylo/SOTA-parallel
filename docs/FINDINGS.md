@@ -33,6 +33,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 | An exact fast re-evaluation replaces a rebuild per patch (Bet 2) | `fill/sweep.py`: all 441,324 critical depths identical to brute force on the 2,132 patch tests; 2.6 ms per what-if against 32 ms for a full rebuild in the same compiled code: about 13x per core, identical answers. (An earlier 200x compared against a slow Python rebuild at 1.3 s and is withdrawn) |
 | A plain derivative does not work here | Extrapolating the local slope to 5 cm recovers 65% of active patches with 29% false alarms; 114 of 175 active pairs respond in one direction only, and 1,300 of 2,132 patches create or remove a pit |
 | The solver can model absorbing ground | `solver/flood_sink.py`: bit-identical with sinks off on a 128 x 128 crop; mass balance 1.6e-6 including absorbed water |
+| Grass and street trees in the solver, smallest test (2 simulations, 8 arms each) | 1,000 m2 of grass moves no receptor by 1 cm at 35 or 70 mm. 20 trees at the deepest kerb water lower 8 receptors by 1 cm at 35 mm (random sites: 1) and none at 70 mm. Grass on all non-road ground lowers 26 receptors and raises 4 at 35 mm. One placement per arm; storage values are upper bounds. README section 3.6 |
 
 ### Failed, and what replaced it
 
@@ -58,7 +59,7 @@ Site: 512 x 512 m at 1 m around Blackfriars Road and Southwark station. 207 rece
 
 | Experiment | Where | State |
 |---|---|---|
-| Absorption map from the fill model (E0) | Air CPU | Running |
+| Absorption map from the fill model (E0) | Air CPU | Stopped without its formula check or design; the contributing-ground map it saved is used to place grass in README section 3.6 |
 | Friction, do-no-harm check, measure-where-it-matters pilot, absorption go/no-go | Pro GPU | See `docs/PRO_PLAN.md` |
 
 ## What the literature says we cannot claim
