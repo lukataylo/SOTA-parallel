@@ -38,7 +38,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .lane span { font: 400 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums }
 .inset { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 100px; width: min(430px, 40vw); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 10px; pointer-events: none }
 .inset svg { display: block; width: 100%; height: auto }
-.inset p { margin: 6px 0 0; font: 400 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.inset p { margin: 6px 0 0; font: 400 11px var(--mono); color: var(--muted) }
 .inset h2 { margin: 0 0 6px; font: 600 17px var(--sans) }
 .inset .wall { margin: 8px 0 0; font: 600 17px var(--sans); color: var(--fg); letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums }
 .act { pointer-events: auto; align-self: flex-start; font: 600 17px var(--sans); color: var(--bg); background: var(--fg); border: 0; border-radius: 999px; padding: 13px 24px; cursor: pointer }
@@ -47,7 +47,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
 .card { background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px 12px; box-shadow: 0 6px 18px rgba(20,20,30,.10); position: relative; min-width: 0 }
 .card::before { content: ""; position: absolute; left: 14px; top: -7px; width: 46px; height: 14px; background: var(--tape); opacity: .8; transform: rotate(-3deg) }
-.card .cite { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.card .cite { font: 500 11px var(--mono); color: var(--muted) }
 .card h3 { margin: 4px 0 4px; font: 600 16px/1.2 var(--sans) }
 .card p { margin: 0; font-size: 13.5px; line-height: 1.35 }
 .card:last-child .v { color: var(--ok) }
@@ -62,7 +62,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .dots button[aria-current="true"] { background: var(--hot) }
 .dots button.done { background: var(--fg) }
 .count { font: 400 12px var(--mono); color: var(--muted); letter-spacing: .08em; min-width: 6ch; text-align: right }
-.hint { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 16px; font: 400 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+.hint { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 16px; font: 400 11px var(--mono); color: var(--muted) }
 .clock { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 40px; font: 500 13px var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px }
 @media (max-width: 760px) {
   .story { left: 0; right: 0; width: auto; top: auto; bottom: 84px; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); justify-content: flex-end; gap: 8px; background: linear-gradient(to top, var(--bg) 70%, transparent) }
@@ -74,7 +74,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
   <div class="hint">Southwark · London SE1 · drag to turn</div>
   <div class="clock" id="clock" hidden></div>
   <div class="story" id="story" aria-live="polite">
-    <div class="kick" id="kick"></div>
+    <div class="kick" id="kick" hidden></div>
     <h1 class="head" id="head"></h1>
     <div class="big" id="big" hidden><span class="n" id="bign"></span><span class="u" id="bigu"></span></div>
     <p class="body" id="body"></p>
