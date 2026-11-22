@@ -86,12 +86,31 @@ const PREPARED = [
   ["Real floods come from sewers. You have none.", "Correct. It is our biggest gap.\nWith 303 drains placed by rule, 79 of 98 findings held.\nThat is not the same as sewers backing up."],
   ["Will 150 metres work on another street?", "We don't know.\nHere about 5% of effects travelled past 75 metres.\nSo the re-run check must be repeated on every site."]
 ];
-let cards = PREPARED.map(([q, a]) => ({ q, a, prepared: true })), at = 0;
+const SLIDES = [
+  ["Where could five centimetres make a difference?", "The brief asks what we learn by computing many possibilities at once.\nThe usual answer is many storms.\nWe kept the storm and changed the street: 15,788 tests."],
+  ["More homes are at risk from rain than from rivers", "4.6 million properties in England are at risk from heavy rain.\nFlood maps show where the water ends up.\nThey don't show which ground sent it there."],
+  ["Heavy rain is getting more common", "Warm air holds more water: 7% more per degree.\nThe Met Office expects flash-flood downpours four times as often by 2080.\nOn screen: our street under twice the storm we mapped."],
+  ["One storm takes 13 seconds to simulate", "The storm is 35 mm of effective rainfall.\nThe model moves water square by square.\nOne run takes about 13 seconds on a laptop.\nThe animation is a simplified replay."],
+  ["Lower this kerb and watch the wall", "We lower 5 by 5 metres of ground by 5 cm.\nWatch the peak depth at the wall 9 metres away.\nIt falls from 6.1 to 2.5 cm.\nA change of 1 cm or more counts."],
+  ["That is 15,788 runs", "7,894 squares, each raised and each lowered.\nOne at a time is about 55 GPU-hours.\nThat is an estimate. We did not run it."],
+  ["Squares 150 m apart can share a run", "One storm can test eleven distant changes.\nIf water connects two patches, we rerun to find the cause.\nGrouping tests is an old idea. Using it for street changes is ours."],
+  ["From 15,788 runs to 1,956", "1,800 grouped runs plus 156 checks.\nEight times as many tests per run.\n55 hours estimated. 6.9 measured."],
+  ["One failure, and how we solved it", "18 of 379 changes had no changed square nearby.\nLong pools carry an effect 76 to 124 metres.\nAll 25 cases were reproduced by one square alone."],
+  ["About one square in a hundred matters", "84 of 7,894 squares matter.\nEach arrow runs from a square to the wall it affects.\nTypically 20 metres away."],
+  ["We tried a fix in the simulation", "Five squares from the map, run together.\nFive walls fell by 1.8 to 6.5 cm.\nNowhere rose by 1 cm or more."],
+  ["Three things that didn't work", "Several simulations at once: no faster.\nThe ten-minute shortcut found 77%. Our mark was 80%.\nAt double the rain only 53 of 98 held."],
+  ["What we claim", "Five changes from the map did what the map said.\nThe largest rise anywhere was 0.24 cm.\nDouble the rain and only 53 of 98 hold.\nA different storm needs a different map."],
+  ["Backup: the 2020 burst water main", "A 36-inch main burst here in January 2020.\nIt was a pipe, not rain.\nOur storm pools water at the same low point: 17 cm."],
+  ["Backup: trees and drains", "A first look only. One run each.\n20 trees lowered water at 8 walls by 1 to 1.7 cm.\nWith 303 road drains, 79 of 98 findings held."],
+  ["Backup: what we read", "Flood maps show where water goes, not which ground is to blame.\nA published study tests one change per run.\nWe borrowed the grouping idea from 1974."],
+  ["Backup: the other checks", "Re-run alone: 68 of 73 gave the same answer.\nNone of 120 dismissed changes crossed 1 cm.\nRougher ground: 81 of 98 held."]
+];
+let cards = SLIDES.map(([q, a], n) => ({ q, a, prepared: true, slide: n + 1 })).concat(PREPARED.map(([q, a]) => ({ q, a, prepared: true }))), at = 0;
 try { const s = JSON.parse(localStorage.getItem('flood-answer-cards') || '[]'); if (Array.isArray(s)) cards = cards.concat(s.filter(c => c && c.q && c.a)); } catch (e) {}
 function save() { try { localStorage.setItem('flood-answer-cards', JSON.stringify(cards.filter(c => !c.prepared && c.a && !c.pending).slice(-40))); } catch (e) {} }
 function lines(t) { return t.replace(/\r/g, '').split(/\n+|(?<=[.?!])\s+(?=[A-Z0-9"“])/).map(x => x.trim()).filter(Boolean); }
 function show() {
-  const c = cards[at]; $('q').textContent = c.q; $('tag').textContent = c.prepared ? 'Prepared answer' : c.pending ? 'Answering…' : c.error ? 'Could not answer' : 'Answered from the project facts';
+  const c = cards[at]; $('q').textContent = c.q; $('tag').textContent = c.slide ? 'Slide ' + c.slide + ' of ' + SLIDES.length + ' · what to say' : c.prepared ? 'Prepared answer' : c.pending ? 'Answering…' : c.error ? 'Could not answer' : 'Answered from the project facts';
   const ul = $('a'); ul.replaceChildren(); const ls = c.a ? lines(c.a) : [c.pending ? 'Thinking…' : '']; ls.forEach(t => { const li = document.createElement('li'); li.textContent = t; if (!c.a) li.className = 'wait'; ul.append(li); });
   $('count').textContent = (at + 1) + ' / ' + cards.length; $('prev').disabled = at === 0; $('next').disabled = at === cards.length - 1;
 }

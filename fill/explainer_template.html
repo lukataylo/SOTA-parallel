@@ -30,13 +30,20 @@ table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 520p
 th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line) }
 th { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .04em }
 td.n { font-variant-numeric: tabular-nums; white-space: nowrap }
+.why { border-left: 3px solid var(--hot); padding: 2px 0 2px 16px; margin: 16px 0 }
+.why .c { font-weight: 600; margin-bottom: 6px }
+.why dl { margin: 0 }
+.why dt { font-weight: 600; margin-top: 8px }
+.why dt:nth-of-type(2) { margin-left: 18px } .why dd:nth-of-type(2) { margin-left: 18px }
+.why dt:nth-of-type(3) { margin-left: 36px } .why dd:nth-of-type(3) { margin-left: 36px }
+.why dd { margin: 2px 0 0; color: var(--fg) }
 .note { background: var(--soft); border-radius: 10px; padding: 12px 14px; font-size: 15px; margin: 12px 0 }
 .ok { color: var(--ok); font-weight: 600 } .bad { color: var(--bad); font-weight: 600 }
 @media (max-width: 860px) { .page { grid-template-columns: 1fr; gap: 16px } nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px 14px } }
 </style>
 <div class="page">
 <nav aria-label="Contents">
-  <a href="#what">What we did</a><a href="#general">How flood simulations work</a><a href="#ours">How ours works</a><a href="#assume">Our assumptions</a><a href="#changed">What we changed</a><a href="#lidar">How accurate the height survey is</a><a href="#drains">Drainage and trees</a><a href="#impact">What impact we show</a><a href="#insurance">Why insurers would care</a><a href="#burst">The 2020 burst water main</a><a href="#prior">Earlier work by others</a><a href="#limits">What this does not show</a>
+  <a href="#what">What we did</a><a href="#general">How flood simulations work</a><a href="#ours">How ours works</a><a href="#assume">Our assumptions</a><a href="#changed">What we changed</a><a href="#lidar">How accurate the height survey is</a><a href="#drains">Drainage and trees</a><a href="#impact">What impact we show</a><a href="#insurance">Why insurers would care</a><a href="#why">If a judge keeps asking why</a><a href="#burst">The 2020 burst water main</a><a href="#prior">Earlier work by others</a><a href="#limits">What this does not show</a>
 </nav>
 <main>
 <h1>Which bit of pavement floods a building?</h1>
@@ -143,6 +150,25 @@ td.n { font-variant-numeric: tabular-nums; white-space: nowrap }
   <li><b>Paying for prevention.</b> If lowering one patch of pavement takes several centimetres off the water at a wall, that is a cheap measure an insurer or council could fund. We showed one such fix working in the simulation, on one street.</li>
 </ul>
 <p class="note">None of this is tested against claims. We have one neighbourhood, no sewer data and no record of which doors flooded. An insurer would need the method run on streets where claims are known.</p>
+
+<h2 id="why">If a judge keeps asking why</h2>
+<p>Each chain starts from a claim and asks why three times, the way a careful judge would.</p>
+<div class="why"><p class="c">Claim: about one square in a hundred matters.</p>
+<dl><dt>Why so few?</dt><dd>Water follows the low ground. Most squares are not on a route that water takes to a building, so moving them changes nothing at a wall.</dd>
+<dt>Why does 5 cm matter on the few that do?</dt><dd>Those squares sit on a lip, the low point of the rim around a dip. Water leaves a dip over its lip. Raise the lip and more water stays behind; lower it and more gets past.</dd>
+<dt>Why are they 20 metres away and not at the door?</dt><dd>The lip that decides how much water reaches a wall is wherever the pond upstream spills, and that is usually further up the street.</dd></dl></div>
+<div class="why"><p class="c">Claim: eight times less compute.</p>
+<dl><dt>Why can several tests share one run?</dt><dd>A 5 cm change only shifts water near it. Two changes 150 metres apart almost never reach the same wall, so one run answers both.</dd>
+<dt>Why is the effect local?</dt><dd>A small change alters how one dip fills and spills. The next dip along sees almost the same water as before.</dd>
+<dt>Why did some effects travel further, then?</dt><dd>A long pool is one body of water. Change its level at one end and the other end, 100 metres away, moves too. That happened in about 1 case in 20, which is why every finding is re-run with different neighbours.</dd></dl></div>
+<div class="why"><p class="c">Claim: this is worth doing even though the model is not checked against a real flood.</p>
+<dl><dt>Why trust it at all?</dt><dd>We don't ask you to trust the depths. We report what the model reacts to: which ground changes its answer.</dd>
+<dt>Why is that useful?</dt><dd>The height survey is only good to about 5 cm. If a few squares decide a wall's flooding, those are the squares where survey error matters, and the ones worth measuring on foot.</dd>
+<dt>Why would the same squares matter in the real street?</dt><dd>We can't show that yet. It needs a street with records of which doors flooded, and real drain data. That is the next test.</dd></dl></div>
+<div class="why"><p class="c">Claim: each storm needs its own map.</p>
+<dl><dt>Why did only 53 of 98 findings hold at double the rain?</dt><dd>More water fills the dips higher. Dips that were separate join up, and the water starts leaving over different lips.</dd>
+<dt>Why does that change which squares matter?</dt><dd>A square matters when it is the lip in control. When a bigger storm drowns that lip, another one further along takes over.</dd>
+<dt>Why not just map the biggest storm?</dt><dd>Small storms are far more common, and the ground that matters for them is different. Covering several storm sizes is the reason to make each map cheap.</dd></dl></div>
 
 <h2 id="burst">The 2020 burst water main</h2>
 <p>On 21 January 2020 a 36-inch water main burst at the junction of Blackfriars Road and Union Street, beside Southwark station. London Fire Brigade sent three engines. The station closed, Blackfriars Road was shut between Southwark Street and Webber Street, and about 400 customers reported low pressure or no water. Thames Water called the repair one of the most complicated it had carried out, and the side roads stayed closed for months.</p>
