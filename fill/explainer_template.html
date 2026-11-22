@@ -17,7 +17,7 @@ h1 { font: 900 clamp(40px, 6vw, 76px)/.95 var(--display); text-transform: upperc
 .lede { font-size: 20px; line-height: 1.45; margin: 0 0 22px }
 h2 { font: 600 26px/1.2 var(--sans); margin: 44px 0 10px; text-wrap: balance; scroll-margin-top: 20px }
 h3 { font: 600 18px/1.3 var(--sans); margin: 22px 0 6px }
-p { margin: 0 0 12px } ul { margin: 0 0 12px; padding-left: 22px } li { margin-bottom: 6px }
+p { margin: 0 0 12px } ul, ol { margin: 0 0 12px; padding-left: 22px } li { margin-bottom: 6px }
 a { color: var(--cool) }
 figure { margin: 18px 0 8px } figure img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); display: block }
 figcaption { font-size: 13px; color: var(--muted); margin-top: 6px }
@@ -36,12 +36,12 @@ td.n { font-variant-numeric: tabular-nums; white-space: nowrap }
 </style>
 <div class="page">
 <nav aria-label="Contents">
-  <a href="#what">What we did</a><a href="#rain">How the rain is simulated</a><a href="#lidar">How accurate the height survey is</a><a href="#drains">Drainage and trees</a><a href="#impact">What impact we show</a><a href="#insurance">Why insurers would care</a><a href="#burst">The 2020 burst water main</a><a href="#prior">Earlier work by others</a><a href="#limits">What this does not show</a>
+  <a href="#what">What we did</a><a href="#general">How flood simulations work</a><a href="#ours">How ours works</a><a href="#assume">Our assumptions</a><a href="#changed">What we changed</a><a href="#lidar">How accurate the height survey is</a><a href="#drains">Drainage and trees</a><a href="#impact">What impact we show</a><a href="#insurance">Why insurers would care</a><a href="#burst">The 2020 burst water main</a><a href="#prior">Earlier work by others</a><a href="#limits">What this does not show</a>
 </nav>
 <main>
 <h1>Which bit of pavement floods a building?</h1>
 <p class="lede">A weekend experiment on half a kilometre of London around Southwark Underground station, explained for someone who has never worked on floods.</p>
-<figure><img alt="A white 3D model of the streets around Southwark station seen from above, with blue water lying along Blackfriars Road and in the side streets" src="__IMG__"><figcaption>Our simulation of 35 mm of rain in an hour. Ground heights and building heights are from the Environment Agency survey. Blue is water 3 cm deep or more at its highest.</figcaption></figure>
+<figure><img alt="A white 3D model of the streets around Southwark station seen from above, with blue water lying along Blackfriars Road and in the side streets" src="__IMG__"><figcaption>Our simulation of the 35 mm storm. Ground heights and building heights are from the Environment Agency survey. Blue is water 3 cm deep or more at its highest.</figcaption></figure>
 
 <h2 id="what">What we did</h2>
 <p>When heavy rain falls faster than the drains can take it, the water runs downhill along the street, fills the low spots and collects against buildings. Flood maps show where that water ends up. They do not show which part of the street sent it there.</p>
@@ -55,14 +55,53 @@ td.n { font-variant-numeric: tabular-nums; white-space: nowrap }
 </div>
 <p>About one square in a hundred matters. The square is typically 20 metres from the building it affects, and some are on railway land between buildings. We then picked five squares from the results, changed all five in one run, and the water at five building walls fell by 1.8 to 6.5 cm and nowhere else rose by a centimetre.</p>
 
-<h2 id="rain">How the rain is simulated</h2>
+<h2 id="general">How flood simulations work in general</h2>
+<p>A flood simulation is bookkeeping for water. The area is cut into a grid of small squares. Each square has a ground height and holds some depth of water. The program then repeats one small step, thousands of times:</p>
+<ol>
+  <li><b>Add water.</b> Rain adds a little depth to every square.</li>
+  <li><b>Work out the flow.</b> For each pair of neighbouring squares, compare the water surface on each side. Water flows from the higher surface to the lower one. It flows faster when the difference is bigger and the water is deeper, and slower over rough ground.</li>
+  <li><b>Move the water.</b> Take that much water out of one square and put it in the other. Nothing is created or lost.</li>
+  <li><b>Advance the clock</b> by a fraction of a second and repeat.</li>
+</ol>
+<p>The equations behind step 2 are called the shallow-water equations, and every serious flood model uses some form of them. The models differ in what they leave out to run faster. The time step has to be tiny, because water must not jump more than one square per step, so deeper and faster water forces smaller steps. That is why these simulations are expensive: millions of squares, tens of thousands of steps.</p>
+<p>The national flood maps in England are made this way on a 2 metre grid. Cheaper methods skip the flow altogether and just fill the dips in the ground like a bath. They answer in seconds, but they cannot say what happens while the water is moving.</p>
+
+<h2 id="ours">How our simulation works, step by step</h2>
 <ul>
-  <li><b>The storm.</b> 35 mm of rain falls in one hour, evenly over the whole area, heavier in the middle of the hour than at the start and end. We also ran 15 mm and 70 mm for some checks. For scale, London's severe storms in July 2021 brought roughly 40 to 60 mm in an hour.</li>
-  <li><b>The ground.</b> A grid of one-metre squares, 512 by 512, each with a height from the Environment Agency's laser survey. Buildings are solid walls that water cannot enter.</li>
-  <li><b>The physics.</b> The program tracks how deep the water is in every square and moves it to lower neighbours using the standard equations for shallow flowing water. It takes about 18,000 small time steps to cover the hour and the draining afterwards.</li>
-  <li><b>The drains.</b> We remove 12 mm of rain an hour everywhere as a stand-in for the sewers. See the drainage section for how that compares with the national maps.</li>
+  <li><b>The grid.</b> 512 by 512 squares of one metre, so about 262,000 squares. Each has a ground height from the Environment Agency's laser survey.</li>
+  <li><b>Buildings.</b> Squares under buildings are walls. Water cannot enter them and flows around.</li>
+  <li><b>The storm.</b> Rain builds up evenly for 20 minutes to a peak of about 125 mm an hour, then eases off for 20 minutes. About 43 mm falls in all. The drains are assumed to take 12 mm an hour while it rains, which leaves 35 mm on the ground. That is the "35 mm storm". The simulation runs for a full hour so the water has time to settle. We also ran storms that leave 15 mm and 70 mm.</li>
+  <li><b>The flow rule.</b> We use a simplified form of the shallow-water equations published by Bates and colleagues in 2010 and widely used for floodplains. It keeps gravity, the slope of the water surface and friction with the ground, and drops one term that only matters in fast, steep flow.</li>
+  <li><b>The time step.</b> It is recalculated as the water deepens, and comes out at about 0.15 seconds, so one storm is roughly 18,000 steps.</li>
+  <li><b>The edges.</b> Water that reaches the edge of the area flows out freely.</li>
+  <li><b>The hardware.</b> Every square is updated at once on a laptop's graphics chip. One storm takes about 13 seconds.</li>
   <li><b>What we read off.</b> The highest water reached at 207 points on building walls that face a street. We count a point as flooded at 10 cm.</li>
+  <li><b>A built-in check.</b> After every run the program adds up all the water that fell, left and remains. The totals agree to about one part in 100,000.</li>
 </ul>
+
+<h2 id="assume">The assumptions we made, and why</h2>
+<div class="tw"><table>
+<tr><th>Assumption</th><th>Why we made it</th><th>What it costs</th></tr>
+<tr><td>Rain is the same everywhere</td><td>The area is only half a kilometre across, smaller than a storm cell.</td><td>Little, at this size.</td></tr>
+<tr><td>Drains take a flat 12 mm an hour, only while it rains</td><td>We have no map of the real sewers. 12 mm an hour is the figure the 2013 national map used.</td><td>The biggest gap. Real drains block, back up and differ street to street. Standing water does not drain away after the rain in our model.</td></tr>
+<tr><td>Rain on roofs goes straight to the sewer</td><td>Roofs have gutters and downpipes.</td><td>The national maps do not do this, so we remove somewhat more water than they do.</td></tr>
+<tr><td>Buildings are solid walls</td><td>Simple, and it lets us measure water at the wall.</td><td>Water ponds deeper against walls than in the national maps, which let water into buildings above 30 cm.</td></tr>
+<tr><td>The ground is equally smooth everywhere</td><td>One friction value, typical of tarmac, keeps the model simple.</td><td>Grass and gravel are rougher. When we doubled the roughness, 81 of 98 findings still held.</td></tr>
+<tr><td>The ground soaks up nothing</td><td>The site is paved and sits on London Clay, which absorbs very little in a short storm.</td><td>Little here. It would matter in a park.</td></tr>
+<tr><td>The survey heights are right</td><td>They are the best data that exists.</td><td>They are good to about 5 cm, the same size as the changes we test. This is the reason for the experiment.</td></tr>
+<tr><td>One-metre squares are fine enough</td><td>It is the finest survey available for all of London.</td><td>A kerb is narrower than a square, so real kerbs are blurred.</td></tr>
+<tr><td>A 5 cm change to a 5 metre square stands for a small street change</td><td>It is about the height of a low kerb and the size of a parking space.</td><td>Real works are other shapes and sizes. Results for 5 cm may not scale to 1 cm or 20 cm.</td></tr>
+</table></div>
+
+<h2 id="changed">What we changed</h2>
+<p>The simulation itself is standard. Four things about how we used it are ours.</p>
+<ul>
+  <li><b>We varied the ground, not the rain.</b> The usual use of many simulations is to try many storms. We held the storm fixed and asked which ground matters, by moving every square up and down.</li>
+  <li><b>We ran many tests inside one simulation.</b> A 5 cm change mostly affects water nearby. So we changed squares 150 metres apart in the same run, about nine at a time, and credited each change in the water to the nearest changed square. This is the step that cut 15,788 runs to 1,956.</li>
+  <li><b>We re-ran every finding apart from the others.</b> About one time in twenty the nearest square was not the cause, because long ponds carry an effect further than we allowed for. The re-runs catch that, so they are part of the method.</li>
+  <li><b>We set pass marks before running each check</b>, and report the ones we failed.</li>
+</ul>
+<p>To make that possible the solver had three additions: it can run a different ground in each copy of the street at once, it treats buildings as walls, and it records the highest water at each wall point.</p>
 
 <h2 id="lidar">How accurate the height survey is</h2>
 <p>The ground heights come from the Environment Agency's LIDAR survey: a plane measures the ground with a laser, giving one height for every square metre.</p>
@@ -79,14 +118,14 @@ td.n { font-variant-numeric: tabular-nums; white-space: nowrap }
 <h2 id="drains">Drainage and trees</h2>
 <p>We have no data on the real sewers under these streets, so drainage is handled in two simple ways.</p>
 <ul>
-  <li><b>A flat allowance.</b> In the main experiment, 12 mm of rain an hour disappears everywhere. The national flood map of 2013 used the same 12 mm an hour, and the 2025 version uses 18. The Environment Agency itself calls drain capacity the largest source of uncertainty in its mapping.</li>
+  <li><b>A flat allowance.</b> In the main experiment, 12 mm of rain an hour disappears everywhere while it is raining. The national flood map of 2013 used the same 12 mm an hour, and the 2025 version uses 18. The Environment Agency itself calls drain capacity the largest source of uncertainty in its mapping.</li>
   <li><b>Road drains placed by rule.</b> As a check, we replaced the flat allowance with 303 drains, one at the lowest point of the road in every 25 metre square, together able to take the same amount of water. <span class="ok">79 of our 98 findings still held.</span> The drains are invented positions, not real ones.</li>
   <li><b>Street trees, a first look.</b> 20 trees with soil pits, placed where water at the kerb is deepest, lowered the water at 8 building walls by 1 to 1.7 cm in the 35 mm storm. None dropped below 10 cm. Placed at random, the same trees helped one; in the 70 mm storm, none. This was one run with one placement, and the pit size is an upper limit, so treat it as a first look.</li>
 </ul>
 
 <h2 id="impact">What impact we show</h2>
 <div class="tw"><table>
-<tr><th>Storm, in one hour</th><th>Building points with 10 cm or more, of 207</th><th>With the five-square fix</th></tr>
+<tr><th>Storm, water left on the ground</th><th>Building points with 10 cm or more, of 207</th><th>With the five-square fix</th></tr>
 <tr><td class="n">15 mm</td><td class="n">14</td><td class="n">13</td></tr>
 <tr><td class="n">35 mm</td><td class="n">30</td><td class="n">29</td></tr>
 <tr><td class="n">70 mm</td><td class="n">45</td><td class="n">44</td></tr>
