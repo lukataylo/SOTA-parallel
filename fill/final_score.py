@@ -67,3 +67,26 @@ if ch:
     b0 = np.load("results/air/map/s1_raise/base_start.npz")["peak"].astype(float); b1 = np.load("results/air/final/drain/base.npz")["peak"].astype(float)
     print("  %d of %d move the same building 1 cm the same way; receptors at 0.10 m or more: uniform loss %d, inlets %d; median peak depth %.3f -> %.3f m" % (sum(same), len(same), (b0 >= 0.1).sum(), (b1 >= 0.1).sum(), np.median(b0), np.median(b1)))
 else: print("  not run")
+
+print("== dense, raised half (75 m apart; line: 95% of the 64 known raised movers seen, zero unexplained after tracing)")
+ch = load("denseup"); P = 15
+if ch:
+    seen = tot = 0; unexpl = []; nw = 0
+    for c, d in ch.items():
+        B = [(i, j) for i in range(c // P or P, 101, P) for j in range(c % P or P, 101, P) if op[5 * i:5 * i + 5, 5 * j:5 * j + 5].any()]; nw += len(B); known = [b for b in B if F["mover"][0, idx[b]]]
+        for b in known: n = idx[b]; q = F["receptor"][0, n]; tot += 1; seen += abs(d[q]) >= THR and np.sign(d[q]) == np.sign(F["effect"][0, n])
+        for q in np.flatnonzero(np.abs(d) >= THR):
+            D = [np.hypot(5 * i + 2 - rc[q, 0], 5 * j + 2 - rc[q, 1]) for i, j in B]
+            if min(D) <= 7.5: continue
+            if not any(np.hypot(5 * i + 2 - rc[q, 0], 5 * j + 2 - rc[q, 1]) <= 125 for i, j in known): unexpl.append((c, int(q), round(100 * d[q], 1), round(min(D))))
+    print("  runs %d of 225, what-ifs %d (%.1f per run); known raised movers seen %d of %d (%.0f%%; line 95%%); moves with no known mover within 125 m: %d %s" % (len(ch), nw, nw / len(ch), seen, tot, 100 * seen / max(tot, 1), len(unexpl), unexpl[:12]))
+else: print("  not run")
+print("== candidates a 75 m map would send to a confirm run (nearest block to each moved receptor, more than 7.5 m away)")
+for job in ("denseup", "dense"):
+    ch = load(job); cand = set()
+    for c, d in ch.items():
+        B = [(i, j) for i in range(c // P or P, 101, P) for j in range(c % P or P, 101, P) if op[5 * i:5 * i + 5, 5 * j:5 * j + 5].any()]
+        for q in np.flatnonzero(np.abs(d) >= THR):
+            D = [np.hypot(5 * i + 2 - rc[q, 0], 5 * j + 2 - rc[q, 1]) for i, j in B]
+            if min(D) > 7.5: cand.add((c, int(np.argmin(D))))
+    print("  %s: %d candidates from %d runs" % (job, len(cand), len(ch)))

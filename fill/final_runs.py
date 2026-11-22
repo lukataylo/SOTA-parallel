@@ -13,8 +13,8 @@ elif JOB in ("deriv", "drain"):                                          # deriv
     W = [[(int(k), int(F["i"][n]), int(F["j"][n]))] for k in (0, 1) for n in np.flatnonzero(F["mover"][k])]
     if JOB == "deriv":
         sc = np.load("results/air/map_scored.npz")["mover"] | F["mover"]; kk, nn = np.nonzero(~sc); pick = sorted(np.random.default_rng(2026).choice(len(kk), 240, replace=False))[::2]; W += [[(int(kk[p]), int(F["i"][nn[p]]), int(F["j"][nn[p]]))] for p in pick]
-elif JOB == "dense":
-    P = 15; W = [[(1, i, j) for i in range(c // P or P, 101, P) for j in range(c % P or P, 101, P)] for c in range(P * P)]
+elif JOB in ("dense", "denseup"):                                        # dense: lowered half; denseup: raised half
+    P = 15; KS = 1 if JOB == "dense" else 0; W = [[(KS, i, j) for i in range(c // P or P, 101, P) for j in range(c % P or P, 101, P)] for c in range(P * P)]
 elif JOB == "random":
     sc = np.load("results/air/map_scored.npz")["mover"] | F["mover"]; kk, nn = np.nonzero(~sc); pick = np.random.default_rng(2026).choice(len(kk), 240, replace=False); W = [[(int(kk[p]), int(F["i"][nn[p]]), int(F["j"][nn[p]]))] for p in sorted(pick)]
 elif JOB == "slice70":                                                   # packed map at 70 mm: first 80 colours of the seed-2026 order, both signs
