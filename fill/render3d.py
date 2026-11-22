@@ -37,7 +37,7 @@ X = P0 + f * np.where(ok, hi, 0)[:, None]; hc, ix, iy, ins = height(X); ix = np.
 wall = ok & (hc - X[:, 2] > 0.4); nrm = np.zeros((len(X), 3)); nrm[:, 2] = 1.0
 gn = np.stack([-gx[iy, ix], -gy[iy, ix]], 1); gl = np.maximum(np.linalg.norm(gn, axis=1), 1e-6); nrm[wall] = np.column_stack([gn[wall] / gl[wall, None], np.zeros(wall.sum())])
 lit = np.zeros(len(X)); lit[ok] = ~np.isfinite(march(X[ok] + nrm[ok] * 0.3 + np.array([0, 0, 0.05]), sun, 150)); ndl = np.clip(nrm @ sun, 0, 1)
-shade = 0.50 * np.where(wall, 0.8, amb[iy, ix]) + 0.62 * lit * ndl
+shade = 0.42 * np.where(wall, 0.72, amb[iy, ix] ** 1.6) + 0.66 * lit * ndl
 isb = ins & ~op[iy, ix]; dist = np.hypot(X[:, 0] - 256, X[:, 1] - 256); fog = np.clip((dist - 215) / 170, 0, 1) ** 1.5; fog[~ok | ~ins] = 1
 lab, nl = ndi.label(~op); tg = np.load("shared/map_design.npz"); tgt = set()
 for q in tg["target"]:
@@ -46,7 +46,7 @@ for q in tg["target"]:
 istgt = np.isin(lab, list(tgt)); sq = np.zeros((512, 512), bool)
 for k, i, j in tg["blocks"]: sq[5 * i - 4:5 * i + 9, 5 * j - 4:5 * j + 9] = True                                     # drawn 13 m wide so a 5 m square can be seen
 def picture(depth, name, change=None):
-    col = np.where(isb[:, None], np.array([0.17, 0.18, 0.20]), np.where(road[iy, ix][:, None], np.array([0.84, 0.85, 0.87]), np.array([0.95, 0.95, 0.96])))
+    col = np.where(isb[:, None], np.array([0.90, 0.90, 0.92]), np.where(road[iy, ix][:, None], np.array([0.90, 0.91, 0.93]), np.array([0.95, 0.95, 0.96])))
     d = depth[iy, ix]; wet = ins & ~isb & ~wall & (d >= 0.03); a = np.clip(d / 0.22, 0.35, 0.92)[:, None]; blue = np.array([0.10, 0.46, 0.92]) * (1 - np.clip(d / 0.8, 0, 1))[:, None] + np.array([0.02, 0.16, 0.50]) * np.clip(d / 0.8, 0, 1)[:, None]
     col = np.where(wet[:, None], col * (1 - a) + blue * a, col); img = col * shade[:, None]; img[wet] += 0.10 * lit[wet, None]
     if change is not None:

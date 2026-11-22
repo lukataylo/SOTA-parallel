@@ -43,7 +43,7 @@ try:
     tex = mos[np.clip((gy - y0 * 256).astype(int), 0, mos.shape[0] - 1), np.clip((gx - x0 * 256).astype(int), 0, mos.shape[1] - 1)]; print("street map tiles:", (x1 - x0 + 1) * (y1 - y0 + 1))
 except Exception as ex: print("no street map:", ex)
 if tex is None: tex = np.where(np.kron(road, np.ones((4, 4), bool))[..., None], 214, 240).astype(np.uint8).repeat(3, 2)
-g = tex.astype(float).mean(2, keepdims=True); tex = (0.55 * tex + 0.45 * g) * 0.5 + 255 * 0.5                           # quieter, lighter map so water reads
+g = tex.astype(float).mean(2, keepdims=True); tex = (0.4 * tex + 0.6 * g) * 0.42 + 255 * 0.58                           # quieter, lighter map so water reads
 tex[np.kron(~op, np.ones((4, 4), bool))] = 255; buf = io.BytesIO(); Image.fromarray(np.clip(tex, 0, 255).astype(np.uint8)).save(buf, "JPEG", quality=82); tex64 = base64.b64encode(buf.getvalue()).decode()
 names = [str(x) for x in np.load("shared/receptors.npz")["label"]] if "label" in np.load("shared/receptors.npz").files else []
 stats = {"storms": [15, 35, 70], "flooded": [[int((F["base_rc"][s] >= thr).sum()), int((F["design_rc"][s] >= thr).sum())] for s in range(3)],
