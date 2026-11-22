@@ -153,3 +153,12 @@ Asked for by the human after a review of what the work does not yet show. Order 
 - If it fails we say: "Which ground matters depends on how drainage is represented. Real inlet and sewer data are needed before any street-level use."
 
 **3. Recorded floods.** No door-level record exists for this tile. The London Fire Brigade publishes every incident with a location rounded to about 50 m. If flooding call-outs on the two storm days of July 2021 (12th and 25th) fall inside the tile, we compare them with simulated peak depth. The line is committed separately once the number of incidents is known and before any comparison. With fewer than 10 incidents the result is reported as anecdote, with no line.
+
+### Recorded floods: result (Sunday 06:20). Too few to test anything; no line set, no comparison made
+
+London Fire Brigade incident records (London Datastore, 2009 to October 2026; locations given as the centre of a 100 m cell; exact locations withheld for dwellings).
+
+- Flooding call-outs inside the tile on 12 July 2021: 0. On 25 July 2021: 1 by its rounded location, a restaurant whose exact location is 14 m outside the tile's east edge. Within 500 m of the tile on those two days: 2.
+- London-wide the same records show 582 flooding call-outs on 12 July 2021, so the storm is in the data; it did not produce calls here.
+- Over all years the tile has 88 "Flooding" call-outs, 70 of them at dwellings and never more than 2 on one day. The category has no cause field and is mostly plumbing.
+- Under the rule committed above (fewer than 10 incidents: anecdote, no line), nothing is compared with the model. The honest statement stays: this tile has no recorded rain flood to validate against. A validation needs a different tile, chosen where the July 2021 call-outs cluster; the same records would support that.
