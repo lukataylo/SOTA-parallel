@@ -40,3 +40,7 @@ GPU environments, AI credits, and mentors and advisors.
 ## Our direction
 
 Flood uncertainty. Details to come.
+
+## Compute disclosure
+
+All results come from two laptops (M4 MacBook Air, M3 MacBook Pro). Before the limit to provided compute was set, one 20-second port check ran on a rented A100. No number from it is used.

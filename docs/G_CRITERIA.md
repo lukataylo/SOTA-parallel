@@ -118,7 +118,9 @@ From `docs/mythos/12_premortem_two_hours.md`. Runner `fill/final_runs.py`, score
 
 "Persist" tests whether known movers remain movers. It does not look for new movers at other storms.
 
-## Cloud GPU scaling (committed Sunday 05:20, before any cloud run)
+## Cloud GPU scaling: WITHDRAWN, not run (Sunday 05:35)
+
+Withdrawn on the human's instruction to use no more compute than is provided. One 20-second port check ran on a rented A100 before that instruction; no number from it is used anywhere. The scaling run was stopped before it produced a result. The text below is kept only as a record of what was committed.
 
 The solver is ported from MLX to PyTorch (`cloud/flood_torch.py`, same scheme, float32) and run on rented NVIDIA GPUs through Modal (`cloud/modal_map.py`).
 
@@ -128,3 +130,10 @@ The solver is ported from MLX to PyTorch (`cloud/flood_torch.py`, same scheme, f
 | **Scaling.** The same 240 packed runs split over 1, 2, 4 and 8 GPUs (more if the account allows), 30 runs per batch | With 8 GPUs, solve time at least 5.6x shorter than with 1 (70% efficiency), measured on warm containers. Wall-clock including container start is reported beside it | We report the curve as measured and say where it bends |
 
 The hardware gain (one cloud GPU against one laptop) is reported as a separate number and never multiplied into the 8.8 as one claim without saying which part is which.
+
+## Changes to the Sunday checks (committed 05:40, before any of the affected runs; from `docs/mythos/13_parallel_speedup_on_brief.md`)
+
+- **Baseline for the speedup, stated once.** One simulation per changed square per storm, the practice of the published CityCAT study (arXiv 2311.00420). Held fixed: the same MLX solver, laptops, 35 mm storm, grid, 15,788 what-ifs and 1 cm verdict. Our cost is 1,956 runs including confirm and trace runs. The baseline cost is the measured mean seconds per run times 15,788, extrapolated and said to be so. The 8x is per storm and is never multiplied by a number of storms.
+- **Random dismissed is cut to 120**: every second what-if of the committed seed-2026 draw of 240 (even positions). Line unchanged: 0 move a receptor. The claim becomes "the map misses under 2.5%". If the Pro runs, it does the full 240.
+- **New: packed map at the 70 mm storm, a slice.** One unchanged run, then the first 80 colours in seed-2026 order, raised and lowered (160 packed runs, about 1,400 what-ifs), attributed as in the 35 mm map. Then each mover alone, at most 40, largest effect first. **Line:** at least 90% of those movers keep their verdict alone. The number of movers not on the 35 mm list is reported with no line. If it fails we say: "Water reaches further in a bigger storm; the spacing, and so the speedup, must be set per storm."
+- Order on the Air: persist at 70 mm and at n 0.03 (running), dense, the 70 mm slice, random dismissed, persist at 15 mm last if time allows. Stop by the clock at 11:00, never by results.
