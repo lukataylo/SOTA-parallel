@@ -105,7 +105,7 @@ All 1,800 runs finished: 15,788 what-ifs, 8.77 per run. With the 126 confirm run
 
 **What the slides may say.** "Every open 5 x 5 m square raised and lowered 5 cm in a 2D solver: 15,788 what-ifs in 1,800 runs. 98 move a building by 1 cm, typically 20 m away." And, since the screen failed its recall line: "The quick estimate finds 77% of the ground that matters and wrongly dismisses 0.15%. The solver map is the product; the quick estimate is a prior." Not to be said: that 150 m spacing isolates every change. It does not for long ponds; the confirm stage is part of the method.
 
-## Sunday morning checks (committed 05:20, before any of these runs)
+## Sunday morning checks (committed 05:04, before any of these runs)
 
 From `docs/mythos/12_premortem_two_hours.md`. Runner `fill/final_runs.py`, scorer `fill/final_score.py`. No number of the map above changes; these are new experiments with their own lines.
 
