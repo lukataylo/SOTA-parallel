@@ -12,10 +12,12 @@ def job(a):
     i, j, dz = a; z = z0.copy(); sl = (slice(5 * i, 5 * i + 5), slice(5 * j, 5 * j + 5)); z[sl] = np.where(op[sl], z[sl] + dz, z[sl])
     far = np.hypot(rc[:, 0] - (5 * i + 2), rc[:, 1] - (5 * j + 2)) > 7.5; ch = np.where(far[None], dep(z) - BASE, 0); return np.abs(ch).max(1)
 if __name__ == "__main__":
-    F = np.load("results/air/map_final.npz"); B = list(zip(F["i"].tolist(), F["j"].tolist())); jobs = [(i, j, dz) for dz in (0.05, -0.05) for i, j in B]
+    F = np.load("results/air/map_final.npz"); mv = F["mover"][0] | F["mover"][1]; x = 5 * F["j"] + 2; rng = np.random.default_rng(2026); rest = np.flatnonzero(~mv)
+    pick = np.concatenate([np.flatnonzero(mv), rng.choice(rest[x[rest] < 256], 250, replace=False), rng.choice(rest[x[rest] >= 256], 250, replace=False)])   # every mover square, plus 250 random other squares per half for the flag rate
+    B = [(int(F["i"][n]), int(F["j"][n])) for n in pick]; jobs = [(i, j, dz) for dz in (0.05, -0.05) for i, j in B]
     with mp.Pool(9) as p:
         R = []
         for n, r in enumerate(p.imap(job, jobs, chunksize=8)):
             R.append(r)
-            if n % 1000 == 0: print(n, flush=True)
-    np.savez("results/air/map_fill_depths.npz", depths_mm=D * 1e3, change=np.array(R).reshape(2, len(B), len(D))); print("done", flush=True)
+            if n % 100 == 0: print(n, flush=True)
+    np.savez("results/air/map_fill_depths.npz", depths_mm=D * 1e3, index=pick, is_mover_square=mv[pick], change=np.array(R).reshape(2, len(B), len(D))); print("done", flush=True)
