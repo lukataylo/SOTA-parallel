@@ -3,10 +3,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: one full-screen stage. The street model fills it; the story sits in a column on the left; a transport bar sits at the bottom. */
-:root { --bg:#ffffff; --fg:#15161a; --muted:#5b5f69; --line:#dcdde2; --panel:rgba(255,255,255,.86); --hot:#ff1485; --cool:#087f94; --ok:#0f8a5f; --bad:#c2410c;
+:root { --bg:#ffffff; --fg:#15161a; --muted:#5b5f69; --line:#dcdde2; --panel:rgba(255,255,255,.86); --hot:#ff1485; --paper:#fbfaf6; --ink:#15161a; --tape:#ffd9ea; --cool:#087f94; --ok:#0f8a5f; --bad:#c2410c;
   --display:'Big Shoulders Display', Impact, 'Arial Narrow', sans-serif; --sans:'Instrument Sans', Arial, sans-serif; --mono:'DM Mono', ui-monospace, Menlo, monospace; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#202026; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --panel:rgba(32,32,38,.86); --hot:#ff4fa3; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark } }
-:root[data-theme="dark"] { --bg:#202026; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --panel:rgba(32,32,38,.86); --hot:#ff4fa3; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#202026; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --panel:rgba(32,32,38,.86); --hot:#ff4fa3; --paper:#2a2a32; --ink:#f2f0ea; --tape:#6b2a4a; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark } }
+:root[data-theme="dark"] { --bg:#202026; --fg:#f2f0ea; --muted:#a4a7b0; --line:#3a3a44; --panel:rgba(32,32,38,.86); --hot:#ff4fa3; --paper:#2a2a32; --ink:#f2f0ea; --tape:#6b2a4a; --cool:#71d6e2; --ok:#4fd6a0; --bad:#ff9a62; color-scheme: dark }
 * { box-sizing: border-box }
 html, body { height: 100% }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); overflow: hidden }
@@ -39,6 +39,20 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
 .inset { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 100px; width: min(430px, 40vw); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 10px; pointer-events: none }
 .inset svg { display: block; width: 100%; height: auto }
 .inset p { margin: 6px 0 0; font: 400 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.inset h2 { margin: 0 0 6px; font: 600 17px var(--sans) }
+.inset .wall { margin: 8px 0 0; font: 600 17px var(--sans); color: var(--fg); letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums }
+.act { pointer-events: auto; align-self: flex-start; font: 600 17px var(--sans); color: var(--bg); background: var(--fg); border: 0; border-radius: 999px; padding: 13px 24px; cursor: pointer }
+.act:focus-visible { outline: 3px solid var(--hot); outline-offset: 3px }
+.story.wide { width: min(760px, 60vw) }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.card { background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px 12px; box-shadow: 0 6px 18px rgba(20,20,30,.10); position: relative; min-width: 0 }
+.card::before { content: ""; position: absolute; left: 14px; top: -7px; width: 46px; height: 14px; background: var(--tape); opacity: .8; transform: rotate(-3deg) }
+.card .cite { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.card h3 { margin: 4px 0 4px; font: 600 16px/1.2 var(--sans) }
+.card p { margin: 0; font-size: 13.5px; line-height: 1.35 }
+.card:last-child .v { color: var(--ok) }
+.card .v { margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line); font-weight: 600; color: var(--hot) }
+@media (max-width: 760px) { .cards { grid-template-columns: 1fr; gap: 6px } .card h3 { font-size: 14px } .card p:not(.v) { display: none } .story.wide { width: auto } }
 .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; display: flex; align-items: center; gap: 16px; padding-block: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: linear-gradient(to top, var(--bg) 55%, transparent) }
 .bar button { font: 600 15px var(--sans); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; cursor: pointer }
 .bar button.next { background: var(--fg); color: var(--bg); border-color: var(--fg) }
@@ -68,18 +82,20 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); overfl
       <div class="lane"><div class="top"><span>One change per simulation</span><span id="h0"></span></div><div class="track"><i id="p0"></i></div><span id="c0"></span></div>
       <div class="lane hot"><div class="top"><span>Packed, checks included</span><span id="h1"></span></div><div class="track"><i id="p1"></i></div><span id="c1"></span></div>
     </div>
+    <button class="act" id="kerbBtn" hidden>Lower kerb</button>
     <div class="rows" id="rows" hidden></div>
+    <div class="cards" id="cards" hidden></div>
   </div>
   <div class="inset" id="inset" hidden>
-    <svg viewBox="0 0 420 170" role="img" aria-label="Sketch of a street in cross-section: a dip in the road, a kerb, and a doorstep. The kerb rises 5 centimetres and the water at the door falls.">
-      <path id="sk-ground" fill="none" stroke="currentColor" stroke-width="2" d=""/>
-      <path id="sk-water" fill="var(--cool)" opacity=".55" d=""/>
-      <rect id="sk-kerb" x="196" y="108" width="26" height="0" fill="var(--hot)"/>
-      <path d="M330 112 V40 H405 V112" fill="none" stroke="currentColor" stroke-width="2"/><rect x="345" y="72" width="22" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
-      <text x="209" y="150" text-anchor="middle" font-family="DM Mono, monospace" font-size="11" fill="currentColor" id="sk-lab">kerb</text>
-      <text x="408" y="30" text-anchor="end" font-family="DM Mono, monospace" font-size="12" fill="currentColor" id="sk-depth"></text>
+    <h2>Kerb cross-section</h2>
+    <svg viewBox="0 0 420 120" role="img" aria-label="Cross-section of a kerb: a raised step of pavement beside a lower road. The pavement drops by 5 centimetres.">
+      <polygon id="sk-block" fill="var(--line)" stroke="var(--muted)" stroke-width="1.5" points=""/>
+      <polyline id="sk-top" fill="none" stroke="var(--hot)" stroke-width="3.5" points=""/>
+      <line id="sk-orig" x1="20" y1="34" x2="210" y2="34" stroke="var(--hot)" stroke-width="1.5" stroke-dasharray="5 5" opacity="0"/>
+      <text id="sk-lab" x="400" y="26" text-anchor="end" font-family="Instrument Sans, Arial, sans-serif" font-weight="600" font-size="17" fill="var(--hot)">Original level</text>
     </svg>
-    <p>Sketch, not to scale</p>
+    <p>Illustration · vertical scale exaggerated</p>
+    <p class="wall" id="sk-depth"></p>
   </div>
   <div class="bar"><button id="prev" aria-label="Previous step">←</button><div class="dots" id="dots"></div><span class="count" id="count"></span><button class="next" id="next">Next →</button></div>
 </div>
@@ -98,7 +114,7 @@ const landMask = new Image(); landMask.src = STORM.mask;
 const waterLayer = document.createElement('canvas'); waterLayer.width = waterLayer.height = 512; const wc = waterLayer.getContext('2d');
 // ---- the state every scene animates ----
 const cam = { x: 256, y: 256, zoom: 1, angle: -.46, pitch: .64 };
-const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0, places: 0 };
+const S = { water: 0, minute: 10, storm: 0, pack: 0, packAll: 0, packPulse: 0, moves: 0, keepOnly: 0, design: 0, sel: 4, five: 0, kerb: 0, kerbAt: 4, kerbAll: 0, spin: 0, places: 0, patch: 0, lower: 0 };
 const race = { t: 0 };
 let W, H, s, cs, sn, cp, sp, dark = isDark();
 function project(x, y, h = 0) { x -= cam.x; y -= cam.y; return [W * (W > 760 ? .62 : .5) + s * (x * cs - y * sn), H * (W > 760 ? .5 : .36) + s * ((x * sn + y * cs) * sp - h * cp)]; }
@@ -154,17 +170,21 @@ function draw() {
     if (S.keepOnly > .5) D.moves.forEach(([x, y, rx, ry, e, keep]) => { if (keep) return; const a = project(x, y, 2); ctx.strokeStyle = dark ? '#ff9a62' : '#c2410c'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(...a, 5, 0, 7); ctx.stroke(); }); }
   if (S.design > .01) { ctx.save(); ctx.globalAlpha = S.design; D.design.forEach(([x, y, rx, ry], i) => { const o = i === S.sel, c = o ? '#ff1485' : '#868691'; line(project(x, y, 1), project(rx, ry, 2), c, o ? 2 : 1); pin(x, y, c, o); dot(project(rx, ry, 2), o ? 4 : 2, c); }); ctx.restore(); }
   if (S.places > .01) { ctx.save(); ctx.globalAlpha = S.places; PLACES.forEach(([x, y, name, note]) => { const a = project(x, y), p = project(x, y, 46); line(a, p, dark ? '#fff' : '#15161a', 1.4); dot(a, 3.5, '#ff1485'); ctx.font = '600 14px Instrument Sans, Arial'; const w1 = ctx.measureText(name).width; ctx.font = '400 11px DM Mono, monospace'; const w2 = ctx.measureText(note).width, w = Math.max(w1, w2) + 20; ctx.fillStyle = dark ? '#f2f0ea' : '#15161a'; ctx.fillRect(p[0] - w / 2, p[1] - 42, w, 42); ctx.fillStyle = dark ? '#15161a' : '#fff'; ctx.textAlign = 'center'; ctx.font = '600 14px Instrument Sans, Arial'; ctx.fillText(name, p[0], p[1] - 24); ctx.font = '400 11px DM Mono, monospace'; ctx.fillText(note, p[0], p[1] - 9); ctx.textAlign = 'start'; }); ctx.restore(); }
+  if (S.patch > .01) { ctx.save(); ctx.globalAlpha = S.patch; const d = d1, c = [[d[0] - 2.5, d[1] - 2.5], [d[0] + 2.5, d[1] - 2.5], [d[0] + 2.5, d[1] + 2.5], [d[0] - 2.5, d[1] + 2.5]].map(p => project(...p)), a = project(d[0], d[1]), b = project(d[2], d[3], 3);
+    shape(c, S.lower > .5 ? '#c40f68' : '#ff5aa8', '#e0116f', 2); line(a, b, '#e0116f', 2.5); dot(b, 6, '#ff1485'); dot(b, 2.2, '#fff');
+    ctx.font = '600 15px Instrument Sans, Arial'; const t = (d[4] + (d[5] - d[4]) * S.lower).toFixed(1) + ' cm', w = ctx.measureText(t).width; ctx.fillStyle = dark ? '#202026ee' : '#ffffffee'; ctx.fillRect(b[0] + 10, b[1] - 24, w + 16, 28); ctx.fillStyle = '#ff1485'; ctx.fillText(t, b[0] + 18, b[1] - 5);
+    if (S.lower > .02) { ctx.font = '500 13px DM Mono, monospace'; ctx.fillStyle = dark ? '#fff' : '#15161a'; ctx.textAlign = 'center'; ctx.globalAlpha = S.patch * S.lower; ctx.fillText('−5 cm', a[0], a[1] + 30); ctx.textAlign = 'start'; } ctx.restore(); }
   if (S.kerb > 0) { if (S.kerbAll > .5) D.design.forEach(d => kerbBlock(d[0], d[1], S.kerb, d[6] === 1)); else { const d = D.design[S.kerbAt]; kerbBlock(d[0], d[1], S.kerb, false); } }
   if (S.design > .5 && S.kerbAll > .5) { const d = D.design[S.sel], p = project(d[2], d[3], 16), k = Math.min(1, S.kerb), v = d[4] + (d[5] - d[4]) * k; ctx.font = '600 ' + Math.max(13, Math.min(18, s * 5)) + 'px Instrument Sans, Arial'; const t = d[4].toFixed(1) + ' → ' + v.toFixed(1) + ' cm'; const w = ctx.measureText(t).width; ctx.fillStyle = dark ? '#202026ee' : '#ffffffee'; ctx.fillRect(p[0] - w / 2 - 8, p[1] - 20, w + 16, 28); ctx.fillStyle = '#ff1485'; ctx.textAlign = 'center'; ctx.fillText(t, p[0], p[1]); ctx.textAlign = 'start'; }
 }
 const PLACES = [[274, 268, "Southwark Underground station", "closed by a burst water main flood, Jan 2020"], [152, -41, "1–2 Paris Garden", "40 m beyond the model's north edge"]];
 // ---- sketch of the kerb ----
-function sketch(k, depth) {
-  const lip = 108 - 14 * k, lvl = 112 - 26 - 14 * k * .0, door = 112 - depth;
-  $('sk-ground').setAttribute('d', 'M10 96 C60 96 70 132 120 132 C165 132 175 112 196 108 L222 108 C250 110 262 124 290 124 C315 124 320 112 330 112 L410 112');
-  $('sk-kerb').setAttribute('y', lip); $('sk-kerb').setAttribute('height', 108 - lip + 2);
-  $('sk-water').setAttribute('d', 'M38 ' + (lip + 2) + ' C62 ' + (lip + 2) + ' 70 132 120 132 C165 132 178 ' + (lip + 2) + ' 196 ' + (lip + 2) + ' Z M222 ' + door + ' L330 ' + door + ' L330 112 C320 112 315 124 290 124 C262 124 250 112 222 ' + (door + 4) + ' Z');
-  $('sk-depth').textContent = (depth / 1.2).toFixed(1) + ' cm at the door';
+function sketch(k) {
+  const top = 34 + 24 * k;
+  $('sk-block').setAttribute('points', '20,' + top + ' 210,' + top + ' 210,76 400,76 400,104 20,104');
+  $('sk-top').setAttribute('points', '20,' + top + ' 210,' + top + ' 210,76');
+  $('sk-orig').setAttribute('opacity', k > .02 ? 1 : 0); $('sk-lab').textContent = k > .5 ? 'Lowered 5 cm' : 'Original level';
+  $('sk-depth').textContent = 'At the wall: ' + (d1[4] + (d1[5] - d1[4]) * k).toFixed(1) + ' cm of water';
 }
 // ---- the storyboard: one camera move per scene, plus what is on screen ----
 const d0 = D.design[4], d1 = D.design[1];
@@ -173,7 +193,7 @@ const SCENES = [
   { kick: 'The problem', head: 'Rain floods more homes than rivers do', big: ['4.6M', 'properties in England at risk from rain that the drains cannot take'], body: 'Flood maps show <b>where</b> the water ends up. They do not show which bit of street is <b>to blame</b>. That is the part you could fix.', cam: { x: 185, y: 10, zoom: 1.05 }, on: { water: 1, places: 1 }, storm: [20, 45, 7] },
   { kick: 'Why now', head: 'Warmer air holds more rain', big: ['7%', 'more water in the air for every degree of warming'], body: 'The climate has already warmed by more than a degree, and warm air drops its rain harder. A Met Office study expects downpours of 20 mm in an hour, enough to cause flash floods, to come <b>four times as often</b> in the UK by 2080 as in the 1980s if emissions stay high. On screen: this street with 70 mm in an hour, twice our test storm.', cam: { x: 300, y: 210, zoom: 1.7 }, on: { water: 1 }, storm: [0, 60, 10], heavy: 1, clock: 1 },
   { kick: 'One simulation', head: 'An hour of rain, in thirteen seconds', body: '35 mm of rain in an hour. Water runs downhill, fills the dips, and spills on to the next. A physics simulation works this out for every square metre. One run takes about 13 seconds on a laptop’s graphics chip.', cam: { x: STORM.spots[0][0], y: STORM.spots[0][1], zoom: 2.4 }, on: { water: 1 }, storm: [0, 60, 12], clock: 1 },
-  { kick: 'The experiment', head: 'Move one square. Run it again.', body: 'Take one 5 metre square of pavement. Raise it 5 cm, the height of a low kerb. Simulate the storm again. Did the peak water at any building change by a centimetre? If so, that square matters.', cam: { x: d0[0] + 6, y: d0[1] + 4, zoom: 3.3 }, on: { water: .55 }, minute: 40, kerb: 4, inset: [21.9, 20.2] },
+  { kick: 'The experiment', head: 'Lower this kerb. Watch the wall.', body: 'Lower the pink patch by 5 cm, the height of a low kerb, and simulate the storm again. How deep does the water get against the building 22 metres away? If it changes by a centimetre, that patch matters.', cam: { x: (d1[0] + d1[2]) / 2 + 4, y: (d1[1] + d1[3]) / 2 + 6, zoom: 3.9 }, on: { patch: 1 }, inset: 1 },
   { kick: 'The cost', head: '15,788 floods to simulate', big: ['55', 'GPU-hours, one change per simulation. That is how a published study of this kind does it.'], body: 'There are 7,894 squares of open ground here. Each one raised, each one lowered. Run one at a time, the laptop is busy for more than two days.', cam: { x: 256, y: 256, zoom: 1.0 }, on: { pack: 1 }, pulse: 1 },
   { kick: 'Reshaping the problem', head: 'Far apart, they cannot hear each other', body: 'A 5 cm change only reaches so far: typically 20 metres. So squares 150 metres apart can be changed in the <b>same</b> simulation, and each building still answers to only one of them. One run now carries many experiments.', big: ['8.8', 'experiments in every simulation, not one'], cam: { x: 277, y: 200, zoom: 1.25 }, on: { pack: 1, packAll: 1 } },
   { kick: 'The speedup', head: 'Eight times less compute', body: 'Same solver. Same laptops. Same storm. Same 15,788 answers. The only thing that changed is how the experiments are arranged inside the grid.', race: 1, cam: { x: 256, y: 256, zoom: .9 }, on: { pack: 1, packAll: 1 } },
@@ -181,6 +201,14 @@ const SCENES = [
   { kick: 'The result', head: 'One square in a hundred', big: ['84', 'of 7,894 squares change the peak water at a building'], body: 'Pink ground makes a building wetter when raised. Blue makes it drier. Each line joins a square to the building it affects, typically 20 metres away. Nobody could have guessed these by looking.', cam: { x: 440, y: 185, zoom: 2.3 }, on: { moves: 1 }, sweep: 1 },
   { kick: 'Using it', head: 'Five small changes. Five drier doors.', big: ['5 / 0', 'buildings with less water / buildings made worse'], body: 'We picked five squares from the map alone, raised two and lowered three by 5 cm, and ran all five in one simulation. The five buildings fell by 1.8 to 6.5 cm. Nothing else rose by a centimetre. The result matched the map to 0.2 mm.', cam: { x: (d1[0] + d1[2]) / 2, y: (d1[1] + d1[3]) / 2, zoom: 2.9 }, on: { design: 1, five: 1, water: .4 }, minute: 40, tour: 1, all: 1 },
   { kick: 'What did not work', head: 'Four things we tried and lost', rows: [['fail', 'Running more simulations at once: <b>no gain</b>. One already fills the chip'], ['fail', 'A ten-minute shortcut model as a filter: found <b>77%</b>, we needed 80%. The circled squares are the ones it missed'], ['fail', 'A textbook derivative from a tiny change: found only <b>55%</b>. Kerb-sized changes are not small'], ['fail', 'Double the rain: <b>53 of 98</b> findings hold. Each storm needs its own map']], cam: { x: 256, y: 256, zoom: 1.1 }, on: { moves: 1, keepOnly: 1 } },
+  { kick: 'What already exists', head: 'Five routes fall short. One we borrowed.', cards: [
+    ['National flood maps · Environment Agency', 'Where the water goes', 'Maps of flood depth for every street in England.', 'They do not say which ground is responsible.'],
+    ['Per-cell simulation study · arXiv 2311.00420', 'One simulation per change', 'The accurate way to test a change: run the full physics again.', '55 GPU-hours for this one street and storm.'],
+    ['Blue Spot · SCALGO · Rav et al. 2017', 'Fill-and-spill shortcut models', 'Fill the dips and spill them over, with no physics of flow. Answers in seconds.', 'Found 43 to 77% of the ground that matters here.'],
+    ['Adjoint and derivative methods', 'Slopes from one run', 'One calculation gives the sensitivity to every square at once.', 'A small-change slope found only 55%. We did not build an adjoint.'],
+    ['Bettonvil and Kleijnen 1997', 'Pooled screening', 'Test a hundred squares together, split the groups that respond.', 'Needs effects that all push one way. Ours go both ways.'],
+    ['Curtis, Powell and Reid 1974', 'Colouring for sparse derivatives', 'Change things that cannot interact in the same run.', 'The idea we borrowed. We did not find it used for floods.']],
+    cam: { x: 256, y: 256, zoom: .8 }, on: { moves: .0 }, spin: 1 },
   { kick: 'What we claim', head: 'The few square metres that matter', rows: [['ok', '<b>15,788</b> experiments in <b>1,956</b> simulations: 8 times less compute on the same laptops'], ['ok', '<b>84</b> squares out of 7,894 change a building’s flood, typically 20 m from the door'], ['ok', 'A fix taken from the map helped <b>5</b> buildings and harmed <b>0</b>']], body: 'One neighbourhood, one storm, no sewer data: this shows which ground the simulation is sensitive to, not a forecast. London is about 6,000 neighbourhoods like this one, and each can run on its own.', cam: { x: 200, y: 140, zoom: .82 }, on: { moves: 1, design: 1, water: .5, places: 1 }, minute: 45 }
 ];
 // ---- playing a scene ----
@@ -191,7 +219,7 @@ function go(n) {
   n = Math.max(0, Math.min(SCENES.length - 1, n)); if (n === idx) return; const first = idx < 0; idx = n; const sc = SCENES[n];
   if (tl) tl.kill(); loops.forEach(l => l.kill()); loops = []; gsap.killTweensOf([cam, S, race]);
   [...$('dots').children].forEach((b, i) => { b.setAttribute('aria-current', String(i === n)); b.classList.toggle('done', i < n); }); $('count').textContent = (n + 1) + ' / ' + SCENES.length; $('next').textContent = n === SCENES.length - 1 ? 'Start again ↺' : 'Next →';
-  const D0 = reduced ? 0 : 1, on = Object.assign({ places: 0, water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
+  const D0 = reduced ? 0 : 1, on = Object.assign({ patch: 0, places: 0, water: 0, pack: 0, packAll: 0, moves: 0, keepOnly: 0, design: 0, five: 0 }, sc.on || {});
   tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
   // text out, camera pulls back, then pushes in on the new subject
   if (!first) tl.to('#story > *', { opacity: 0, x: -24, duration: .3 * D0, stagger: .03 * D0, ease: 'power2.in' }, 0).to('#inset', { opacity: 0, y: 12, duration: .25 * D0 }, 0);
@@ -201,12 +229,12 @@ function go(n) {
     $('kick').textContent = sc.kick; words($('head'), sc.head); $('body').innerHTML = sc.body || ''; $('body').hidden = !sc.body;
     $('big').hidden = !sc.big; if (sc.big) { $('bign').textContent = sc.big[0]; $('bigu').textContent = sc.big[1]; }
     $('race').hidden = !sc.race; $('rows').hidden = !sc.rows; if (sc.rows) $('rows').innerHTML = sc.rows.map(([k, t]) => '<div class="row ' + (k === 'fail' ? 'fail' : '') + '"><i></i><span>' + t + '</span></div>').join('');
-    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; if (sc.inset) sketch(0, sc.inset[0] * 1.2);
+    $('inset').hidden = !sc.inset; $('clock').hidden = !sc.clock; S.lower = 0; sketch(0); $('kerbBtn').hidden = !sc.inset; $('kerbBtn').textContent = 'Lower kerb'; $('story').classList.toggle('wide', !!sc.cards); $('cards').hidden = !sc.cards; if (sc.cards) $('cards').innerHTML = sc.cards.map(([c, h, t, v]) => '<div class="card"><div class="cite">' + c + '</div><h3>' + h + '</h3><p>' + t + '</p><p class="v">' + v + '</p></div>').join('');
     S.storm = sc.heavy ? 1 : 0; if (sc.minute != null) S.minute = sc.minute; if (sc.storm) S.minute = sc.storm[0]; if (sc.kerb != null) S.kerbAt = sc.kerb; S.kerbAll = sc.all ? 1 : 0; S.sel = sc.tour ? 1 : 4; S.spin = 0; race.t = 0; setRace(0); S.moves = on.moves && !sc.sweep ? Math.max(S.moves, 0) : S.moves;
     gsap.set('#story > *', { opacity: 0, x: 0, y: 0 }); gsap.set('#inset', { opacity: 0, y: 12 });
   });
   const t0 = tl.duration();
-  tl.to(S, { places: on.places, water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
+  tl.to(S, { patch: on.patch, places: on.places, water: on.water, pack: on.pack, packAll: on.packAll, design: on.design, five: on.five, keepOnly: on.keepOnly, duration: .8 * D0 }, t0);
   tl.to(S, { moves: on.moves, duration: (sc.sweep ? 2.6 : .9) * D0, ease: 'power1.out' }, t0 + (sc.sweep ? .9 : 0));
   tl.to(cam, { x: sc.cam.x, y: sc.cam.y, duration: 1.1 * D0 }, t0).to(cam, { zoom: sc.cam.zoom, duration: 1.4 * D0, ease: 'power2.inOut' }, t0 + .25 * D0);
   tl.to('#kick', { opacity: 1, duration: .4 * D0 }, t0 + .3 * D0);
@@ -215,14 +243,16 @@ function go(n) {
   if (sc.body) tl.fromTo('#body', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .6 * D0, ease: 'power2.out' }, t0 + 1.1 * D0);
   if (sc.rows) tl.set('#rows', { opacity: 1 }, t0).fromTo('#rows .row', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: .5 * D0, stagger: .28 * D0, ease: 'power3.out' }, t0 + 1.0 * D0);
   if (sc.race) { tl.to('#race', { opacity: 1, duration: .4 * D0 }, t0 + .9 * D0); tl.to(race, { t: 55, duration: 7 * D0, ease: 'none', onUpdate: () => setRace(race.t) }, t0 + 1.2 * D0); }
-  if (sc.inset) { tl.to('#inset', { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.2 * D0); const o = { k: 0, d: sc.inset[0] };
-    tl.to(S, { kerb: 1, duration: 1.6 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0).to(o, { k: 1, d: sc.inset[1], duration: 1.8 * D0, ease: 'power2.inOut', onUpdate: () => sketch(o.k, o.d * 1.2) }, t0 + 1.9 * D0); }
+  if (sc.inset) { tl.to('#inset', { opacity: 1, y: 0, duration: .5 * D0 }, t0 + 1.2 * D0).to('#kerbBtn', { opacity: 1, duration: .4 * D0 }, t0 + 1.3 * D0); tl.add(() => lowerKerb(1), t0 + 3.2 * D0); }
+  if (sc.cards) tl.set('#cards', { opacity: 1 }, t0).fromTo('#cards .card', { opacity: 0, y: 46, rotate: i => (i % 2 ? 5 : -5) }, { opacity: 1, y: 0, rotate: i => [-1.2, .8, .6, -.9, 1.1, -.5][i % 6], duration: .6 * D0, stagger: .16 * D0, ease: 'back.out(1.4)' }, t0 + .9 * D0);
   if (sc.all) tl.to(S, { kerb: 1, duration: 1.8 * D0, ease: 'elastic.out(1,.6)' }, t0 + 1.9 * D0);
   if (sc.storm) { const [a, b, dur] = sc.storm; S.minute = a; const l = gsap.to(S, { minute: b, duration: reduced ? 0 : dur, ease: 'none', delay: reduced ? 0 : 1, repeat: reduced ? 0 : -1, repeatDelay: 1.5, onUpdate: () => { $('clock').textContent = 'minute ' + Math.floor(S.minute) + ' of 60'; } }); loops.push(l); }
   if (sc.pulse && !reduced) loops.push(gsap.to(S, { packPulse: 110, duration: 30, ease: 'none', repeat: -1 }));
   if (sc.spin && !reduced) loops.push(gsap.to(S, { spin: .5, duration: 26, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
   if (sc.tour && !reduced) { const order = [1, 2, 3, 0, 4]; const t = gsap.timeline({ repeat: -1, delay: 6 }); order.forEach((i, k) => { const d = D.design[order[(k + 1) % 5]]; t.to(cam, { zoom: 1.5, duration: .8, ease: 'power2.inOut' }, k * 5).add(() => { S.sel = order[(k + 1) % 5]; }, k * 5 + .7).to(cam, { x: (d[0] + d[2]) / 2, y: (d[1] + d[3]) / 2, duration: 1.2, ease: 'power3.inOut' }, k * 5 + .4).to(cam, { zoom: 2.9, duration: 1.1, ease: 'power2.inOut' }, k * 5 + 1.3); }); loops.push(t); }
 }
+function lowerKerb(to) { gsap.to(S, { lower: to, duration: reduced ? 0 : 1.4, ease: 'power2.inOut', onUpdate: () => sketch(S.lower) }); $('kerbBtn').textContent = to ? 'Put it back' : 'Lower kerb'; }
+$('kerbBtn').onclick = () => lowerKerb(S.lower > .5 ? 0 : 1);
 SCENES.forEach((sc, i) => { const b = document.createElement('button'); b.setAttribute('aria-label', 'Step ' + (i + 1) + ': ' + sc.kick); b.onclick = () => go(i); $('dots').append(b); });
 $('next').onclick = () => go(idx === SCENES.length - 1 ? 0 : idx + 1); $('prev').onclick = () => go(idx - 1);
 window.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); $('next').click(); } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); } });
