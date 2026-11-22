@@ -1,0 +1,158 @@
+<title>Southwark Flood Model</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a control strip on top, two synced 3D views side by side (stacked on a phone), figures under each view. */
+:root { --bg:#f3f2ee; --panel:#ffffff; --fg:#14161a; --muted:#5d626b; --line:#d9d7d0; --water:#1f6fe0; --fix:#e0342b; --helped:#c98a00; --down:#12905c; --scene:#eceae4;
+  --sans:'Instrument Sans', Arial, sans-serif; --mono:'DM Mono', ui-monospace, Menlo, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0e0f11; --panel:#17191d; --fg:#f2efe6; --muted:#9a9da3; --line:#2a2d33; --water:#5aa2ff; --fix:#ff5a4f; --helped:#ffbf3f; --down:#3fd69a; --scene:#1b1d21; color-scheme: dark } }
+:root[data-theme="dark"] { --bg:#0e0f11; --panel:#17191d; --fg:#f2efe6; --muted:#9a9da3; --line:#2a2d33; --water:#5aa2ff; --fix:#ff5a4f; --helped:#ffbf3f; --down:#3fd69a; --scene:#1b1d21; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.45; padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px }
+h1 { font-size: clamp(26px, 3.4vw, 44px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; margin: 0; text-wrap: balance }
+.lede { color: var(--muted); max-width: 70ch; margin: 6px 0 0 }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px }
+.group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0 }
+.lab { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.seg button { font: 500 15px var(--sans); color: var(--fg); background: transparent; border: 0; padding: 8px 14px; cursor: pointer }
+.seg button + button { border-left: 1px solid var(--line) }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg) }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--water); outline-offset: 2px }
+input[type=range] { width: min(320px, 60vw); accent-color: var(--water) }
+.play { font: 500 15px var(--sans); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer }
+.val { font-family: var(--mono); font-size: 14px; min-width: 9ch; font-variant-numeric: tabular-nums }
+.stage { position: relative; height: clamp(360px, 62vh, 680px); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--scene); touch-action: none }
+.stage canvas { display: block; width: 100%; height: 100% }
+.tag { position: absolute; top: 12px; font: 600 15px var(--sans); background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; pointer-events: none }
+.pin { position: absolute; transform: translate(-50%, -100%); font: 500 12px var(--mono); letter-spacing: .04em; background: var(--fg); color: var(--bg); padding: 3px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none }
+.pin::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 14px; background: var(--fg) }
+.split { position: absolute; background: var(--line); pointer-events: none }
+[hidden] { display: none !important }
+.msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-family: var(--mono); font-size: 14px; padding: 16px; text-align: center }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0 }
+.card h2 { font-size: 15px; font-weight: 600; margin: 0 0 8px }
+.big { font-size: 44px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums }
+.card p { margin: 6px 0 0; color: var(--muted) }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px }
+.chip { font: 500 13px var(--mono); border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px; font-variant-numeric: tabular-nums }
+.key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted) }
+.key span::before { content: ""; display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c) }
+.notes { color: var(--muted); font-size: 14px; max-width: 95ch }
+.notes p { margin: 0 0 6px }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr } .stage { height: 78vh } }
+</style>
+<div class="wrap">
+  <header>
+    <h1>Southwark station in a rainstorm, as it is and with a fix</h1>
+    <p class="lede">The streets around Southwark station and Blackfriars Road, London SE1. Pick a storm, raise the water, and compare the street today with the same street after five small squares of ground are moved by 5 cm. Drag to turn, scroll or pinch to zoom.</p>
+  </header>
+  <div class="controls">
+    <div class="group"><span class="lab" id="lab-storm">Rain in one hour</span>
+      <div class="seg" role="group" aria-labelledby="lab-storm"><button id="storm-0" aria-pressed="false">15 mm</button><button id="storm-1" aria-pressed="true">35 mm</button><button id="storm-2" aria-pressed="false">70 mm</button></div></div>
+    <div class="group"><label class="lab" for="level">Water level</label><input id="level" type="range" min="0" max="100" value="100"><span class="val" id="level-val">peak</span><button class="play" id="play">Fill from dry</button></div>
+    <div class="group"><span class="lab" id="lab-exag">Water height drawn</span>
+      <div class="seg" role="group" aria-labelledby="lab-exag"><button id="exag-1" aria-pressed="true">True</button><button id="exag-10" aria-pressed="false">× 10</button></div></div>
+  </div>
+  <div class="stage" id="stage"><canvas id="c"></canvas>
+    <div class="split" id="split"></div>
+    <div class="tag" id="tag-a">As it is</div><div class="tag" id="tag-b">With the fix</div>
+    <div class="pin" id="pin-a0">Southwark station</div><div class="pin" id="pin-a1">Blackfriars Road</div><div class="pin" id="pin-b0">Southwark station</div><div class="pin" id="pin-b1">Blackfriars Road</div>
+    <div class="msg" id="msg">Loading the street…</div></div>
+  <div class="key"><span style="--c:var(--water)">water, 3 cm and deeper</span><span style="--c:var(--fix)">ground moved 5 cm (drawn 13 m wide; really 5 m)</span><span style="--c:var(--helped)">the five buildings the fix was chosen for</span><span style="--c:var(--down)">water at least 1 cm shallower with the fix</span></div>
+  <div class="cols">
+    <div class="card"><h2>As it is</h2><div class="big" id="fl-a">–</div><p>of 207 building points with 10 cm of water or more at the peak</p></div>
+    <div class="card"><h2>With the fix</h2><div class="big" id="fl-b">–</div><p>of 207 building points with 10 cm of water or more at the peak</p>
+      <div class="chips" id="chips"></div><p id="rise"></p></div>
+  </div>
+  <div class="notes">
+    <p><strong>What is real.</strong> Ground: Environment Agency 1 m height survey, 2022. Building heights: the same survey's surface model. Water: the deepest level reached in our own flood simulation, run six times (three storms, with and without the fix).</p>
+    <p><strong>What is not.</strong> The water level slider scales the water from dry up to the simulated peak so you can watch it rise. It is not a replay of the storm minute by minute. Sewers are a constant 12 mm an hour, so this shows where water collects, not a forecast. The fix was chosen for the 35 mm storm; the other two storms show how well it carries over.</p>
+    <p>Street map © OpenStreetMap contributors.</p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const STATS = __STATS__, BFR = __BFR__, N = 512, NN = N * N;
+const $ = id => document.getElementById(id);
+async function unpack(b64) {
+  const bin = atob(b64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+}
+function cssColor(name) { return new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue(name).trim()); }
+const WVS = `attribute float aGround; attribute float aDepth; attribute float aDiff; uniform float uLevel; uniform float uExag; varying float vD; varying float vDiff;
+void main(){ vD = aDepth * uLevel; vDiff = aDiff; vec3 p = position; p.y = aGround + vD * uExag + 0.12; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`;
+const WFS = `uniform vec3 uWater; uniform vec3 uDown; uniform float uShowDiff; varying float vD; varying float vDiff;
+void main(){ if (vD < 0.03) discard; float k = clamp(vD / 0.6, 0.0, 1.0); vec3 c = mix(uWater, uWater * 0.45, k); float a = clamp(0.45 + vD / 0.3, 0.45, 0.9);
+if (uShowDiff > 0.5 && vDiff <= -0.01) { c = uDown; a = 0.92; } gl_FragColor = vec4(c, a); }`;
+(async function main() {
+  let buf; try { buf = await unpack("__DATA__"); } catch (e) { $('msg').textContent = 'This browser could not unpack the model data. Try a current Chrome, Safari or Firefox.'; return; }
+  let o = 0; const take = (T, n) => { const a = new T(buf.slice(o, o + n * T.BYTES_PER_ELEMENT)); o += n * T.BYTES_PER_ELEMENT; return a; };
+  const H = take(Uint16Array, NN), G = take(Uint16Array, NN), AMB = take(Uint8Array, NN), FLAGS = take(Uint8Array, NN), BASE = take(Uint16Array, 3 * NN), DIFF = take(Int8Array, 3 * NN);
+  const canvas = $('c'), stage = $('stage'); let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) { $('msg').textContent = '3D graphics are not available in this browser.'; return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const pos = new Float32Array(NN * 3), uv = new Float32Array(NN * 2), ground = new Float32Array(NN), colA = new Float32Array(NN * 3), colB = new Float32Array(NN * 3);
+  for (let r = 0, i = 0; r < N; r++) for (let c = 0; c < N; c++, i++) {
+    pos[3 * i] = c; pos[3 * i + 1] = H[i] / 100; pos[3 * i + 2] = r; uv[2 * i] = c / (N - 1); uv[2 * i + 1] = 1 - r / (N - 1); ground[i] = G[i] / 100;
+    const a = 0.45 + 0.55 * AMB[i] / 255, f = FLAGS[i]; let R = a, Gc = a, Bc = a;
+    if (f & 1) { R = 0.20 * a; Gc = 0.21 * a; Bc = 0.24 * a; }
+    colA[3 * i] = R; colA[3 * i + 1] = Gc; colA[3 * i + 2] = Bc;
+    if (f & 2) { R = 1.0 * a; Gc = 0.70 * a; Bc = 0.18 * a; } else if (f & 4) { R = 0.92; Gc = 0.18; Bc = 0.14; }
+    colB[3 * i] = R; colB[3 * i + 1] = Gc; colB[3 * i + 2] = Bc;
+  }
+  const idx = new Uint32Array((N - 1) * (N - 1) * 6);
+  for (let r = 0, k = 0; r < N - 1; r++) for (let c = 0; c < N - 1; c++) { const a = r * N + c, b = a + 1, d = a + N, e = d + 1; idx[k++] = a; idx[k++] = d; idx[k++] = b; idx[k++] = b; idx[k++] = d; idx[k++] = e; }
+  const pA = new THREE.BufferAttribute(pos, 3), uA = new THREE.BufferAttribute(uv, 2), iA = new THREE.BufferAttribute(idx, 1);
+  const g0 = new THREE.BufferGeometry(); g0.setAttribute('position', pA); g0.setAttribute('uv', uA); g0.setIndex(iA); g0.computeVertexNormals();
+  const tex = new THREE.Texture(); const img = new Image(); img.onload = () => { tex.image = img; tex.needsUpdate = true; draw(); }; img.src = 'data:image/jpeg;base64,__TEX__'; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const camera = new THREE.PerspectiveCamera(32, 1, 5, 4000); camera.position.set(256 - 360, 440, 256 + 520);
+  const controls = new THREE.OrbitControls(camera, canvas); controls.target.set(256, 0, 256); controls.maxPolarAngle = Math.PI * 0.47; controls.minDistance = 90; controls.maxDistance = 1100; controls.enableDamping = true; controls.update();
+  const flat = new Float32Array(NN).fill(0); const views = [];
+  for (let v = 0; v < 2; v++) {
+    const scene = new THREE.Scene(); scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a92, 0.78)); const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(-0.55, 0.9, 0.35); scene.add(sun);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', pA); g.setAttribute('uv', uA); g.setAttribute('normal', g0.getAttribute('normal')); g.setAttribute('color', new THREE.BufferAttribute(v ? colB : colA, 3)); g.setIndex(iA);
+    scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: tex, vertexColors: true })));
+    const wg = new THREE.BufferGeometry(); wg.setAttribute('position', pA); wg.setAttribute('aGround', new THREE.BufferAttribute(ground, 1)); wg.setAttribute('aDepth', new THREE.BufferAttribute(new Float32Array(NN), 1)); wg.setAttribute('aDiff', new THREE.BufferAttribute(v ? new Float32Array(NN) : flat, 1)); wg.setIndex(iA);
+    const wm = new THREE.ShaderMaterial({ vertexShader: WVS, fragmentShader: WFS, transparent: true, depthWrite: false, uniforms: { uLevel: { value: 1 }, uExag: { value: 1 }, uWater: { value: cssColor('--water') }, uDown: { value: cssColor('--down') }, uShowDiff: { value: v } } });
+    const wmesh = new THREE.Mesh(wg, wm); wmesh.frustumCulled = false; scene.add(wmesh); views.push({ scene, wg, wm });
+  }
+  let storm = 1, level = 1, exag = 1, playing = null;
+  function setStorm(s) {
+    storm = s; const a = views[0].wg.getAttribute('aDepth').array, b = views[1].wg.getAttribute('aDepth').array, d = views[1].wg.getAttribute('aDiff').array, off = s * NN;
+    for (let i = 0; i < NN; i++) { const m = BASE[off + i], dm = DIFF[off + i]; a[i] = m / 1000; b[i] = Math.max(0, (m + dm) / 1000); d[i] = dm / 1000; }
+    views[0].wg.getAttribute('aDepth').needsUpdate = true; views[1].wg.getAttribute('aDepth').needsUpdate = true; views[1].wg.getAttribute('aDiff').needsUpdate = true;
+    for (let k = 0; k < 3; k++) $('storm-' + k).setAttribute('aria-pressed', String(k === s));
+    $('fl-a').textContent = STATS.flooded[s][0]; $('fl-b').textContent = STATS.flooded[s][1];
+    $('chips').innerHTML = STATS.targets[s].map((x, k) => `<span class="chip">Building ${k + 1}: ${x > 0 ? '+' : ''}${x.toFixed(1)} cm</span>`).join('');
+    $('rise').textContent = `Change in peak water at the five buildings. Largest rise at any other building point: ${STATS.rise[s].toFixed(2)} cm.`; draw();
+  }
+  function setLevel(x) { level = x; $('level').value = Math.round(x * 100); $('level-val').textContent = x >= 0.995 ? 'peak' : Math.round(x * 100) + '% of peak'; views.forEach(v => v.wm.uniforms.uLevel.value = x); draw(); }
+  function setExag(x) { exag = x; views.forEach(v => v.wm.uniforms.uExag.value = x); $('exag-1').setAttribute('aria-pressed', String(x === 1)); $('exag-10').setAttribute('aria-pressed', String(x === 10)); draw(); }
+  const pins = [[256, 256, 'pin-a0', 'pin-b0'], [BFR[0], BFR[1], 'pin-a1', 'pin-b1']]; const vtmp = new THREE.Vector3();
+  function layout() { const w = stage.clientWidth, h = stage.clientHeight, tall = w < 760; return tall ? [{ x: 0, y: 0, w, h: h / 2 }, { x: 0, y: h / 2, w, h: h / 2 }] : [{ x: 0, y: 0, w: w / 2, h }, { x: w / 2, y: 0, w: w / 2, h }]; }
+  let queued = false; function draw() { if (!queued) { queued = true; requestAnimationFrame(frame); } }
+  function frame() {
+    queued = false; const w = stage.clientWidth, h = stage.clientHeight; if (canvas.width !== Math.floor(w * renderer.getPixelRatio()) || canvas.height !== Math.floor(h * renderer.getPixelRatio())) renderer.setSize(w, h, false);
+    const moving = controls.update(); const L = layout(); renderer.setScissorTest(true); const bg = cssColor('--scene');
+    L.forEach((r, v) => {
+      camera.aspect = r.w / r.h; camera.updateProjectionMatrix(); renderer.setViewport(r.x, h - r.y - r.h, r.w, r.h); renderer.setScissor(r.x, h - r.y - r.h, r.w, r.h); renderer.setClearColor(bg, 1); renderer.render(views[v].scene, camera);
+      pins.forEach(p => { const el = $(p[2 + v]); vtmp.set(p[1], H[p[0] * N + p[1]] / 100 + 6, p[0]).project(camera); const sx = r.x + (vtmp.x + 1) / 2 * r.w, sy = r.y + (1 - vtmp.y) / 2 * r.h; const vis = vtmp.z < 1 && sx > r.x + 40 && sx < r.x + r.w - 40 && sy > r.y + 50 && sy < r.y + r.h - 8; el.hidden = !vis; el.style.left = sx + 'px'; el.style.top = (sy - 14) + 'px'; });
+      $(v ? 'tag-b' : 'tag-a').style.left = (r.x + 12) + 'px'; $(v ? 'tag-b' : 'tag-a').style.top = (r.y + 12) + 'px';
+    });
+    const s = $('split'), b = L[1]; if (b.x > 0) { s.style.left = b.x + 'px'; s.style.top = '0'; s.style.width = '1px'; s.style.height = '100%'; } else { s.style.left = '0'; s.style.top = b.y + 'px'; s.style.width = '100%'; s.style.height = '1px'; }
+    if (moving || playing) draw();
+  }
+  controls.addEventListener('change', draw); window.addEventListener('resize', draw); new ResizeObserver(draw).observe(stage);
+  const mq = window.matchMedia('(prefers-color-scheme: dark)'); const retheme = () => { views.forEach(v => { v.wm.uniforms.uWater.value = cssColor('--water'); v.wm.uniforms.uDown.value = cssColor('--down'); }); draw(); };
+  mq.addEventListener('change', retheme); new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  [0, 1, 2].forEach(k => $('storm-' + k).addEventListener('click', () => setStorm(k)));
+  $('level').addEventListener('input', e => { playing = null; setLevel(e.target.value / 100); });
+  $('exag-1').addEventListener('click', () => setExag(1)); $('exag-10').addEventListener('click', () => setExag(10));
+  $('play').addEventListener('click', () => { const t0 = performance.now(); playing = t0; (function step() { if (playing !== t0) return; const x = Math.min(1, (performance.now() - t0) / 6000); setLevel(x); if (x < 1) requestAnimationFrame(step); else playing = null; })(); });
+  $('msg').hidden = true; setStorm(1); setLevel(1);
+})();
+</script>
