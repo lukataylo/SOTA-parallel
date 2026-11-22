@@ -1,5 +1,11 @@
-# Pro: nothing to run (Sunday 01:15)
+# Pro: run this now (Sunday 05:25). Two checks, about 85 minutes, nothing else on the GPU.
 
-The solver map and both confirm stages are finished and scored. Results: `docs/G_CRITERIA.md` (bottom), `docs/FINDINGS.md`.
+```
+git pull --rebase
+nohup fill/final_chain.sh pro dense random > results/pro/final_chain.log 2>&1 &
+```
 
-Thank you for the lowered half and the 138 raised colours. Please do not start new runs. If you want to help: read `fill/map_score.py` and `fill/map_trace_score.py` for mistakes and write what you find in `status/pro.md`. Change no thresholds.
+- `dense`: the lowered half re-mapped with squares 75 m apart (225 runs). `random`: 240 dismissed what-ifs run alone.
+- Lines are in `docs/G_CRITERIA.md` ("Sunday morning checks"). The chain pushes results every 10 minutes and at the end.
+- Write one line in `status/pro.md` when it starts and when it ends. Change no thresholds. Do not score; the Air scores.
+- If you see this after 07:30, do not start: the Air will have taken the jobs over.

@@ -104,3 +104,16 @@ All 1,800 runs finished: 15,788 what-ifs, 8.77 per run. With the 126 confirm run
 **Final list:** 96 confirmed movers plus 2 found only by tracing: 98 of 15,788 what-ifs (0.62%), on 84 of 7,894 blocks (1.06%). 60 make a building deeper, 38 shallower. Median distance to the building 20 m, 90th percentile 49 m; 86% are more than 10 m away. Median effect 1.7 cm, largest 7.8 cm. 39 buildings affected. Against this list rule 2 finds 75 of 98 (77%) and rule 1 finds 42 (43%).
 
 **What the slides may say.** "Every open 5 x 5 m square raised and lowered 5 cm in a 2D solver: 15,788 what-ifs in 1,800 runs. 98 move a building by 1 cm, typically 20 m away." And, since the screen failed its recall line: "The quick estimate finds 77% of the ground that matters and wrongly dismisses 0.15%. The solver map is the product; the quick estimate is a prior." Not to be said: that 150 m spacing isolates every change. It does not for long ponds; the confirm stage is part of the method.
+
+## Sunday morning checks (committed 05:20, before any of these runs)
+
+From `docs/mythos/12_premortem_two_hours.md`. Runner `fill/final_runs.py`, scorer `fill/final_score.py`. No number of the map above changes; these are new experiments with their own lines.
+
+| Check | Runs | Pass line | If it fails we say |
+|---|---|---|---|
+| **Persist.** The 98 mover what-ifs, each alone, at the 70 mm storm; at 35 mm with Manning n 0.03 in place of 0.015; and at 15 mm | 3 x 99 | At 70 mm and at n 0.03: at least 66 of 98 move the same receptor by 1 cm in the same direction. 15 mm is reported with no line | "Which ground matters depends on the storm; the map is needed per storm" |
+| **Dense.** The lowered half re-mapped with squares 75 m apart (block mod 15): 225 runs, 35 what-ifs per run | 226 | At least 95% of the 34 known lowered movers show their receptor move 1 cm the same way in the run that holds them. After tracing, zero moves that are not explained by a known mover (either this run's, within 125 m) | "At 75 m packing loses X%. The reach of water sets the factor; 150 m is near the limit here" |
+| **Random dismissed.** 240 what-ifs drawn with seed 2026 from those the map did not call movers, each alone | 241 | 0 of 240 move a receptor more than 7.5 m away by 1 cm | "The map misses about X%" |
+| **Design from the map.** Up to five mover what-ifs whose single run lowers a building 1 cm and raises no receptor more than 0.3 cm, distinct target buildings, largest benefit first; combined into one terrain | 1 | Every target falls 1 cm; no receptor rises 1 cm; every receptor's change within 5 mm of the sum of the single effects | "Single effects do not add up; every design needs its own run" |
+
+"Persist" tests whether known movers remain movers. It does not look for new movers at other storms.
