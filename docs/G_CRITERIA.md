@@ -231,3 +231,13 @@ Score for one arm: the number of the 207 wall points whose peak water falls by 1
 - **P5, another storm.** The same targeted 20, placed from the 35 mm run, under 1.4 times that storm's rain, against 6 random draws. Pass: targeted scores above the random median and above zero.
 
 Limits stated now: one tile; the tree model itself is unchanged and unvalidated (pit holds water instantly, no inlet losses, the 12 mm/h loss still applies); random draws are from kerb sites only; P5 is one extra storm. If the run is cut short, the batches that finished are scored and the rest reported as not run.
+
+**Result of the larger tree test (Tuesday 24 November 14:43): three lines passed, two failed.** All six batches finished (44 minutes); largest mass imbalance 9e-6. Scores are wall points falling 1 cm or more.
+
+- **P1 targeting: PASS.** Targeted 20 score 8. The 30 random draws score 0 (22 draws) or 1 (8 draws), mean 0.3; targeted is above all 30. Summed fall at the 30 flooded wall points: 11.6 cm targeted against a random median of 3.6 and maximum of 5.6. Targeted pits take 78 m3; random pits take 33 to 61 m3.
+- **P2 no harm: FAIL.** One random draw (seed 3015) raises one wall point by 1.03 cm. The targeted placement raises nothing (largest rise 0.00 cm). Not traced.
+- **P3 dose: PASS.** 0, 3, 8, 8, 16 at 5, 10, 20, 40, 80 targeted trees. But 80 targeted trees raise one wall point by 2.8 cm, and 20 to 40 adds no wall points (the largest fall grows from 1.7 to 2.5 cm).
+- **P4 pit volume: FAIL.** With pits at half the volume the score is 0 (largest fall 0.86 cm; line 4). At a quarter, 0 (0.43 cm). The falls scale almost in proportion to the water the pits hold.
+- **P5 another storm: PASS.** At 1.4 times the rain (51.9 mm net, 37 wall points flooded unchanged) the same placement scores 2, against random 0, 0, 0, 0, 0, 1.
+
+No arm of 20 trees takes a wall point below the 10 cm flood line net of any it pushes above, except that the targeted 20 take two below it at the larger storm. What we say: "Where the trees go matters: the targeted placement beat all 30 random ones. How much they help is set by how much water the pits hold, and that figure is our least certain input: at half the volume no wall point moves by a centimetre." `fill/green_validate.py`, `results/air/green/validate_b*.npz`.

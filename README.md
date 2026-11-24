@@ -139,6 +139,18 @@ Three statements were written in the run script before it ran:
 
 Even the two ceilings, which take 14 to 25% of the net rain, leave at least 26 of the 30 receptors flooded at 35 mm and 42 of the 45 at 70 mm. These are one placement per arm, with one random draw each, so the targeted-against-random comparison is an indication and not a measured multiplier. The grass storage figures are unsourced, the pit volume is an upper bound (15 m3 of structural soil at 26% voids, empty, with an inlet that delivers), and the 12 mm/h loss still applies on grass, so every benefit here is an upper bound.
 
+**A larger test, run on 24 November after the hackathon** (`fill/green_validate.py`; five lines committed first, in `docs/G_CRITERIA.md`). It addresses the three weaknesses above: 30 random draws in place of one, a second storm the placement was not chosen from, and smaller pits. Score: wall points falling 1 cm or more.
+
+| Line | Result | |
+|---|---|---|
+| Targeted beats at least 28 of 30 random draws | Pass | Targeted 8; random 0 in 22 draws and 1 in 8. Summed fall 11.6 cm against a random maximum of 5.6 |
+| No arm of 20 trees raises a wall point 1 cm | Fail | One random draw raises one point by 1.03 cm. Targeted raises nothing |
+| More targeted trees never score lower | Pass | 0, 3, 8, 8, 16 at 5, 10, 20, 40, 80 trees. 80 trees also raise one point by 2.8 cm |
+| Half-size pits still lower 4 wall points | Fail | 0 at half volume (largest fall 0.86 cm) and 0 at a quarter |
+| Same placement at 1.4 times the rain beats the random median | Pass | Targeted 2; random 0, 0, 0, 0, 0, 1 |
+
+So placement matters in this model, and the benefit is set almost entirely by how much water the pits hold, which is our least certain input. The tree model itself is still unvalidated and this is still one tile.
+
 ## 4. What did not work
 
 - **Batching simulations.** No gain per simulation on this hardware.
