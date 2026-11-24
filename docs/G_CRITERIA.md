@@ -217,3 +217,17 @@ Asked for by the human: re-run the shortcut with the parameters most likely to p
 - **Deviation, recorded at 14:06 before any score was seen:** the full run was too slow to finish (under 1,000 of 15,788 evaluations in four minutes; the laptop is under other load). It was stopped with nothing scored. The run now covers every square that holds a mover (84 squares, both signs) and a random sample of 250 other squares in each half (seed 2026). Recall is exact. The share of what-ifs flagged and the share wrongly dismissed are estimates from the sample, and are reported as such.
 
 **Result of the re-run at other depths (Sunday 14:11): FAIL.** Sanity check: the 35 mm depth alone, with sign, reproduces the committed rule 2 (75 of 98). On the west half, D2 (fires at any of 35, 43 or 50 mm, sign-free) was the smallest candidate to reach 80%: 32 of 36, about 6.3% flagged. Scored once on the east half it finds 48 of 62 (77%; line 80%), flags about 9.6% (estimated from 250 sampled squares) and wrongly dismisses about 0.19%. Without the railway wall point: 40 of 47. The fill at 43 mm alone did worse than at 35 mm (25 of 36 on the west half), so "more water resembles the peak" is not supported. Two after-the-fact rules have now stopped at the same 48 of 62 on the east half; the same 14 movers are out of reach of this model whatever the depth. `fill/map_fill_depths.py`, `fill/screen_depths.py`.
+
+## Street trees, a second and larger test (committed Tuesday 24 November 14:05, after the hackathon, before the run)
+
+The first tree test (README 3.6) had one targeted placement and one random draw, so "targeted beats random" was an indication only. It also chose the placement from the same 35 mm run it was scored on, and used a pit volume that is an upper bound. This test addresses those three weaknesses. `fill/green_validate.py`: 48 simulated arms, six batches of eight, same solver, storm and tree model as before. The targeted placement is the earlier one, unchanged.
+
+Score for one arm: the number of the 207 wall points whose peak water falls by 1 cm or more against the unchanged street.
+
+- **P1, targeting.** 30 independent random draws of 20 trees at kerb sites (seeds 3000 to 3029). Pass: the targeted 20 score strictly higher than at least 28 of the 30 draws. Ties count against. Reported beside it: the summed fall at the receptors that flood unchanged.
+- **P2, no harm.** Pass: none of the 31 arms of 20 trees raises any wall point by 1 cm.
+- **P3, dose.** Targeted 5, 10, 20, 40 and 80 trees. Pass: the score never falls as trees are added.
+- **P4, pit volume.** The targeted 20 with pits at half the volume (1.95 m3). Pass: a score of at least 4, half the 8 found before. A quarter of the volume is run and reported without a line.
+- **P5, another storm.** The same targeted 20, placed from the 35 mm run, under 1.4 times that storm's rain, against 6 random draws. Pass: targeted scores above the random median and above zero.
+
+Limits stated now: one tile; the tree model itself is unchanged and unvalidated (pit holds water instantly, no inlet losses, the 12 mm/h loss still applies); random draws are from kerb sites only; P5 is one extra storm. If the run is cut short, the batches that finished are scored and the rest reported as not run.
